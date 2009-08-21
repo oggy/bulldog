@@ -6,11 +6,27 @@ require 'action_controller'
 require 'init'
 
 module SpecHelper
+  def self.included(mod)
+    mod.extend ClassMethods
+  end
+
   def uploaded_file(path)
     io = ActionController::UploadedStringIO.new
     io.original_path = path
     io.content_type = Rack::Mime::MIME_TYPES[File.extname(path)]
     io
+  end
+
+  module ClassMethods
+    def setup_model_class(name)
+      before do
+        Object.const_set(name, Class.new(ActiveRecord::BaseWithoutTable))
+      end
+
+      after do
+        Object.send(:remove_const, name)
+      end
+    end
   end
 end
 
