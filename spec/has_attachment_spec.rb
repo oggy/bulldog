@@ -10,18 +10,20 @@ describe FastAttachments::HasAttachment do
     Object.send(:remove_const, :Thing)
   end
 
-  it "should provide accessors for the attachment" do
-    thing = Thing.new
-    file = uploaded_file("test.jpg")
-    thing.photo = file
-    thing.photo.should equal(file)
-  end
+  describe ".has_attachment" do
+    it "should provide accessors for the attachment" do
+      thing = Thing.new
+      file = uploaded_file("test.jpg")
+      thing.photo = file
+      thing.photo.should equal(file)
+    end
 
-  it "should provide a query method for the attachment" do
-    thing = Thing.new
-    file = uploaded_file("test.jpg")
-    thing.photo = file
-    thing.photo?.should be_true
+    it "should provide a query method for the attachment" do
+      thing = Thing.new
+      file = uploaded_file("test.jpg")
+      thing.photo = file
+      thing.photo?.should be_true
+    end
   end
 
   describe ".attachments" do
