@@ -1,1 +1,2 @@
-# Fast-attachments
+module FastAttachments
+end
