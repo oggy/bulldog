@@ -1,7 +1,9 @@
 module FastAttachments
   module HasAttachment
-    def self.included(mod)
-      mod.extend ClassMethods
+    def self.included(base)
+      base.extend ClassMethods
+      base.class_inheritable_accessor :attachments
+      base.attachments ||= {}
     end
 
     def attachments
@@ -10,7 +12,7 @@ module FastAttachments
 
     module ClassMethods
       def has_attachment(name, options={})
-        module_eval <<-EOS
+        module_eval <<-EOS, __FILE__, __LINE__
           def #{name}
             attachments[:#{name}]
           end
@@ -23,6 +25,8 @@ module FastAttachments
             !!attachments[:#{name}]
           end
         EOS
+
+        attachments[name] = Reflection.new(name, options)
       end
     end
   end

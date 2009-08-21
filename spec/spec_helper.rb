@@ -29,6 +29,10 @@ module ActiveRecord
     end
 
     class << self
+      def table_exists?
+        false
+      end
+
       def columns()
         @columns ||= []
       end
