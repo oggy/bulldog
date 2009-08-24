@@ -5,14 +5,10 @@ module FastAttachments
       base.class_inheritable_accessor :attachment_reflections
       base.attachment_reflections ||= {}
 
-      base.before_save :process_attachments_for_before_save
-      base.after_save :process_attachments_for_after_save
-      base.before_create :process_attachments_for_before_create
-      base.after_create :process_attachments_for_after_create
-      base.before_update :process_attachments_for_before_update
-      base.after_update :process_attachments_for_after_update
-      base.before_validation :process_attachments_for_before_validation
-      base.after_validation :process_attachments_for_after_validation
+      %w[validation save create update].each do |event|
+        base.send("before_#{event}", "process_attachments_for_before_#{event}")
+        base.send("after_#{event}", "process_attachments_for_after_#{event}")
+      end
     end
 
     def attachments
@@ -29,25 +25,16 @@ module FastAttachments
       end
     end
 
-    def self.define_attachment_hooks_for_lifecycle_event(event)
+    %w[validation save create update].each do |event|
       module_eval <<-EOS
-        def process_attachments_for_#{event}
-          process_attachments_for_event(:#{event}, self)
+        def process_attachments_for_before_#{event}
+          process_attachments_for_event(:before_#{event}, self)
+        end
+        def process_attachments_for_after_#{event}
+          process_attachments_for_event(:after_#{event}, self)
         end
       EOS
     end
-
-    define_attachment_hooks_for_lifecycle_event :before_validation
-    define_attachment_hooks_for_lifecycle_event :after_validation
-
-    define_attachment_hooks_for_lifecycle_event :before_save
-    define_attachment_hooks_for_lifecycle_event :after_save
-
-    define_attachment_hooks_for_lifecycle_event :before_create
-    define_attachment_hooks_for_lifecycle_event :after_create
-
-    define_attachment_hooks_for_lifecycle_event :before_update
-    define_attachment_hooks_for_lifecycle_event :after_update
 
     delegate :attachment_reflections, :to => 'self.class'
 
