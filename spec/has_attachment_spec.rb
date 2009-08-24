@@ -36,11 +36,13 @@ describe FastAttachments::HasAttachment do
     end
 
     it "should allow setting callbacks in a configure block which can be triggered using #process_attachment" do
+      args = nil
       Thing.has_attachment :photo => :photo do
-        on(:my_event){|a, b| [a, b]}
+        on(:my_event){|*args|}
       end
       t = Thing.new
-      t.process_attachment(:photo, :my_event, 1, 2).should == [1, 2]
+      t.process_attachment(:photo, :my_event, 1, 2)
+      args.should == [1, 2]
     end
 
     describe ".attachments" do
@@ -217,6 +219,88 @@ describe FastAttachments::HasAttachment do
         checks = []
         thing.update_attributes(:value => 2)
         checks.should == []
+      end
+
+      describe "with multiple callbacks" do
+        it "should support multiple assignment callbacks" do
+          checks = []
+          Thing.has_attachment :photo => :photo do
+            before(:assignment){checks << 1}
+            before(:assignment){checks << 2}
+            after(:assignment){checks << 3}
+            after(:assignment){checks << 4}
+          end
+          checks.should == []
+          Thing.new.photo = uploaded_file('test.jpg')
+          checks.should == [1, 2, 3, 4]
+        end
+
+        it "should support multiple validation callbacks" do
+          checks = []
+          Thing.has_attachment :photo => :photo do
+            before(:validation){checks << 1}
+            before(:validation){checks << 2}
+            after(:validation){checks << 3}
+            after(:validation){checks << 4}
+          end
+          thing = Thing.new
+          checks.should == []
+          thing.valid?
+          checks.should == [1, 2, 3, 4]
+        end
+
+        it "should support multiple save callbacks" do
+          checks = []
+          Thing.has_attachment :photo => :photo do
+            before(:save){checks << 1}
+            before(:save){checks << 2}
+            after(:save){checks << 3}
+            after(:save){checks << 4}
+          end
+          thing = Thing.new
+          checks.should == []
+          thing.save
+          checks.should == [1, 2, 3, 4]
+        end
+
+        it "should support multiple create callbacks" do
+          checks = []
+          Thing.has_attachment :photo => :photo do
+            before(:create){checks << 1}
+            before(:create){checks << 2}
+            after(:create){checks << 3}
+            after(:create){checks << 4}
+          end
+          checks.should == []
+          thing = Thing.create
+          checks.should == [1, 2, 3, 4]
+        end
+
+        it "should support multiple update callbacks" do
+          checks = []
+          Thing.has_attachment :photo => :photo do
+            before(:update){checks << 1}
+            before(:update){checks << 2}
+            after(:update){checks << 3}
+            after(:update){checks << 4}
+          end
+          thing = Thing.create
+          checks = []
+          thing.update_attributes(:value => 10)
+          checks.should == [1, 2, 3, 4]
+        end
+
+        it "should support multiple custom callbacks" do
+          checks = []
+          Thing.has_attachment :photo => :photo do
+            on(:background_processing){checks << 1}
+            on(:background_processing){checks << 2}
+          end
+          thing = Thing.create
+          checks = []
+          thing.process_attachment(:photo, :background_processing)
+          checks.should == [1, 2]
+        end
       end
     end
   end

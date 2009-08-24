@@ -6,7 +6,7 @@ module FastAttachments
       @type = type
       @options = {}
       @styles = {}
-      @events = {}
+      @events = Hash.new{|h,k| h[k] = []}
     end
 
     attr_reader :name, :type, :options, :styles, :events
@@ -16,7 +16,7 @@ module FastAttachments
     end
 
     def on(event, &block)
-      events[event] = block
+      events[event] << block
     end
 
     def before(event, &block)
@@ -28,10 +28,10 @@ module FastAttachments
     end
 
     def process(record, event, *args)
-      callback = events[event] or
-        return
-      processor = Processor.class_for(type).new(record)
-      processor.instance_exec(*args, &callback)
+      events[event].each do |callback|
+        processor = Processor.class_for(type).new(record)
+        processor.instance_exec(*args, &callback)
+      end
     end
   end
 end
