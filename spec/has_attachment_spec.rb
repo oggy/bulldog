@@ -23,13 +23,22 @@ describe FastAttachments::HasAttachment do
 
     it "should allow settings styles in a configure block" do
       Thing.has_attachment :photo do
-        style :small, {:size => '32x32'}
-        style :large, {:size => '512x512'}
+        style :small, :size => '32x32'
+        style :large, :size => '512x512'
       end
-      Thing.attachment_reflections[:photo].options[:styles].should == {
+
+      Thing.attachment_reflections[:photo].styles.should == {
         :small => {:size => '32x32'},
         :large => {:size => '512x512'},
       }
+    end
+
+    it "should allow setting callbacks in a configure block which can be triggered using #process_attachment" do
+      Thing.has_attachment :photo do
+        on(:my_event){|a, b| [a, b, self]}
+      end
+      t = Thing.new
+      t.process_attachment(:photo, :my_event, 1, 2).should == [1, 2, t]
     end
 
     describe ".attachments" do
