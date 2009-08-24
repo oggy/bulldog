@@ -40,9 +40,9 @@ describe FastAttachments::HasAttachment do
       Thing.has_attachment :photo => :photo do
         on(:my_event){|*args|}
       end
-      t = Thing.new
-      t.process_attachment(:photo, :my_event, 1, 2)
-      args.should == [1, 2]
+      thing = Thing.new
+      thing.process_attachment(:photo, :my_event, 1, 2)
+      args.should == [thing, 1, 2]
     end
 
     describe ".attachments" do

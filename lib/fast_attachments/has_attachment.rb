@@ -16,22 +16,22 @@ module FastAttachments
     end
 
     def process_attachment(name, event, *args)
-      attachment_reflections[name].process(self, event, *args)
+      attachment_reflections[name].process(event, self, *args)
     end
 
     def process_attachments_for_event(event, *args)
       self.class.attachment_reflections.each do |name, reflection|
-        reflection.process(self, event, *args)
+        reflection.process(event, self, *args)
       end
     end
 
     %w[validation save create update].each do |event|
       module_eval <<-EOS
         def process_attachments_for_before_#{event}
-          process_attachments_for_event(:before_#{event}, self)
+          process_attachments_for_event(:before_#{event})
         end
         def process_attachments_for_after_#{event}
-          process_attachments_for_event(:after_#{event}, self)
+          process_attachments_for_event(:after_#{event})
         end
       EOS
     end
@@ -59,9 +59,9 @@ module FastAttachments
           end
 
           def #{name}=(value)
-            process_attachment(:#{name}, :before_assignment, self, value)
+            process_attachment(:#{name}, :before_assignment, value)
             attachments[:#{name}] = value
-            process_attachment(:#{name}, :after_assignment, self, value)
+            process_attachment(:#{name}, :after_assignment, value)
           end
 
           def #{name}?

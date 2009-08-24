@@ -27,9 +27,9 @@ module FastAttachments
       on("after_#{event}".to_sym, &block)
     end
 
-    def process(record, event, *args)
+    def process(event, *args)
       events[event].each do |callback|
-        processor = Processor.class_for(type).new(record)
+        processor = Processor.class_for(type).new
         processor.instance_exec(*args, &callback)
       end
     end
