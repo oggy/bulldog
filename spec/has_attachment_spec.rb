@@ -35,20 +35,33 @@ describe FastAttachments::HasAttachment do
       }
     end
 
-    it "should allow setting callbacks in a configure block which can be triggered using #process_attachment" do
-      args = nil
-      Thing.has_attachment :photo => :photo do
-        on(:my_event){|*args|}
-      end
-      thing = Thing.new
-      thing.process_attachment(:photo, :my_event, 1, 2)
-      args.should == [thing, 1, 2]
-    end
-
     describe ".attachments" do
       it "should allow reflection on the field names" do
         Thing.has_attachment :photo => :photo
         Thing.attachment_reflections[:photo].name.should == :photo
+      end
+    end
+
+    describe "#process_attachment" do
+      it "should trigger the named custom callback" do
+        args = nil
+        Thing.has_attachment :photo => :photo do
+          on(:my_event){|*args|}
+        end
+        thing = Thing.new
+        thing.process_attachment(:photo, :my_event, 1, 2)
+        args.should == [thing, 1, 2]
+      end
+
+      it "should raise an ArgumentError if you get the attachment name wrong" do
+        args = nil
+        Thing.has_attachment :photo => :photo do
+          on(:my_event){|*args|}
+        end
+        thing = Thing.new
+        lambda do
+          thing.process_attachment(:fail, :my_event, 1, 2)
+        end.should raise_error(ArgumentError)
       end
     end
 

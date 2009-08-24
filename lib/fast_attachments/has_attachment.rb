@@ -16,7 +16,9 @@ module FastAttachments
     end
 
     def process_attachment(name, event, *args)
-      attachment_reflections[name].process(event, self, *args)
+      reflection = attachment_reflections[name] or
+        raise ArgumentError, "no such attachment: #{name}"
+      reflection.process(event, self, *args)
     end
 
     def process_attachments_for_event(event, *args)
