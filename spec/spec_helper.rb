@@ -18,13 +18,16 @@ module SpecHelper
   end
 
   module ClassMethods
-    def setup_model_class(name)
+    def setup_model_class(name, &block)
+      block ||= lambda{}
       before do
-        Object.const_set(name, Class.new(ActiveRecord::BaseWithoutTable))
+        ActiveRecord::Base.connection.create_table(name.to_s.underscore.pluralize, &block)
+        Object.const_set(name, Class.new(ActiveRecord::Base))
       end
 
       after do
         Object.send(:remove_const, name)
+        ActiveRecord::Base.connection.drop_table(name.to_s.underscore.pluralize)
       end
     end
   end
@@ -35,35 +38,4 @@ Spec::Runner.configure do |config|
   config.include SpecHelper
 end
 
-# From the active_record_base_without_table plugin
-module ActiveRecord
-  class BaseWithoutTable < Base
-    self.abstract_class = true
-
-    def create_or_update_without_callbacks
-      errors.empty?
-    end
-
-    class << self
-      def table_exists?
-        false
-      end
-
-      def columns()
-        @columns ||= []
-      end
-
-      def column(name, sql_type = nil, default = nil, null = true)
-        columns << ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)
-        reset_column_information
-      end
-
-      # Reset everything, except the column information
-      def reset_column_information
-	columns = @columns
-	super
-	@columns = columns
-      end
-    end
-  end
-end
+ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :dbfile => ":memory:")

@@ -76,6 +76,40 @@ describe FastAttachments::HasAttachment do
         checks.should == [thing, io, io]
         thing.photo.should == io
       end
+
+      it "should fire :before_save before saving the record" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          before :save do |thing|
+            checks << thing << thing.new_record?
+          end
+        end
+        thing = Thing.new
+        io = uploaded_file("test.jpg")
+        thing.photo = io
+
+        checks.should == []
+        thing.save.should be_true
+        checks.should == [thing, true]
+        thing.photo.should equal(io)
+      end
+
+      it "should fire :after_save after saving the record" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          after :save do |thing|
+            checks << thing << thing.new_record?
+          end
+        end
+        thing = Thing.new
+        io = uploaded_file("test.jpg")
+        thing.photo = io
+
+        checks.should == []
+        thing.save.should be_true
+        checks.should == [thing, false]
+        thing.photo.should equal(io)
+      end
     end
   end
 end

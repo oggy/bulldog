@@ -1,6 +1,3 @@
-require 'fast_attachments/processor/base'
-require 'fast_attachments/processor/photo'
-
 module FastAttachments
   module Processor
     #
@@ -19,3 +16,6 @@ module FastAttachments
     end
   end
 end
+
+require 'fast_attachments/processor/base'
+require 'fast_attachments/processor/photo'

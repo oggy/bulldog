@@ -26,5 +26,12 @@ module FastAttachments
     def after(event, &block)
       on("after_#{event}".to_sym, &block)
     end
+
+    def process(record, event, *args)
+      callback = events[event] or
+        return
+      processor = Processor.class_for(type).new(record)
+      processor.instance_exec(*args, &callback)
+    end
   end
 end
