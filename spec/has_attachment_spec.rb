@@ -5,7 +5,7 @@ describe FastAttachments::HasAttachment do
     setup_model_class :Thing
 
     it "should provide accessors for the attachment" do
-      Thing.has_attachment :photo
+      Thing.has_attachment :photo => :photo
       thing = Thing.new
       file = uploaded_file("test.jpg")
       thing.photo = file
@@ -13,7 +13,7 @@ describe FastAttachments::HasAttachment do
     end
 
     it "should provide a query method for the attachment" do
-      Thing.has_attachment :photo
+      Thing.has_attachment :photo => :photo
       thing = Thing.new
       file = uploaded_file("test.jpg")
       thing.photo?.should be_false
@@ -22,7 +22,7 @@ describe FastAttachments::HasAttachment do
     end
 
     it "should allow settings styles in a configure block" do
-      Thing.has_attachment :photo do
+      Thing.has_attachment :photo => :photo do
         style :small, :size => '32x32'
         style :large, :size => '512x512'
       end
@@ -34,22 +34,17 @@ describe FastAttachments::HasAttachment do
     end
 
     it "should allow setting callbacks in a configure block which can be triggered using #process_attachment" do
-      Thing.has_attachment :photo do
-        on(:my_event){|a, b| [a, b, self]}
+      Thing.has_attachment :photo => :photo do
+        on(:my_event){|a, b| [a, b]}
       end
       t = Thing.new
-      t.process_attachment(:photo, :my_event, 1, 2).should == [1, 2, t]
+      t.process_attachment(:photo, :my_event, 1, 2).should == [1, 2]
     end
 
     describe ".attachments" do
       it "should allow reflection on the field names" do
-        Thing.has_attachment :photo
+        Thing.has_attachment :photo => :photo
         Thing.attachment_reflections[:photo].name.should == :photo
-      end
-
-      it "should allow reflection on the given options" do
-        Thing.has_attachment :photo, :format => 'jpg'
-        Thing.attachment_reflections[:photo].options.should == {:format => 'jpg'}
       end
     end
   end

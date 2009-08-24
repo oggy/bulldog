@@ -1,14 +1,15 @@
 module FastAttachments
   class Reflection
-    def initialize(klass, name, options)
+    def initialize(klass, name, type)
       @klass = klass
       @name = name
-      @options = options
+      @type = type
+      @options = {}
       @styles = {}
       @events = {}
     end
 
-    attr_reader :name, :options, :styles, :events
+    attr_reader :name, :type, :options, :styles, :events
 
     def style(name, attributes)
       styles[name] = attributes
