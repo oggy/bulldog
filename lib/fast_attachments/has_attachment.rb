@@ -11,6 +11,8 @@ module FastAttachments
       base.after_create :process_attachments_for_after_create
       base.before_update :process_attachments_for_before_update
       base.after_update :process_attachments_for_after_update
+      base.before_validation :process_attachments_for_before_validation
+      base.after_validation :process_attachments_for_after_validation
     end
 
     def attachments
@@ -34,6 +36,9 @@ module FastAttachments
         end
       EOS
     end
+
+    define_attachment_hooks_for_lifecycle_event :before_validation
+    define_attachment_hooks_for_lifecycle_event :after_validation
 
     define_attachment_hooks_for_lifecycle_event :before_save
     define_attachment_hooks_for_lifecycle_event :after_save

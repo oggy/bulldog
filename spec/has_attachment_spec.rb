@@ -79,6 +79,34 @@ describe FastAttachments::HasAttachment do
         thing.photo.should == io
       end
 
+      it "should fire :before_validation before validating the record" do
+        checks = []
+        Thing.validates_presence_of :value
+        Thing.has_attachment :photo => :photo do
+          before :validation do |thing|
+            checks << thing << thing.errors.empty?
+          end
+        end
+        thing = Thing.new
+        checks.should == []
+        thing.valid?.should be_false
+        checks.should == [thing, true]
+      end
+
+      it "should fire :after_validation after validating the record" do
+        checks = []
+        Thing.validates_presence_of :value
+        Thing.has_attachment :photo => :photo do
+          after :validation do |thing|
+            checks << thing << thing.errors.empty?
+          end
+        end
+        thing = Thing.new
+        checks.should == []
+        thing.valid?.should be_false
+        checks.should == [thing, false]
+      end
+
       it "should fire :before_save before saving the record" do
         checks = []
         Thing.has_attachment :photo => :photo do
