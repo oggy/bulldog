@@ -18,5 +18,13 @@ module FastAttachments
     def on(event, &block)
       events[event] = block
     end
+
+    def before(event, &block)
+      on("before_#{event}".to_sym, &block)
+    end
+
+    def after(event, &block)
+      on("after_#{event}".to_sym, &block)
+    end
   end
 end

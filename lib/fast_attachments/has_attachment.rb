@@ -11,7 +11,8 @@ module FastAttachments
     end
 
     def process_attachment(name, event, *args)
-      callback = attachment_reflections[name].events[event]
+      callback = attachment_reflections[name].events[event] or
+        return
       attachment_processor_for(name).instance_exec(*args, &callback)
     end
 
@@ -30,7 +31,9 @@ module FastAttachments
             end
   
             def #{name}=(value)
+              process_attachment(:#{name}, :before_assignment, self, value)
               attachments[:#{name}] = value
+              process_attachment(:#{name}, :after_assignment, self, value)
             end
   
             def #{name}?

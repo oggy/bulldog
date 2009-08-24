@@ -47,5 +47,35 @@ describe FastAttachments::HasAttachment do
         Thing.attachment_reflections[:photo].name.should == :photo
       end
     end
+
+    describe "lifecycle integration" do
+      it "should fire :before_assignment before assigning to the association" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          before :assignment do |thing, value|
+            checks << thing << value << thing.photo
+          end
+        end
+        thing = Thing.new
+        io = uploaded_file("test.jpg")
+        thing.photo = io
+        checks.should == [thing, io, nil]
+        thing.photo.should == io
+      end
+
+      it "should fire :after_assignment after assigning to the association" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          after :assignment do |thing, value|
+            checks << thing << value << thing.photo
+          end
+        end
+        thing = Thing.new
+        io = uploaded_file("test.jpg")
+        thing.photo = io
+        checks.should == [thing, io, io]
+        thing.photo.should == io
+      end
+    end
   end
 end
