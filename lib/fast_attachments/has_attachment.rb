@@ -4,8 +4,13 @@ module FastAttachments
       base.extend ClassMethods
       base.class_inheritable_accessor :attachment_reflections
       base.attachment_reflections ||= {}
+
       base.before_save :process_attachments_for_before_save
       base.after_save :process_attachments_for_after_save
+      base.before_create :process_attachments_for_before_create
+      base.after_create :process_attachments_for_after_create
+      base.before_update :process_attachments_for_before_update
+      base.after_update :process_attachments_for_after_update
     end
 
     def attachments
@@ -13,19 +18,7 @@ module FastAttachments
     end
 
     def process_attachment(name, event, *args)
-      reflection = attachment_reflections[name].process(self, event, *args)
-    end
-
-    def attachment_processor_for(name)
-      Processor.class_for(attachment_reflections[name].type)
-    end
-
-    def process_attachments_for_before_save
-      process_attachments_for_event(:before_save, self)
-    end
-
-    def process_attachments_for_after_save
-      process_attachments_for_event(:after_save, self)
+      attachment_reflections[name].process(self, event, *args)
     end
 
     def process_attachments_for_event(event, *args)
@@ -33,6 +26,23 @@ module FastAttachments
         reflection.process(self, event, *args)
       end
     end
+
+    def self.define_attachment_hooks_for_lifecycle_event(event)
+      module_eval <<-EOS
+        def process_attachments_for_#{event}
+          process_attachments_for_event(:#{event}, self)
+        end
+      EOS
+    end
+
+    define_attachment_hooks_for_lifecycle_event :before_save
+    define_attachment_hooks_for_lifecycle_event :after_save
+
+    define_attachment_hooks_for_lifecycle_event :before_create
+    define_attachment_hooks_for_lifecycle_event :after_create
+
+    define_attachment_hooks_for_lifecycle_event :before_update
+    define_attachment_hooks_for_lifecycle_event :after_update
 
     delegate :attachment_reflections, :to => 'self.class'
 

@@ -2,7 +2,9 @@ require 'spec_helper'
 
 describe FastAttachments::HasAttachment do
   describe ".has_attachment" do
-    setup_model_class :Thing
+    setup_model_class :Thing do |t|
+      t.integer :value
+    end
 
     it "should provide accessors for the attachment" do
       Thing.has_attachment :photo => :photo
@@ -85,13 +87,9 @@ describe FastAttachments::HasAttachment do
           end
         end
         thing = Thing.new
-        io = uploaded_file("test.jpg")
-        thing.photo = io
-
         checks.should == []
         thing.save.should be_true
         checks.should == [thing, true]
-        thing.photo.should equal(io)
       end
 
       it "should fire :after_save after saving the record" do
@@ -102,13 +100,95 @@ describe FastAttachments::HasAttachment do
           end
         end
         thing = Thing.new
-        io = uploaded_file("test.jpg")
-        thing.photo = io
-
         checks.should == []
         thing.save.should be_true
         checks.should == [thing, false]
-        thing.photo.should equal(io)
+      end
+
+      it "should fire :before_create before creating the record" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          before :create do |thing|
+            checks << thing << thing.new_record?
+          end
+        end
+        thing = Thing.new
+        checks.should == []
+        thing.save.should be_true
+        checks.should == [thing, true]
+      end
+
+      it "should fire :after_create after creating the record" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          after :create do |thing|
+            checks << thing << thing.new_record?
+          end
+        end
+        thing = Thing.new
+        checks.should == []
+        thing.save.should be_true
+        checks.should == [thing, false]
+      end
+
+      it "should fire :before_update before updating the record" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          before :update do |thing|
+            checks << thing << Thing.count(:conditions => {:value => 2})
+          end
+        end
+        Thing.create(:value => 1)
+        thing = Thing.first
+        checks.should == []
+        thing.update_attributes(:value => 2).should be_true
+        checks.should == [thing, 0]
+      end
+
+      it "should fire :after_update after updating the record" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          after :update do |thing|
+            checks << thing << Thing.count(:conditions => {:value => 2})
+          end
+        end
+        Thing.create(:value => 1)
+        thing = Thing.first
+        checks.should == []
+        thing.update_attributes(:value => 2).should be_true
+        checks.should == [thing, 1]
+      end
+
+      it "should not fire :before_create or :after_create when updating the record" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          before :update do
+            checks << [:fail]
+          end
+
+          after :update do |thing|
+            checks << [:fail]
+          end
+        end
+        Thing.create
+        checks.should == []
+      end
+
+      it "should not fire :before_update or :after_update when creating the record" do
+        checks = []
+        Thing.has_attachment :photo => :photo do
+          before :create do
+            checks << [:fail]
+          end
+
+          after :create do |thing|
+            checks << [:fail]
+          end
+        end
+        thing = Thing.create(:value => 1)
+        checks = []
+        thing.update_attributes(:value => 2)
+        checks.should == []
       end
     end
   end
