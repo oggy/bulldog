@@ -39,28 +39,39 @@ module FastAttachments
     delegate :attachment_reflections, :to => 'self.class'
 
     module ClassMethods
-      def has_attachment(name_to_types, &block)
-        name_to_types.each do |name, type|
-          module_eval <<-EOS, __FILE__, __LINE__
-            def #{name}
-              attachments[:#{name}]
-            end
-  
-            def #{name}=(value)
-              process_attachment(:#{name}, :before_assignment, self, value)
-              attachments[:#{name}] = value
-              process_attachment(:#{name}, :after_assignment, self, value)
-            end
-  
-            def #{name}?
-              !!attachments[:#{name}]
-            end
-          EOS
-
-          reflection = Reflection.new(self, name, type)
-          reflection.instance_eval(&block) if block_given?
-          attachment_reflections[name] = reflection
+      #
+      # Declare that this model has an attachment.
+      #
+      # TODO: example that shows all the options.
+      #
+      def has_attachment(name_with_optional_type, &block)
+        if name_with_optional_type.is_a?(Hash)
+          name_with_optional_type.size == 1 or
+            raise ArgumentError, "hash argument must have exactly 1 key/value"
+          name, type = *name_with_optional_type.to_a.first
+        else
+          name, type = name_with_optional_type, nil
         end
+
+        module_eval <<-EOS, __FILE__, __LINE__
+          def #{name}
+            attachments[:#{name}]
+          end
+
+          def #{name}=(value)
+            process_attachment(:#{name}, :before_assignment, self, value)
+            attachments[:#{name}] = value
+            process_attachment(:#{name}, :after_assignment, self, value)
+          end
+
+          def #{name}?
+            !!attachments[:#{name}]
+          end
+        EOS
+
+        reflection = Reflection.new(self, name, type)
+        reflection.instance_eval(&block) if block_given?
+        attachment_reflections[name] = reflection
       end
     end
   end
