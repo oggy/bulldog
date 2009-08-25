@@ -1,4 +1,5 @@
 require 'spec'
+require 'mocha'
 require 'tempfile'
 require 'active_record'
 require 'action_controller'
@@ -8,10 +9,11 @@ require 'init'
 module SpecHelper
   def self.included(mod)
     mod.extend ClassMethods
+    mod.stop_time
   end
 
-  def uploaded_file(path)
-    io = ActionController::UploadedStringIO.new
+  def uploaded_file(path, content='')
+    io = ActionController::UploadedStringIO.new(content)
     io.original_path = path
     io.content_type = Rack::Mime::MIME_TYPES[File.extname(path)]
     io
@@ -29,6 +31,10 @@ module SpecHelper
         Object.send(:remove_const, name)
         ActiveRecord::Base.connection.drop_table(name.to_s.underscore.pluralize)
       end
+    end
+
+    def stop_time
+      Time.stubs(:now).returns(Time.now)
     end
   end
 end
