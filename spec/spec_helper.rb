@@ -39,3 +39,6 @@ Spec::Runner.configure do |config|
 end
 
 ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :dbfile => ":memory:")
+
+# So we don't have to qualify all our classes.
+include FastAttachments

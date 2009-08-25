@@ -1,5 +1,5 @@
 module FastAttachments
-  class Reflection
+  class Configuration
     def initialize(klass, name, type)
       @klass = klass
       @name = name
@@ -25,13 +25,6 @@ module FastAttachments
 
     def after(event, &block)
       on("after_#{event}".to_sym, &block)
-    end
-
-    def process(event, *args)
-      events[event].each do |callback|
-        processor = Processor.class_for(type).new
-        processor.instance_exec(*args, &callback)
-      end
     end
   end
 end

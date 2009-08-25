@@ -5,12 +5,14 @@ module FastAttachments
     #
     #   process :photo, :with => MyPhotoProcessor
     #
-    def self.process(type, params)
-      @type_map[type] = params[:with] or
-        raise ArgumentError, ":with parameter required"
+    def self.register(type, klass)
+      @type_map[type] = klass
     end
     @type_map = {}
 
+    #
+    # Return the class that processes the given type.
+    #
     def self.class_for(type)
       @type_map[type]
     end

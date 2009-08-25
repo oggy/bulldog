@@ -2,8 +2,8 @@ module FastAttachments
   module HasAttachment
     def self.included(base)
       base.extend ClassMethods
-      base.class_inheritable_accessor :attachment_reflections
-      base.attachment_reflections ||= {}
+      base.class_inheritable_accessor :attachment_attributes
+      base.attachment_attributes ||= {}
 
       %w[validation save create update].each do |event|
         base.send("before_#{event}", "process_attachments_for_before_#{event}")
@@ -16,14 +16,14 @@ module FastAttachments
     end
 
     def process_attachment(name, event, *args)
-      reflection = attachment_reflections[name] or
+      attribute = attachment_attributes[name] or
         raise ArgumentError, "no such attachment: #{name}"
-      reflection.process(event, self, *args)
+      attribute.process(event, self, *args)
     end
 
     def process_attachments_for_event(event, *args)
-      self.class.attachment_reflections.each do |name, reflection|
-        reflection.process(event, self, *args)
+      self.class.attachment_attributes.each do |name, attribute|
+        attribute.process(event, self, *args)
       end
     end
 
@@ -38,7 +38,7 @@ module FastAttachments
       EOS
     end
 
-    delegate :attachment_reflections, :to => 'self.class'
+    delegate :attachment_attributes, :to => 'self.class'
 
     module ClassMethods
       #
@@ -47,33 +47,7 @@ module FastAttachments
       # TODO: example that shows all the options.
       #
       def has_attachment(name_with_optional_type, &block)
-        if name_with_optional_type.is_a?(Hash)
-          name_with_optional_type.size == 1 or
-            raise ArgumentError, "hash argument must have exactly 1 key/value"
-          name, type = *name_with_optional_type.to_a.first
-        else
-          name, type = name_with_optional_type, nil
-        end
-
-        module_eval <<-EOS, __FILE__, __LINE__
-          def #{name}
-            attachments[:#{name}]
-          end
-
-          def #{name}=(value)
-            process_attachment(:#{name}, :before_assignment, value)
-            attachments[:#{name}] = value
-            process_attachment(:#{name}, :after_assignment, value)
-          end
-
-          def #{name}?
-            !!attachments[:#{name}]
-          end
-        EOS
-
-        reflection = Reflection.new(self, name, type)
-        reflection.instance_eval(&block) if block_given?
-        attachment_reflections[name] = reflection
+        AttachmentAttribute.new(self, name_with_optional_type, &block)
       end
     end
   end
