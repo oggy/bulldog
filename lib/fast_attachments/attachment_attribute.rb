@@ -20,10 +20,16 @@ module FastAttachments
     end
 
     def set_file_attributes(record, io)
-      set_file_attribute(record, :file_name){io.original_path}
-      set_file_attribute(record, :content_type){io.content_type}
-      set_file_attribute(record, :file_size){'TODO'}
-      set_file_attribute(record, :updated_at){Time.now}
+      if io
+        set_file_attribute(record, :file_name){io.original_path}
+        set_file_attribute(record, :content_type){io.content_type}
+        set_file_attribute(record, :file_size){io.is_a?(File) ? File.size(io) : io.size}
+        set_file_attribute(record, :updated_at){Time.now}
+      else
+        [:file_name, :content_type, :file_size, :updated_at].each do |name|
+          set_file_attribute(record, name){nil}
+        end
+      end
     end
 
     def set_file_attribute(record, name, &block)

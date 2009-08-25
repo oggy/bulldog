@@ -34,7 +34,9 @@ module SpecHelper
     end
 
     def stop_time
-      Time.stubs(:now).returns(Time.now)
+      before do
+        Time.stubs(:now).returns(Time.now)
+      end
     end
   end
 end
