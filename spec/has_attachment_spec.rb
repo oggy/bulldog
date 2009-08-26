@@ -52,6 +52,24 @@ describe HasAttachment do
     end
 
     describe "#process_attachment" do
+      class TestProcessor < Processor::Base
+      end
+
+      it "should evaluate the callback in the context of the appropriate processor" do
+        Processor.register :test, TestProcessor
+        begin
+          context = nil
+          Thing.has_attachment :photo => :test do
+            on(:my_event){context = self}
+          end
+          thing = Thing.new
+          thing.process_attachment(:photo, :my_event)
+          context.should be_a(TestProcessor)
+        ensure
+          Processor.register :test, nil
+        end
+      end
+
       it "should trigger the named custom callback" do
         args = nil
         Thing.has_attachment :photo => :photo do
