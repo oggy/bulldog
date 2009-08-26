@@ -21,7 +21,7 @@ describe Processor::Base do
   end
 
   def process(&block)
-    Processor::Photo.new('INPUT.jpg', styles).process(&block)
+    Processor::Photo.new('INPUT.jpg', styles).process(nil, &block)
   end
 
   it "should run convert with the required arguments" do

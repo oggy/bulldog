@@ -7,7 +7,7 @@ module FastAttachments
 
       processes :photo
 
-      def process
+      def process(record, *args)
         initialize_style_lists
         super
         run_image_magick
