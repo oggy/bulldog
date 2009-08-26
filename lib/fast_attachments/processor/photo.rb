@@ -10,7 +10,7 @@ module FastAttachments
       def process
         initialize_style_lists
         super
-        run_command
+        run_image_magick
       end
 
       def resize(options={})
@@ -36,14 +36,10 @@ module FastAttachments
 
       attr_reader :style_lists
 
-      def run_command
+      def run_image_magick
         prefix = extract_common_prefix
         add_stack_manipulations
-        command = make_command(prefix)
-
-        FastAttachments.logger.info("Running: #{command.map(&:inspect).join(' ')}")
-        # Call #system on Kernel so mocha can detect it...
-        Kernel.system(*command)
+        run_command *make_command(prefix)
       end
 
       def extract_common_prefix

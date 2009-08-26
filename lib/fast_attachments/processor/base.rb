@@ -38,6 +38,19 @@ module FastAttachments
       def self.processes(type)
         Processor.register(type, self)
       end
+
+      protected  # ---------------------------------------------------
+
+      def log(level, message)
+        logger = FastAttachments.logger
+        logger.send(level, message) unless logger.nil?
+      end
+
+      def run_command(*command)
+        log :info, "Running: #{command.map(&:inspect).join(' ')}"
+        # Call #system on Kernel so mocha can detect it...
+        Kernel.system(*command)
+      end
     end
   end
 end

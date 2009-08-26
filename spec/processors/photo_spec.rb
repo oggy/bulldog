@@ -38,6 +38,12 @@ describe Processor::Base do
     end
   end
 
+  it "should not blow up if the logger is set to nil" do
+    FastAttachments.logger = nil
+    style :x, {:path => '/tmp/x.jpg'}
+    lambda{process{}}.should_not raise_error
+  end
+
   it "should run a simple pipeline if there is 1 output file" do
     Kernel.expects(:system).once.with(
       'CONVERT', 'INPUT.jpg', '-auto-orient', '-resize', '40x40', '/tmp/small.jpg'
