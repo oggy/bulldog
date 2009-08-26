@@ -90,7 +90,7 @@ module FastAttachments
     def with_input_file_name(record)
       value = record.read_attribute(name)
       case value
-      when UnopenedFile, Tempfile
+      when UnopenedFile, Tempfile, File
         yield value.path
       when StringIO
         # not on the filesystem - dump it
