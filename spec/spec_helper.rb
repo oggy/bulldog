@@ -10,11 +10,16 @@ module SpecHelper
   def self.included(mod)
     mod.extend ClassMethods
     mod.before{stop_time}
+    mod.before{stub_system_calls}
     mod.before{install_fresh_logger}
   end
 
   def stop_time
     Time.stubs(:now).returns(Time.now)
+  end
+
+  def stub_system_calls
+    Kernel.stubs(:system).returns(true)
   end
 
   def install_fresh_logger
