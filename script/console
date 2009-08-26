@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'irb'
+$:.unshift 'lib'
+require 'active_record'
+require 'fast_attachments'
+require 'init'
+IRB.start
