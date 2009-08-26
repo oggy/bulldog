@@ -11,7 +11,7 @@ describe HasAttachment do
   end
 
   describe ".has_attachment" do
-    setup_model_class :Thing do |t|
+    set_up_model_class :Thing do |t|
       t.integer :value
     end
 
@@ -38,10 +38,10 @@ describe HasAttachment do
         style :large, :size => '512x512'
       end
 
-      Thing.attachment_attributes[:photo].styles.should == {
-        :small => {:size => '32x32'},
-        :large => {:size => '512x512'},
-      }
+      Thing.attachment_attributes[:photo].styles.should == StyleSet[
+        Style.new(:small, {:size => '32x32'}),
+        Style.new(:large, {:size => '512x512'}),
+      ]
     end
 
     describe ".attachments" do

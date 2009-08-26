@@ -8,10 +8,12 @@ module FastAttachments
 
     attr_accessor :class, :name, :type, :styles, :events, :file_attributes
 
-    def process(event, *args)
+    def process(event, record, *args)
       events[event].each do |callback|
-        processor = Processor.class_for(type).new
-        processor.process(*args, &callback)
+        with_input_file_name(record) do |file_name|
+          processor = Processor.class_for(type).new(file_name, styles)
+          processor.process(record, *args, &callback)
+        end
       end
     end
 
@@ -77,6 +79,53 @@ module FastAttachments
           !!#{@name}
         end
       EOS
+    end
+
+    #
+    # Yield the name of the file this attachment is stored in.  The
+    # file will be kept for the duration of the block.
+    #
+    # If the attribute is nil, the block is not yielded.
+    #
+    def with_input_file_name(record)
+      value = record.read_attribute(name)
+      case value
+      when UnopenedFile, Tempfile
+        yield value.path
+      when StringIO
+        # not on the filesystem - dump it
+        file_name = nil
+        begin
+          with_string_io_dumped_to_file(value) do |file_name|
+            yield file_name
+          end
+        end
+      when nil
+        yield nil
+      else
+        raise "unexpected value for attachment `#{name}': #{value.inspect}"
+      end
+    end
+
+    def with_string_io_dumped_to_file(string_io)
+      path = nil
+      Tempfile.open(string_io.original_filename) do |tempfile|
+        path = tempfile.path
+        copy_stream(string_io, tempfile)
+      end
+      yield path
+    ensure
+      File.unlink(path)
+    end
+
+    def copy_stream(src, dst, block_size=8192)
+      src.rewind
+      buffer = ""
+      while src.read(block_size, buffer)
+        dst.write(buffer)
+      end
+      dst.rewind
+      dst
     end
   end
 end

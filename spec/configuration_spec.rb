@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Configuration do
-  setup_model_class :Thing do |t|
+  set_up_model_class :Thing do |t|
     t.string :photo_file_name
     t.string :photo_content_type
     t.integer :photo_file_size

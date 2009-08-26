@@ -5,7 +5,7 @@ module FastAttachments
       @name = name
       @type = type
       @options = {}
-      @styles = {}
+      @styles = StyleSet.new
       @events = Hash.new{|h,k| h[k] = []}
       @file_attributes = default_file_attributes
     end
@@ -13,7 +13,7 @@ module FastAttachments
     attr_reader :class, :name, :type, :options, :styles, :events, :file_attributes
 
     def style(name, attributes)
-      styles[name] = attributes
+      styles << Style.new(name, attributes)
     end
 
     def on(event, &block)

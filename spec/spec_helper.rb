@@ -9,7 +9,21 @@ require 'init'
 module SpecHelper
   def self.included(mod)
     mod.extend ClassMethods
-    mod.stop_time
+    mod.before{stop_time}
+    mod.before{install_fresh_logger}
+  end
+
+  def stop_time
+    Time.stubs(:now).returns(Time.now)
+  end
+
+  def install_fresh_logger
+    buffer = StringIO.new
+    logger = Logger.new(buffer)
+    (class << logger; self; end).send(:define_method, :content) do
+      buffer.string
+    end
+    FastAttachments.logger = logger
   end
 
   def uploaded_file(path, content='')
@@ -20,7 +34,11 @@ module SpecHelper
   end
 
   module ClassMethods
-    def setup_model_class(name, &block)
+    #
+    # Set up a model class with the given name.  You may pass a block
+    # to configure the database table like an ActiveRecord migration.
+    #
+    def set_up_model_class(name, &block)
       block ||= lambda{}
       before do
         ActiveRecord::Base.connection.create_table(name.to_s.underscore.pluralize, &block)
@@ -30,12 +48,6 @@ module SpecHelper
       after do
         Object.send(:remove_const, name)
         ActiveRecord::Base.connection.drop_table(name.to_s.underscore.pluralize)
-      end
-    end
-
-    def stop_time
-      before do
-        Time.stubs(:now).returns(Time.now)
       end
     end
   end
