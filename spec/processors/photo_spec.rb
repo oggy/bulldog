@@ -25,12 +25,20 @@ describe Processor::Base do
   end
 
   it "should run convert with the required arguments" do
-    Kernel.expects(:system).once.with(
-      'CONVERT', 'INPUT.jpg', '/tmp/x.jpg'
-    )
+    Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '/tmp/x.jpg')
     style :x, {:path => '/tmp/x.jpg'}
     process do
     end
+  end
+
+  it "should log the command run" do
+    # sanity check
+    Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '/tmp/x.jpg')
+
+    style :x, {:path => '/tmp/x.jpg'}
+    process do
+    end
+    FastAttachments.logger.content.should include('"CONVERT" "INPUT.jpg" "/tmp/x.jpg"')
   end
 
   it "should run a simple pipeline if there is 1 output file" do
