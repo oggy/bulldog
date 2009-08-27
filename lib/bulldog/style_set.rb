@@ -1,4 +1,4 @@
-module FastAttachments
+module Bulldog
   class StyleSet < Array
     def [](arg)
       if arg.is_a?(Symbol)

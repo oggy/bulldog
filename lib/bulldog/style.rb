@@ -1,4 +1,4 @@
-module FastAttachments
+module Bulldog
   class Style < Hash
     def initialize(name, attributes)
       super()

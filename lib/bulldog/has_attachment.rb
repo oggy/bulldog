@@ -1,4 +1,4 @@
-module FastAttachments
+module Bulldog
   module HasAttachment
     def self.included(base)
       base.extend ClassMethods

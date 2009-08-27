@@ -1,4 +1,4 @@
-module FastAttachments
+module Bulldog
   class Configuration
     def initialize(klass, name, type)
       @class = klass

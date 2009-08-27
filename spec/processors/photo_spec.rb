@@ -32,14 +32,14 @@ describe Processor::Base do
   end
 
   it "should log the command run" do
-    FastAttachments.logger.expects(:info).with('Running: "CONVERT" "INPUT.jpg" "/tmp/x.jpg"')
+    Bulldog.logger.expects(:info).with('Running: "CONVERT" "INPUT.jpg" "/tmp/x.jpg"')
     style :x, {:path => '/tmp/x.jpg'}
     process do
     end
   end
 
   it "should not blow up if the logger is set to nil" do
-    FastAttachments.logger = nil
+    Bulldog.logger = nil
     style :x, {:path => '/tmp/x.jpg'}
     lambda{process{}}.should_not raise_error
   end

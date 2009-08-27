@@ -1,3 +1,3 @@
-require 'fast_attachments'
+require 'bulldog'
 
-ActiveRecord::Base.send :include, FastAttachments::HasAttachment
+ActiveRecord::Base.send :include, Bulldog::HasAttachment

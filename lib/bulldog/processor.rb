@@ -1,4 +1,4 @@
-module FastAttachments
+module Bulldog
   module Processor
     #
     # Associate a processor with a type:
@@ -19,5 +19,5 @@ module FastAttachments
   end
 end
 
-require 'fast_attachments/processor/base'
-require 'fast_attachments/processor/photo'
+require 'bulldog/processor/base'
+require 'bulldog/processor/photo'

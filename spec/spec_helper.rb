@@ -28,7 +28,7 @@ module SpecHelper
     (class << logger; self; end).send(:define_method, :content) do
       buffer.string
     end
-    FastAttachments.logger = logger
+    Bulldog.logger = logger
   end
 
   def uploaded_file(path, content='')
@@ -66,4 +66,4 @@ end
 ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :dbfile => ":memory:")
 
 # So we don't have to qualify all our classes.
-include FastAttachments
+include Bulldog

@@ -4,10 +4,10 @@ require 'rake/rdoctask'
 
 PLUGIN_ROOT = File.dirname(__FILE__)
 
-desc 'Generate documentation for the fast_attachments plugin.'
+desc 'Generate documentation for the bulldog plugin.'
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'Fast-attachments'
+  rdoc.title    = 'Bulldog'
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.rdoc_files.include('README')
   rdoc.rdoc_files.include('lib/**/*.rb')

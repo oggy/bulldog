@@ -3,6 +3,6 @@
 require 'irb'
 $:.unshift 'lib'
 require 'active_record'
-require 'fast_attachments'
+require 'bulldog'
 require 'init'
 IRB.start

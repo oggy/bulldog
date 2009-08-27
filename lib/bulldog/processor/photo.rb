@@ -1,4 +1,4 @@
-module FastAttachments
+module Bulldog
   module Processor
     class Photo < Base
       class << self

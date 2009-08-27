@@ -1,4 +1,4 @@
-module FastAttachments
+module Bulldog
   module Processor
     class Base
       def initialize(input_file, styles)
@@ -42,7 +42,7 @@ module FastAttachments
       protected  # ---------------------------------------------------
 
       def log(level, message)
-        logger = FastAttachments.logger
+        logger = Bulldog.logger
         logger.send(level, message) unless logger.nil?
       end
 
