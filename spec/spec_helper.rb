@@ -1,3 +1,5 @@
+require 'fileutils'
+
 require 'spec'
 require 'mocha'
 require 'tempfile'
@@ -6,16 +8,17 @@ require 'action_controller'
 
 require 'init'
 
+PLUGIN_ROOT = File.dirname( File.dirname(__FILE__) )
+
+require 'helpers/time_travel'
+require 'helpers/temporary_directory'
+require 'helpers/test_upload_files'
+
 module SpecHelper
   def self.included(mod)
     mod.extend ClassMethods
-    mod.before{stop_time}
     mod.before{stub_system_calls}
     mod.before{install_fresh_logger}
-  end
-
-  def stop_time
-    Time.stubs(:now).returns(Time.now)
   end
 
   def stub_system_calls
@@ -29,13 +32,6 @@ module SpecHelper
       buffer.string
     end
     Bulldog.logger = logger
-  end
-
-  def uploaded_file(path, content='')
-    io = ActionController::UploadedStringIO.new(content)
-    io.original_path = path
-    io.content_type = Rack::Mime::MIME_TYPES[File.extname(path)]
-    io
   end
 
   module ClassMethods
@@ -61,6 +57,9 @@ end
 Spec::Runner.configure do |config|
   config.mock_with :mocha
   config.include SpecHelper
+  config.include TimeTravel
+  config.include TemporaryDirectory
+  config.include TestUploadFiles
 end
 
 ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :dbfile => ":memory:")
