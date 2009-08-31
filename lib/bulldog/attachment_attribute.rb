@@ -17,10 +17,6 @@ module Bulldog
       end
     end
 
-    def set_value(record, value)
-      @record
-    end
-
     def set_file_attributes(record, io)
       if io
         set_file_attribute(record, :file_name){io.original_path}
