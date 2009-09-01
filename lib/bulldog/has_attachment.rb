@@ -11,19 +11,20 @@ module Bulldog
       end
     end
 
-    def attachments
-      @attachments ||= {}
+    def attachment_attribute(name)
+      @attachment_attributes ||= {}
+      @attachment_attributes[name] ||= AttachmentAttribute.new(self, name)
     end
 
     def process_attachment(name, event, *args)
       reflection = attachment_reflections[name] or
         raise ArgumentError, "no such attachment: #{name}"
-      reflection.process(event, self, *args)
+      attachment_attribute(name).process(event, *args)
     end
 
     def process_attachments_for_event(event, *args)
       self.class.attachment_reflections.each do |name, reflection|
-        reflection.process(event, self, *args)
+        attachment_attribute(reflection.name).process(event, *args)
       end
     end
 
