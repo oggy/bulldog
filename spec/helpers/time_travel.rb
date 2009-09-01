@@ -4,7 +4,8 @@ module TimeTravel
   end
 
   def stop_time
-    Time.stubs(:now).returns(Time.now)
+    now = Time.now
+    Time.stubs(:now).returns(now)
   end
 
   def warp_ahead(duration)
