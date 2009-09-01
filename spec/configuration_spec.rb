@@ -23,7 +23,7 @@ describe Configuration do
           :updated_at => :custom_updated_at
         )
       end
-      Thing.attachment_attributes[:photo].file_attributes.should == {
+      Thing.attachment_reflections[:photo].file_attributes.should == {
           :file_name => :custom_file_name,
           :content_type => :custom_content_type,
           :file_size => :custom_file_size,
@@ -35,7 +35,7 @@ describe Configuration do
       Thing.has_attachment :photo do
         store_file_attributes :file_name, :content_type, :file_size, :updated_at
       end
-      Thing.attachment_attributes[:photo].file_attributes.should == {
+      Thing.attachment_reflections[:photo].file_attributes.should == {
         :file_name => :photo_file_name,
         :content_type => :photo_content_type,
         :file_size => :photo_file_size,
@@ -97,7 +97,7 @@ describe Configuration do
           :updated_at => :custom_updated_at
         )
       end
-      Thing.attachment_attributes[:photo].file_attributes.should == {
+      Thing.attachment_reflections[:photo].file_attributes.should == {
           :file_name => :custom_file_name,
           :content_type => :custom_content_type,
           :file_size => :custom_file_size,

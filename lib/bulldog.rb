@@ -1,5 +1,5 @@
 require 'bulldog/has_attachment'
-require 'bulldog/attachment_attribute'
+require 'bulldog/attachment_reflection'
 require 'bulldog/configuration'
 require 'bulldog/style'
 require 'bulldog/style_set'

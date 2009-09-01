@@ -38,7 +38,7 @@ describe HasAttachment do
         style :large, :size => '512x512'
       end
 
-      Thing.attachment_attributes[:photo].styles.should == StyleSet[
+      Thing.attachment_reflections[:photo].styles.should == StyleSet[
         Style.new(:small, {:size => '32x32'}),
         Style.new(:large, {:size => '512x512'}),
       ]
@@ -47,7 +47,7 @@ describe HasAttachment do
     describe ".attachments" do
       it "should allow reflection on the field names" do
         Thing.has_attachment :photo => :photo
-        Thing.attachment_attributes[:photo].name.should == :photo
+        Thing.attachment_reflections[:photo].name.should == :photo
       end
     end
 

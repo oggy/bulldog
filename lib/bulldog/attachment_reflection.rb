@@ -1,5 +1,5 @@
 module Bulldog
-  class AttachmentAttribute
+  class AttachmentReflection
     def initialize(klass, name_with_optional_type, &block)
       parse_arguments(klass, name_with_optional_type)
       configure(&block)
@@ -55,7 +55,7 @@ module Bulldog
       [:styles, :events, :file_attributes].each do |field|
         send("#{field}=", configuration.send(field))
       end
-      self.class.attachment_attributes[name] = self
+      self.class.attachment_reflections[name] = self
     end
 
     def define_accessors
@@ -67,7 +67,7 @@ module Bulldog
         def #{@name}=(value)
           process_attachment(:#{@name}, :before_assignment, value)
           write_attribute(:#{@name}, value)
-          attachment_attributes[:#{@name}].set_file_attributes(self, value)
+          attachment_reflections[:#{@name}].set_file_attributes(self, value)
           process_attachment(:#{@name}, :after_assignment, value)
         end
 

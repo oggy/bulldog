@@ -2,8 +2,8 @@ module Bulldog
   module HasAttachment
     def self.included(base)
       base.extend ClassMethods
-      base.class_inheritable_accessor :attachment_attributes
-      base.attachment_attributes ||= {}
+      base.class_inheritable_accessor :attachment_reflections
+      base.attachment_reflections ||= {}
 
       %w[validation save create update].each do |event|
         base.send("before_#{event}", "process_attachments_for_before_#{event}")
@@ -16,14 +16,14 @@ module Bulldog
     end
 
     def process_attachment(name, event, *args)
-      attribute = attachment_attributes[name] or
+      reflection = attachment_reflections[name] or
         raise ArgumentError, "no such attachment: #{name}"
-      attribute.process(event, self, *args)
+      reflection.process(event, self, *args)
     end
 
     def process_attachments_for_event(event, *args)
-      self.class.attachment_attributes.each do |name, attribute|
-        attribute.process(event, self, *args)
+      self.class.attachment_reflections.each do |name, reflection|
+        reflection.process(event, self, *args)
       end
     end
 
@@ -38,7 +38,7 @@ module Bulldog
       EOS
     end
 
-    delegate :attachment_attributes, :to => 'self.class'
+    delegate :attachment_reflections, :to => 'self.class'
 
     module ClassMethods
       #
@@ -47,7 +47,7 @@ module Bulldog
       # TODO: example that shows all the options.
       #
       def has_attachment(name_with_optional_type, &block)
-        AttachmentAttribute.new(self, name_with_optional_type, &block)
+        AttachmentReflection.new(self, name_with_optional_type, &block)
       end
     end
   end
