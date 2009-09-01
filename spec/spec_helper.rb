@@ -39,16 +39,18 @@ module SpecHelper
     # Set up a model class with the given name.  You may pass a block
     # to configure the database table like an ActiveRecord migration.
     #
-    def set_up_model_class(name, &block)
+    def set_up_model_class(name, superclass_name='ActiveRecord::Base', &block)
+      need_table = superclass_name == 'ActiveRecord::Base'
       block ||= lambda{}
+
       before do
-        ActiveRecord::Base.connection.create_table(name.to_s.underscore.pluralize, &block)
-        Object.const_set(name, Class.new(ActiveRecord::Base))
+        ActiveRecord::Base.connection.create_table(name.to_s.underscore.pluralize, &block) if need_table
+        Object.const_set(name, Class.new(superclass_name.to_s.constantize))
       end
 
       after do
         Object.send(:remove_const, name)
-        ActiveRecord::Base.connection.drop_table(name.to_s.underscore.pluralize)
+        ActiveRecord::Base.connection.drop_table(name.to_s.underscore.pluralize) if need_table
       end
     end
   end
