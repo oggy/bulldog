@@ -13,6 +13,20 @@ describe Configuration do
     t.datetime :custom_updated_at
   end
 
+  describe "#style" do
+    it "should allow reflection on the styles" do
+      Thing.has_attachment :photo do
+        style :small, :size => '32x32'
+        style :large, :size => '512x512'
+      end
+
+      Thing.attachment_reflections[:photo].styles.should == StyleSet[
+        Style.new(:small, {:size => '32x32'}),
+        Style.new(:large, {:size => '512x512'}),
+      ]
+    end
+  end
+
   describe "#store_file_attributes" do
     it "should allow reflection on the file attributes" do
       Thing.has_attachment :photo do

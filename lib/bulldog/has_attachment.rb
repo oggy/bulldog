@@ -48,7 +48,27 @@ module Bulldog
       # TODO: example that shows all the options.
       #
       def has_attachment(name_with_optional_type, &block)
-        AttachmentReflection.new(self, name_with_optional_type, &block)
+        reflection = AttachmentReflection.new(self, name_with_optional_type, &block)
+        define_attachment_accessors(reflection.name)
+      end
+
+      def define_attachment_accessors(name)
+        module_eval <<-EOS, __FILE__, __LINE__
+          def #{name}
+            attachment_attribute(:#{name}).get
+            read_attribute(:#{name})
+          end
+
+          def #{name}=(value)
+            process_attachment(:#{name}, :before_assignment, value)
+            attachment_attribute(:#{name}).set(value)
+            process_attachment(:#{name}, :after_assignment, value)
+          end
+
+          def #{name}?
+            !!#{name}
+          end
+        EOS
       end
     end
   end

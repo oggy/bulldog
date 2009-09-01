@@ -32,19 +32,7 @@ describe HasAttachment do
       thing.photo?.should be_true
     end
 
-    it "should allow settings styles in a configure block" do
-      Thing.has_attachment :photo => :photo do
-        style :small, :size => '32x32'
-        style :large, :size => '512x512'
-      end
-
-      Thing.attachment_reflections[:photo].styles.should == StyleSet[
-        Style.new(:small, {:size => '32x32'}),
-        Style.new(:large, {:size => '512x512'}),
-      ]
-    end
-
-    describe ".attachments" do
+    describe ".attachment_reflections" do
       it "should allow reflection on the field names" do
         Thing.has_attachment :photo => :photo
         Thing.attachment_reflections[:photo].name.should == :photo

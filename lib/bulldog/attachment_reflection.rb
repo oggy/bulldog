@@ -3,7 +3,6 @@ module Bulldog
     def initialize(klass, name_with_optional_type, &block)
       parse_arguments(klass, name_with_optional_type)
       configure(&block)
-      define_accessors
     end
 
     attr_accessor :class, :name, :type, :styles, :events, :file_attributes
@@ -26,25 +25,6 @@ module Bulldog
         send("#{field}=", configuration.send(field))
       end
       self.class.attachment_reflections[name] = self
-    end
-
-    def define_accessors
-      self.class.module_eval <<-EOS, __FILE__, __LINE__
-        def #{@name}
-          attachment_attribute(:#{@name}).get
-          read_attribute(:#{@name})
-        end
-
-        def #{@name}=(value)
-          process_attachment(:#{@name}, :before_assignment, value)
-          attachment_attribute(:#{@name}).set(value)
-          process_attachment(:#{@name}, :after_assignment, value)
-        end
-
-        def #{@name}?
-          !!#{@name}
-        end
-      EOS
     end
   end
 end
