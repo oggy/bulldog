@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Processor::Base do
+describe Processor::Photo do
   before do
     @original_convert_command = Processor::Photo.convert_command
     Processor::Photo.convert_command = 'CONVERT'
