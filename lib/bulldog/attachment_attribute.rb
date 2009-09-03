@@ -25,6 +25,12 @@ module Bulldog
       set_file_attributes(value)
     end
 
+    def basename
+      if (attribute = reflection.file_attributes[:file_name])
+        record.send(attribute)
+      end
+    end
+
     private  # -------------------------------------------------------
 
     def reflection

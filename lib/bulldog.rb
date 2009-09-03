@@ -5,6 +5,7 @@ require 'bulldog/attachment_attribute'
 require 'bulldog/configuration'
 require 'bulldog/style'
 require 'bulldog/style_set'
+require 'bulldog/interpolation'
 require 'bulldog/unopened_file'
 require 'bulldog/processor'
 
