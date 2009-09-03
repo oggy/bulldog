@@ -5,7 +5,7 @@ module Bulldog
       configure(&block)
     end
 
-    attr_accessor :class, :name, :type, :styles, :events, :file_attributes
+    attr_accessor :class, :name, :type, :path_template, :styles, :events, :file_attributes
 
     def parse_arguments(klass, name_with_optional_type)
       @class = klass
@@ -21,7 +21,7 @@ module Bulldog
     def configure(&block)
       configuration = Configuration.new(self.class, name, type)
       configuration.instance_eval(&block) if block
-      [:styles, :events, :file_attributes].each do |field|
+      [:path_template, :styles, :events, :file_attributes].each do |field|
         send("#{field}=", configuration.send(field))
       end
       self.class.attachment_reflections[name] = self

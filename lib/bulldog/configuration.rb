@@ -4,13 +4,18 @@ module Bulldog
       @class = klass
       @name = name
       @type = type
+      @paths = nil
       @options = {}
       @styles = StyleSet.new
       @events = Hash.new{|h,k| h[k] = []}
       @file_attributes = default_file_attributes
     end
 
-    attr_reader :class, :name, :type, :options, :styles, :events, :file_attributes
+    attr_reader :class, :name, :type, :path_template, :options, :styles, :events, :file_attributes
+
+    def paths(path_template)
+      @path_template = path_template
+    end
 
     def style(name, attributes)
       styles << Style.new(name, attributes)

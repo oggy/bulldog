@@ -13,6 +13,15 @@ describe Configuration do
     t.datetime :custom_updated_at
   end
 
+  describe "#paths" do
+    it "should allow reflection on the paths" do
+      Thing.has_attachment :photo do
+        paths "/path/to/somewhere"
+      end
+      Thing.attachment_reflections[:photo].path_template.should == "/path/to/somewhere"
+    end
+  end
+
   describe "#style" do
     it "should allow reflection on the styles" do
       Thing.has_attachment :photo do
