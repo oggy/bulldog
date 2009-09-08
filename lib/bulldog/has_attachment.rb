@@ -55,8 +55,7 @@ module Bulldog
       def define_attachment_accessors(name)
         module_eval <<-EOS, __FILE__, __LINE__
           def #{name}
-            attachment_attribute(:#{name}).get
-            read_attribute(:#{name})
+            attachment_attribute(:#{name})
           end
 
           def #{name}=(value)
@@ -66,7 +65,7 @@ module Bulldog
           end
 
           def #{name}?
-            !!#{name}
+            attachment_attribute(:#{name}).query
           end
         EOS
       end

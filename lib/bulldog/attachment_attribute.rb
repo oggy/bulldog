@@ -31,6 +31,10 @@ module Bulldog
       end
     end
 
+    def query
+      !!get
+    end
+
     private  # -------------------------------------------------------
 
     def reflection
