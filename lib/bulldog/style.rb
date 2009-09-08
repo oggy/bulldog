@@ -19,5 +19,7 @@ module Bulldog
         name == other.name &&
         super
     end
+
+    ORIGINAL = new(:original, {})
   end
 end

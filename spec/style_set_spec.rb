@@ -18,5 +18,10 @@ describe StyleSet do
       style_set[0].should equal(@one)
       style_set[1].should equal(@two)
     end
+
+    it "should return a special, empty style for :original" do
+      style_set = StyleSet[]
+      style_set[:original].should == Style.new(:original, {})
+    end
   end
 end

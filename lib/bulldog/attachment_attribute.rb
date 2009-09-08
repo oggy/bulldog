@@ -35,6 +35,12 @@ module Bulldog
       !!get
     end
 
+    def path(style_name)
+      template = reflection.path_template
+      style = reflection.styles[style_name]
+      Interpolation.interpolate(template, self, style)
+    end
+
     private  # -------------------------------------------------------
 
     def reflection
