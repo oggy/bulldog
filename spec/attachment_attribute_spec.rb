@@ -169,3 +169,68 @@ describe AttachmentAttribute do
     end
   end
 end
+
+describe "AttachmentAttribute which stores file attributes" do
+  describe "assigning to an attachment" do
+    set_up_model_class :Thing do |t|
+      t.string :photo_file_name
+      t.string :photo_content_type
+      t.integer :photo_file_size
+      t.datetime :photo_updated_at
+    end
+
+    before do
+      Thing.has_attachment :photo
+      Thing.attachment_reflections[:photo].stubs(:file_attributes).returns(
+        :file_name => :photo_file_name,
+        :content_type => :photo_content_type,
+        :file_size => :photo_file_size,
+        :updated_at => :photo_updated_at
+      )
+    end
+
+    describe "when the value is a small uploaded file (StringIO)" do
+      it "should set the file attributes" do
+        file = small_uploaded_file('test.jpg', '...')
+        file.should be_a(StringIO)  # sanity check
+        thing = Thing.new(:photo => file)
+        thing.photo_file_name.should == 'test.jpg'
+        thing.photo_content_type.should == 'image/jpeg'
+        thing.photo_file_size.should == 3
+        thing.photo_updated_at.should == Time.now
+      end
+    end
+
+    describe "when the value is a large uploaded file (Tempfile)" do
+      it "should set the file attributes" do
+        file = large_uploaded_file('test.jpg', '...')
+        file.should be_a(Tempfile)  # sanity check
+        thing = Thing.new(:photo => file)
+        thing.photo_file_name.should == 'test.jpg'
+        thing.photo_content_type.should == 'image/jpeg'
+        thing.photo_file_size.should == 3
+        thing.photo_updated_at.should == Time.now
+      end
+    end
+
+    describe "when the value is nil" do
+      it "should clear the file attributes" do
+        file = uploaded_file('test.jpg', '...')
+        thing = Thing.new(:photo => file)
+        # sanity checks
+        thing.photo_file_name.should_not be_nil
+        thing.photo_content_type.should_not be_nil
+        thing.photo_file_size.should_not be_nil
+        thing.photo_updated_at.should_not be_nil
+
+        warp_ahead 1.second
+
+        thing.photo = nil
+        thing.photo_file_name.should be_nil
+        thing.photo_content_type.should be_nil
+        thing.photo_file_size.should be_nil
+        thing.photo_updated_at.should == Time.now
+      end
+    end
+  end
+end

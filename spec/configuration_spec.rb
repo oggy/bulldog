@@ -72,41 +72,6 @@ describe Configuration do
       }
     end
 
-    it "should cause these file attributes to be persisted in the specified columns" do
-      Thing.has_attachment :photo do
-        store_file_attributes(
-          :file_name => :custom_file_name,
-          :content_type => :custom_content_type,
-          :file_size => :custom_file_size,
-          :updated_at => :custom_updated_at
-        )
-      end
-      file = uploaded_file('test.jpg', 'hi')
-      thing = Thing.new(:photo => file)
-      thing.custom_file_name.should == 'test.jpg'
-      thing.custom_content_type.should == 'image/jpeg'
-      thing.custom_file_size.should == 2
-      thing.custom_updated_at.should == Time.now
-    end
-
-    it "should cause these file attributes to be available after reloading the record" do
-      Thing.has_attachment :photo do
-        store_file_attributes(
-          :file_name => :custom_file_name,
-          :content_type => :custom_content_type,
-          :file_size => :custom_file_size,
-          :updated_at => :custom_updated_at
-        )
-      end
-      file = uploaded_file('test.jpg', 'hi')
-      thing = Thing.create(:photo => file)
-      thing = Thing.find(thing.id)
-      thing.custom_file_name.should == 'test.jpg'
-      thing.custom_content_type.should == 'image/jpeg'
-      thing.custom_file_size.should == 2
-      thing.custom_updated_at.should == Time.now
-    end
-
     it "should store any existing columns that match the default names by default" do
       Thing.has_attachment :photo
       file = uploaded_file('test.jpg', 'hi')
@@ -115,37 +80,6 @@ describe Configuration do
       thing.photo_content_type.should == 'image/jpeg'
       thing.photo_file_size.should == 2
       thing.photo_updated_at.should == Time.now
-    end
-
-    it "should clear the file attributes if nil is assigned" do
-      Thing.has_attachment :photo do
-        store_file_attributes(
-          :file_name => :custom_file_name,
-          :content_type => :custom_content_type,
-          :file_size => :custom_file_size,
-          :updated_at => :custom_updated_at
-        )
-      end
-      Thing.attachment_reflections[:photo].file_attributes.should == {
-          :file_name => :custom_file_name,
-          :content_type => :custom_content_type,
-          :file_size => :custom_file_size,
-          :updated_at => :custom_updated_at,
-      }
-      file = uploaded_file('test.jpg', 'hi')
-      thing = Thing.new(:photo => file)
-
-      # sanity checks
-      thing.custom_file_name.should == 'test.jpg'
-      thing.custom_content_type.should == 'image/jpeg'
-      thing.custom_file_size.should == 2
-      thing.custom_updated_at.should == Time.now
-
-      thing.photo = nil
-      thing.custom_file_name.should be_nil
-      thing.custom_content_type.should be_nil
-      thing.custom_file_size.should be_nil
-      thing.custom_updated_at.should be_nil
     end
   end
 end

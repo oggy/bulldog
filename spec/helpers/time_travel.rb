@@ -4,8 +4,12 @@ module TimeTravel
   end
 
   def stop_time
-    now = Time.now
-    Time.stubs(:now).returns(now)
+    warp_to Time.now
+  end
+
+  def warp_to(time)
+    time = Time.parse(time) if time.is_a?(String)
+    Time.stubs(:now).returns(time)
   end
 
   def warp_ahead(duration)

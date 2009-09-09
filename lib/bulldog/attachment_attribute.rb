@@ -83,12 +83,12 @@ module Bulldog
         set_file_attribute(:file_name){value.original_path}
         set_file_attribute(:content_type){value.content_type}
         set_file_attribute(:file_size){value.is_a?(File) ? File.size(value) : value.size}
-        set_file_attribute(:updated_at){Time.now}
       else
-        [:file_name, :content_type, :file_size, :updated_at].each do |name|
+        [:file_name, :content_type, :file_size].each do |name|
           set_file_attribute(name){nil}
         end
       end
+      set_file_attribute(:updated_at){Time.now}
     end
 
     def set_file_attribute(name, &block)
