@@ -52,7 +52,7 @@ module Bulldog
       if @assigned
         original_path = calculate_path(:original)
         case (file = get)
-        when File, StringIO
+        when File, Tempfile, StringIO
           write_stream(file, original_path)
         when UnopenedFile
           unless file.path == original_path

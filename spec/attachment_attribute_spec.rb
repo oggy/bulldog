@@ -7,7 +7,7 @@ describe AttachmentAttribute do
 
   before do
     tmp = temporary_directory
-    Thing.has_attachment :photo do
+    Thing.has_attachment :photo => :photo do
       paths "#{tmp}/:id.:style.jpg"
       style :small, {}
       store_file_attributes :file_name
@@ -25,6 +25,7 @@ describe AttachmentAttribute do
 
   def set_mtime(path, time)
     File.utime(File.atime(path), time, path)
+    File.mtime(path)
   end
 
   def write_file(path, contents)
@@ -165,6 +166,163 @@ describe AttachmentAttribute do
           @thing.photo.path(:original).should be_nil
           @thing.photo.path(:small).should be_nil
         end
+      end
+    end
+  end
+
+  describe "when the record is saved" do
+    describe "when the attachment was created" do
+      before do
+        @file = uploaded_file('test.jpg', '...')
+        @thing.photo = @file
+      end
+
+      it "should create the original file" do
+        @thing.save.should be_true
+        File.exist?(original_path).should be_true
+        File.read(original_path).should == "..."
+      end
+
+      it "should not create any processed files" do
+        @thing.save.should be_true
+        File.exist?(small_path).should be_false
+      end
+    end
+
+    describe "when the attachment was updated" do
+      before do
+        @thing.update_attributes(:photo => uploaded_file('test.jpg', '...')).should be_true
+        @thing = Thing.find(@thing.id)
+        @file = uploaded_file('test2.jpg', '.')
+        @thing.photo = @file
+      end
+
+      it "should update the original file" do
+        File.exist?(original_path).should be_true
+        File.read(original_path).should == '...'
+        @thing.save.should be_true
+        File.exist?(original_path).should be_true
+        File.read(original_path).should == '.'
+      end
+
+      it "should delete any existing processed files" do
+        @thing.save.should be_true
+        File.exist?(small_path).should be_false
+      end
+    end
+
+    describe "when the attachment was deleted" do
+      before do
+        @thing.update_attributes(:photo => uploaded_file('test.jpg', '...')).should be_true
+        @thing = Thing.find(@thing.id)
+        @file = nil
+        @thing.photo = @file
+      end
+
+      it "should delete the original file" do
+        @thing.save.should be_true
+        File.exist?(original_path).should be_false
+      end
+
+      it "should delete any existing processed files" do
+        @thing.save.should be_true
+        File.exist?(small_path).should be_false
+      end
+    end
+
+    describe "when the attachment was never assigned" do
+      before do
+        @thing.photo = uploaded_file('test.jpg', '...')
+        @thing.save.should be_true
+        @thing = Thing.find(@thing.id)
+
+        File.exist?(original_path).should be_true
+        @original_mtime = set_mtime(original_path, 1.minute.ago)
+        File.exist?(small_path).should be_false
+        write_file(small_path, '.')
+        @small_mtime = set_mtime(small_path, 1.minute.ago)
+      end
+
+      it "should leave the original file untouched" do
+        File.exist?(original_path).should be_true
+        File.mtime(original_path).should == @original_mtime
+      end
+
+      it "should leave any processed files untouched" do
+        File.exist?(small_path).should be_true
+        File.mtime(small_path).should == @small_mtime
+      end
+    end
+
+    describe "when the value was set from nil to nil" do
+      before do
+        @thing.update_attributes(:photo => nil).should be_true
+        @thing = Thing.find(@thing.id)
+        @thing.photo = nil
+      end
+
+      it "should not create the original file" do
+        File.exist?(original_path).should be_false
+        @thing.save.should be_true
+        File.exist?(original_path).should be_false
+      end
+
+      it "should not create any processed files" do
+        File.exist?(small_path).should be_false
+        @thing.save.should be_true
+        File.exist?(small_path).should be_false
+      end
+    end
+
+    describe "when the value was set from one file to another" do
+      before do
+        @thing.photo = uploaded_file('test.jpg', 'old')
+        @thing.save.should be_true
+
+        # TODO: Replace this with a call to #process_attachment.  Need
+        # to not stub out system calls so the imagemagick call works,
+        # or else stub out #process_attachment to just write the file.
+        FileUtils.cp(original_path, small_path)
+
+        @thing = Thing.find(@thing.id)
+
+        File.exist?(original_path).should be_true
+        File.exist?(small_path).should be_true
+        @small_mtime = set_mtime(small_path, 1.minute.ago)
+        @original_mtime = set_mtime(original_path, 1.minute.ago)
+        @thing.photo = uploaded_file('test.jpg', 'new')
+      end
+
+      it "should update the original file" do
+        @thing.save.should be_true
+        File.mtime(original_path).should_not == @original_mtime
+      end
+
+      it "should not update the processed file" do
+        @thing.save.should be_true
+        File.mtime(small_path).should == @small_mtime
+      end
+    end
+
+    describe "when a small uploaded file was set" do
+      before do
+        @thing.photo = small_uploaded_file('test.jpg', 'content')
+      end
+
+      it "should create the original file successfully" do
+        @thing.save.should be_true
+        File.read(original_path).should == 'content'
+      end
+    end
+
+    describe "when a large uploaded file was set" do
+      before do
+        @thing.photo = large_uploaded_file('test.jpg', 'content')
+      end
+
+      it "should create the original file successfully" do
+        @thing.save.should be_true
+        File.read(original_path).should == 'content'
       end
     end
   end
