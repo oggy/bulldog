@@ -50,7 +50,7 @@ module Bulldog
 
     def save
       if @assigned
-        original_path = self.path(:original)
+        original_path = calculate_path(:original)
         case (file = get)
         when File, StringIO
           write_stream(file, original_path)
@@ -58,8 +58,10 @@ module Bulldog
           unless file.path == original_path
             FileUtils.cp(file.path, original_path)
           end
+        when nil
+          FileUtils.rm_f(original_path)
         else
-          raise "unexpected value for file: #{value.inspect}"
+          raise "unexpected value for file: #{file.inspect}"
         end
       end
     end

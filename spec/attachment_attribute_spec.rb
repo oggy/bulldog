@@ -42,7 +42,7 @@ describe AttachmentAttribute do
 
   describe "before the attribute is assigned" do
     describe "when no attachment is present" do
-      it "should return false for the query method" do
+      it "should make the query method return false" do
         @thing.photo?.should be_false
       end
 
@@ -62,7 +62,7 @@ describe AttachmentAttribute do
         @thing = Thing.find(@thing.id)
       end
 
-      it "should return true for the query method" do
+      it "should make the query method return true" do
         @thing.photo?.should be_true
       end
 
@@ -73,6 +73,98 @@ describe AttachmentAttribute do
       it "should return the path to the file for all styles" do
         @thing.photo.path(:original).should == "#{temporary_directory}/#{@thing.id}.original.jpg"
         @thing.photo.path(:small).should == "#{temporary_directory}/#{@thing.id}.small.jpg"
+      end
+    end
+  end
+
+  describe "#set" do
+    describe "when no attachment was present" do
+      before do
+        @thing = Thing.create(:photo => nil)
+        @thing.should_not be_new_record
+      end
+
+      describe "when a new file is assigned" do
+        before do
+          @thing.photo = uploaded_file('test2.jpg', '.')
+        end
+
+        it "should make the query method return true" do
+          @thing.photo?.should be_true
+        end
+
+        it "should set the file attributes" do
+          @thing.photo_file_name.should == "test2.jpg"
+        end
+
+        it "should return the path to the new file for all styles" do
+          @thing.photo.path(:original).should == "#{temporary_directory}/#{@thing.id}.original.jpg"
+          @thing.photo.path(:small).should == "#{temporary_directory}/#{@thing.id}.small.jpg"
+        end
+      end
+
+      describe "when nil is assigned" do
+        before do
+          @thing.photo = nil
+        end
+
+        it "should make the query method return false" do
+          @thing.photo?.should be_false
+        end
+
+        it "should clear the file attributes" do
+          @thing.photo_file_name.should be_nil
+        end
+
+        it "should return nil for the path of all styles" do
+          @thing.photo.path(:original).should be_nil
+          @thing.photo.path(:small).should be_nil
+        end
+      end
+    end
+
+    describe "when an attachment was present" do
+      before do
+        @thing = Thing.create(:photo => uploaded_file('test.jpg', '...'))
+        @thing.should_not be_new_record
+      end
+
+      describe "when a new file is assigned" do
+        before do
+          @thing.photo = uploaded_file('test2.jpg', '.')
+        end
+
+        it "should make the query method return true" do
+          @thing.photo?.should be_true
+        end
+
+        it "should set the file attributes" do
+          @thing.photo_file_name.should == "test2.jpg"
+        end
+
+        it "should return the path to the new file for all styles" do
+          @thing.photo.path(:original).should == "#{temporary_directory}/#{@thing.id}.original.jpg"
+          @thing.photo.path(:small).should == "#{temporary_directory}/#{@thing.id}.small.jpg"
+        end
+      end
+
+      describe "when nil is assigned" do
+        before do
+          @thing.photo = nil
+        end
+
+        it "should make the query method return false" do
+          @thing.photo?.should be_false
+        end
+
+        it "should clear the file attributes" do
+          @thing.photo_file_name.should be_nil
+        end
+
+        it "should return nil for the path of all styles" do
+          @thing.photo.path(:original).should be_nil
+          @thing.photo.path(:small).should be_nil
+        end
       end
     end
   end
