@@ -19,6 +19,7 @@ module SpecHelper
     mod.extend ClassMethods
     mod.before{stub_system_calls}
     mod.before{install_fresh_logger}
+    mod.before{set_default_attachment_path}
   end
 
   def stub_system_calls
@@ -32,6 +33,10 @@ module SpecHelper
       buffer.string
     end
     Bulldog.logger = logger
+  end
+
+  def set_default_attachment_path
+    Bulldog.default_path = "#{temporary_directory}/attachments/:class/:id.:style"
   end
 
   module ClassMethods

@@ -5,9 +5,16 @@ module Bulldog
       base.class_inheritable_accessor :attachment_reflections
       base.attachment_reflections ||= {}
 
+      base.after_save :save_attachments
       %w[validation save create update].each do |event|
         base.send("before_#{event}", "process_attachments_for_before_#{event}")
         base.send("after_#{event}", "process_attachments_for_after_#{event}")
+      end
+    end
+
+    def save_attachments
+      attachment_reflections.each do |name, reflection|
+        attachment_attribute(name).save
       end
     end
 

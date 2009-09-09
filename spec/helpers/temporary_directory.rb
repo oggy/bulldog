@@ -4,7 +4,7 @@ module TemporaryDirectory
     mod.after{remove_temporary_directory}
   end
 
-  def tmp_dir
+  def temporary_directory
     "#{PLUGIN_ROOT}/spec/tmp"
   end
 
@@ -12,10 +12,10 @@ module TemporaryDirectory
 
   def init_temporary_directory
     remove_temporary_directory
-    FileUtils.mkdir_p(tmp_dir)
+    FileUtils.mkdir_p(temporary_directory)
   end
 
   def remove_temporary_directory
-    FileUtils.rm_rf(tmp_dir)
+    FileUtils.rm_rf(temporary_directory)
   end
 end

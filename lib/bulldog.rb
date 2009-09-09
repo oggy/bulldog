@@ -15,5 +15,11 @@ module Bulldog
     # Logger object to log to.  Set to nil to omit logging.
     #
     attr_accessor :logger
+
+    #
+    # The default path template to use.  See the #path configuration
+    # option for #has_attachment.
+    #
+    attr_accessor :default_path
   end
 end

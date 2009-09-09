@@ -4,7 +4,7 @@ module Bulldog
       @class = klass
       @name = name
       @type = type
-      @paths = nil
+      @path_template = Bulldog.default_path
       @options = {}
       @styles = StyleSet.new
       @events = Hash.new{|h,k| h[k] = []}

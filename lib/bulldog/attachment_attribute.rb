@@ -3,6 +3,7 @@ module Bulldog
     def initialize(record, name)
       @record = record
       @name = name
+      @assigned = false
     end
 
     attr_reader :record, :name
@@ -17,10 +18,17 @@ module Bulldog
     end
 
     def get
+      if !@assigned
+        path = calculate_path(:original)
+        value = File.exist?(path) ? UnopenedFile.new(path) : nil
+        record.write_attribute(name, value)
+        @assigned = true
+      end
       record.read_attribute(name)
     end
 
     def set(value)
+      @assigned = true
       record.write_attribute(name, value)
       set_file_attributes(value)
     end
@@ -36,12 +44,33 @@ module Bulldog
     end
 
     def path(style_name)
+      return nil if !query
+      calculate_path(style_name)
+    end
+
+    def save
+      if @assigned
+        original_path = self.path(:original)
+        case (file = get)
+        when File, StringIO
+          write_stream(file, original_path)
+        when UnopenedFile
+          unless file.path == original_path
+            FileUtils.cp(file.path, original_path)
+          end
+        else
+          raise "unexpected value for file: #{value.inspect}"
+        end
+      end
+    end
+
+    private  # -------------------------------------------------------
+
+    def calculate_path(style_name)
       template = reflection.path_template
       style = reflection.styles[style_name]
       Interpolation.interpolate(template, self, style)
     end
-
-    private  # -------------------------------------------------------
 
     def reflection
       @reflection ||= record.class.attachment_reflections[name]
@@ -111,6 +140,13 @@ module Bulldog
       end
       dst.rewind
       dst
+    end
+
+    def write_stream(io, path, block_size=8192)
+      FileUtils.mkdir_p(File.dirname(path))
+      open(path, 'w') do |file|
+        copy_stream(io, file, block_size)
+      end
     end
   end
 end
