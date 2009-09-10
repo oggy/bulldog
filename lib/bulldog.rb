@@ -1,6 +1,6 @@
 require 'bulldog/has_attachment'
 require 'bulldog/validations'
-require 'bulldog/attachment_reflection'
+require 'bulldog/reflection'
 require 'bulldog/attribute'
 require 'bulldog/configuration'
 require 'bulldog/style'

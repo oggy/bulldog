@@ -1,5 +1,5 @@
 module Bulldog
-  class AttachmentReflection
+  class Reflection
     def initialize(klass, name_with_optional_type, &block)
       parse_arguments(klass, name_with_optional_type)
       configure(&block)
