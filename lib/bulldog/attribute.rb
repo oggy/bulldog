@@ -1,5 +1,5 @@
 module Bulldog
-  class AttachmentAttribute
+  class Attribute
     def initialize(record, name)
       @record = record
       @name = name

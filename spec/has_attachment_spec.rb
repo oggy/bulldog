@@ -20,7 +20,7 @@ describe HasAttachment do
       thing = Thing.new
       file = uploaded_file("test.jpg")
       thing.photo = file
-      thing.photo.should be_a(AttachmentAttribute)
+      thing.photo.should be_a(Attribute)
     end
 
     it "should provide a query method for the attachment" do

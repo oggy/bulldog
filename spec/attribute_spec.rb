@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe AttachmentAttribute do
+describe Attribute do
   set_up_model_class :Thing do |t|
     t.string :photo_file_name
   end
@@ -328,7 +328,7 @@ describe AttachmentAttribute do
   end
 end
 
-describe "AttachmentAttribute which stores file attributes" do
+describe "Attribute which stores file attributes" do
   describe "assigning to an attachment" do
     set_up_model_class :Thing do |t|
       t.string :photo_file_name

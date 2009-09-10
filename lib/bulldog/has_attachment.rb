@@ -20,7 +20,7 @@ module Bulldog
 
     def attachment_attribute(name)
       @attachment_attributes ||= {}
-      @attachment_attributes[name] ||= AttachmentAttribute.new(self, name)
+      @attachment_attributes[name] ||= Attribute.new(self, name)
     end
 
     def process_attachment(name, event, *args)

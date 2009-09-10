@@ -1,7 +1,7 @@
 require 'bulldog/has_attachment'
 require 'bulldog/validations'
 require 'bulldog/attachment_reflection'
-require 'bulldog/attachment_attribute'
+require 'bulldog/attribute'
 require 'bulldog/configuration'
 require 'bulldog/style'
 require 'bulldog/style_set'
