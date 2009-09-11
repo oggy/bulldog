@@ -34,6 +34,20 @@ module Bulldog
 
       protected  # ---------------------------------------------------
 
+      #
+      # Return the path of the first occurrence of +basename+ in the
+      # current PATH, or nil if the file cannot be found.
+      #
+      def self.find_in_path(basename)
+        ENV['PATH'].split(/:+/).each do |dirname|
+          path = File.join(dirname, basename)
+          if File.file?(path) && File.executable?(path)
+            return path
+          end
+        end
+        nil
+      end
+
       def log(level, message)
         logger = Bulldog.logger
         logger.send(level, message) unless logger.nil?

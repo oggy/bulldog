@@ -5,6 +5,8 @@ module Bulldog
         attr_accessor :convert_command
       end
 
+      self.convert_command = find_in_path('convert')
+
       def process(record, *args)
         initialize_style_lists
         super
