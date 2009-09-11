@@ -7,7 +7,7 @@ module Bulldog
 
       self.convert_command = find_in_path('convert')
 
-      def process(record, *args)
+      def process(*args)
         initialize_style_lists
         super
         run_image_magick
@@ -58,7 +58,7 @@ module Bulldog
       end
 
       def add_stack_manipulations
-        output_files = styles.map{|style| style.output_file}
+        output_files = styles.map{|style| output_file(style.name)}
         lists        = styles.map{|style| style_lists[style.name]}
 
         last_output_file = output_files.pop

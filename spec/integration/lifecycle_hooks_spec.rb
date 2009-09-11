@@ -8,135 +8,135 @@ describe "Lifecycle hooks" do
   it "should run before-assignment hooks before assigning to the association" do
     checks = []
     Thing.has_attachment :photo do
-      before :assignment do |thing, value|
-        checks << thing << value << thing.photo?
+      before :assignment do
+        checks << value.query
       end
     end
     thing = Thing.new
-    io = uploaded_file("test.jpg")
-    thing.photo = io
-    checks.should == [thing, io, false]
+    checks.should == []
+    thing.photo = uploaded_file("test.jpg")
+    checks.should == [false]
   end
 
-  it "should run after assignment hooks after assigning to the association" do
+  it "should run after-assignment hooks after assigning to the association" do
     checks = []
     Thing.has_attachment :photo do
-      after :assignment do |thing, value|
-        checks << thing << value << thing.photo?
+      after :assignment do
+        checks << value.query
       end
     end
     thing = Thing.new
-    io = uploaded_file("test.jpg")
-    thing.photo = io
-    checks.should == [thing, io, true]
+    checks.should == []
+    thing.photo = uploaded_file("test.jpg")
+    checks.should == [true]
   end
 
   it "should run before-validation hooks before validating the record" do
     checks = []
     Thing.validates_presence_of :value
     Thing.has_attachment :photo do
-      before :validation do |thing|
-        checks << thing << thing.errors.empty?
+      before :validation do
+        checks << record.errors.empty?
       end
     end
     thing = Thing.new
     checks.should == []
     thing.valid?.should be_false
-    checks.should == [thing, true]
+    checks.should == [true]
   end
 
-  it "should run after validation hooks after validating the record" do
+  it "should run after-validation hooks after validating the record" do
     checks = []
     Thing.validates_presence_of :value
     Thing.has_attachment :photo do
-      after :validation do |thing|
-        checks << thing << thing.errors.empty?
+      after :validation do
+        checks << record.errors.empty?
       end
     end
     thing = Thing.new
     checks.should == []
     thing.valid?.should be_false
-    checks.should == [thing, false]
+    checks.should == [false]
   end
 
   it "should run before-save hooks before saving the record" do
     checks = []
     Thing.has_attachment :photo do
-      before :save do |thing|
-        checks << thing << thing.new_record?
+      before :save do
+        checks << record.new_record?
       end
     end
     thing = Thing.new
     checks.should == []
     thing.save.should be_true
-    checks.should == [thing, true]
+    checks.should == [true]
   end
 
-  it "should run after save hooks after saving the record" do
+  it "should run after-save hooks after saving the record" do
     checks = []
     Thing.has_attachment :photo do
-      after :save do |thing|
-        checks << thing << thing.new_record?
+      after :save do
+        checks << record.new_record?
       end
     end
     thing = Thing.new
     checks.should == []
     thing.save.should be_true
-    checks.should == [thing, false]
+    checks.should == [false]
   end
 
   it "should run before-create hooks before creating the record" do
     checks = []
     Thing.has_attachment :photo do
-      before :create do |thing|
-        checks << thing << thing.new_record?
+      before :create do
+        checks << record.new_record?
       end
     end
     thing = Thing.new
     checks.should == []
     thing.save.should be_true
-    checks.should == [thing, true]
+    checks.should == [true]
   end
 
-  it "should run after create hooks after creating the record" do
+  it "should run after-create hooks after creating the record" do
     checks = []
     Thing.has_attachment :photo do
-      after :create do |thing|
-        checks << thing << thing.new_record?
+      after :create do
+        checks << record.new_record?
       end
     end
     thing = Thing.new
     checks.should == []
     thing.save.should be_true
-    checks.should == [thing, false]
+    checks.should == [false]
   end
 
   it "should run before-update hooks before updating the record" do
     checks = []
     Thing.has_attachment :photo do
-      before :update do |thing|
-        checks << thing << Thing.count(:conditions => {:value => 2})
+      before :update do
+        checks << Thing.count(:conditions => {:value => 2})
       end
     end
     Thing.create(:value => 1)
     thing = Thing.first
     checks.should == []
     thing.update_attributes(:value => 2).should be_true
-    checks.should == [thing, 0]
+    checks.should == [0]
   end
 
-  it "should run after update hooks after updating the record" do
+  it "should run after-update hooks after updating the record" do
     checks = []
     Thing.has_attachment :photo do
-      after :update do |thing|
-        checks << thing << Thing.count(:conditions => {:value => 2})
+      after :update do
+        checks << Thing.count(:conditions => {:value => 2})
       end
     end
     Thing.create(:value => 1)
     thing = Thing.first
     checks.should == []
     thing.update_attributes(:value => 2).should be_true
-    checks.should == [thing, 1]
+    checks.should == [1]
   end
 
   it "should not run create hooks when updating the record" do
@@ -161,7 +161,7 @@ describe "Lifecycle hooks" do
         checks << [:fail]
       end
 
-      after :create do |thing|
+      after :create do
         checks << [:fail]
       end
     end

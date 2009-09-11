@@ -8,11 +8,6 @@ module Bulldog
 
     attr_reader :name
 
-    def output_file
-      # TODO: substitutions a la paperclip
-      self[:path]
-    end
-
     # For specs.
     def ==(other)
       other.is_a?(Style) &&

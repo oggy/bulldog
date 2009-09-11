@@ -4,9 +4,40 @@ module Bulldog
       def initialize(input_file, styles)
         @input_file = input_file
         @styles = styles
+        @record = nil
+        @name = nil
       end
 
+      #
+      # The name of the original file.
+      #
       attr_reader :input_file
+
+      def output_file(style_name)
+        path = @styles[style_name][:path] and
+          return path
+        # TODO: This sucks.  Don't violate Demeter.
+        attribute = record.attachment_attribute(name)
+        template = attribute.reflection.path_template
+        Interpolation.interpolate(template, attribute, @styles[style_name])
+      end
+
+      #
+      # The record being processed.
+      #
+      attr_reader :record
+
+      #
+      # The attribute name being processed.
+      #
+      attr_reader :name
+
+      #
+      # Return the value of the attachment attribute.
+      #
+      def value
+        record.send(name)
+      end
 
       #
       # Return the styles matching the given options.
@@ -28,7 +59,9 @@ module Bulldog
       # Subclasses may override this to do any additional pre- or
       # post- processing.  e.g., see photo.rb.
       #
-      def process(*args, &block)
+      def process(record, name, *args, &block)
+        @record = record
+        @name = name
         instance_exec(*args, &block)
       end
 

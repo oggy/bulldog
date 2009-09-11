@@ -12,7 +12,7 @@ module Bulldog
       reflection.events[event].each do |processor_class, callback|
         with_input_file_name do |file_name|
           processor = processor_class.new(file_name, reflection.styles)
-          processor.process(record, *args, &callback)
+          processor.process(record, name, *args, &callback)
         end
       end
     end
@@ -66,16 +66,16 @@ module Bulldog
       end
     end
 
+    def reflection
+      @reflection ||= record.class.attachment_reflections[name]
+    end
+
     private  # -------------------------------------------------------
 
     def calculate_path(style_name)
       template = reflection.path_template
       style = reflection.styles[style_name]
       Interpolation.interpolate(template, self, style)
-    end
-
-    def reflection
-      @reflection ||= record.class.attachment_reflections[name]
     end
 
     def set_file_attributes(value)

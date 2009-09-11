@@ -23,7 +23,7 @@ describe Processor::ImageMagick do
   end
 
   def process(&block)
-    Processor::ImageMagick.new('INPUT.jpg', styles).process(nil, &block)
+    Processor::ImageMagick.new('INPUT.jpg', styles).process(nil, nil, &block)
   end
 
   it "should run convert with the required arguments" do
@@ -90,16 +90,16 @@ describe Processor::ImageMagick do
   it "should allow protecting styles from an operation with an :except option" do
     Kernel.expects(:system).once.with(
       'CONVERT', 'INPUT.jpg',
-      '(', '+clone', '-write', '/tmp/original.jpg', '+delete', ')',
+      '(', '+clone', '-write', '/tmp/unaltered.jpg', '+delete', ')',
       '(', '+clone', '-auto-orient', '-write', '/tmp/unresized.jpg', '+delete', ')',
       '-auto-orient', '-resize', '40x40', '/tmp/small.jpg'
     )
-    style :original, {:path => '/tmp/original.jpg'}
+    style :unaltered, {:path => '/tmp/unaltered.jpg'}
     style :unresized, {:path => '/tmp/unresized.jpg'}
     style :small, {:size => '40x40', :path => '/tmp/small.jpg'}
     process do
-      auto_orient(:except => :original)
-      resize(:except => [:original, :unresized])
+      auto_orient(:except => :unaltered)
+      resize(:except => [:unaltered, :unresized])
     end
   end
 end
