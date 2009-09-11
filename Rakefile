@@ -13,9 +13,21 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
-Spec::Rake::SpecTask.new do |t|
-  t.libs << 'lib' << 'spec'
-  t.spec_opts = ['--options', "\"#{PLUGIN_ROOT}/spec/spec.opts\""]
+desc "Run all specs."
+task :spec => ['spec:unit', 'spec:integration']
+
+namespace :spec do
+  Spec::Rake::SpecTask.new(:unit) do |t|
+    t.pattern = 'spec/unit/**/*_spec.rb'
+    t.libs << 'lib' << 'spec'
+    t.spec_opts = ['--options', "\"#{PLUGIN_ROOT}/spec/spec.opts\""]
+  end
+
+  Spec::Rake::SpecTask.new(:integration) do |t|
+    t.pattern = 'spec/integration/**/*_spec.rb'
+    t.libs << 'lib' << 'spec'
+    t.spec_opts = ['--options', "\"#{PLUGIN_ROOT}/spec/spec.opts\""]
+  end
 end
 
 desc "Run all specs in spec directory with RCov"
