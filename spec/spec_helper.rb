@@ -17,11 +17,13 @@ require 'helpers/test_upload_files'
 module SpecHelper
   def self.included(mod)
     mod.extend ClassMethods
-    mod.before{stub_system_calls}
     mod.before{install_fresh_logger}
     mod.before{set_default_attachment_path}
   end
 
+  #
+  # Stub out all system calls.  Pretend they were successful.
+  #
   def stub_system_calls
     Kernel.stubs(:system).returns(true)
   end

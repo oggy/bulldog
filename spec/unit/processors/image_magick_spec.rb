@@ -2,6 +2,8 @@ require 'spec_helper'
 
 describe Processor::ImageMagick do
   before do
+    stub_system_calls
+
     @original_convert_command = Processor::ImageMagick.convert_command
     Processor::ImageMagick.convert_command = 'CONVERT'
 
