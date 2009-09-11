@@ -32,17 +32,6 @@ describe HasAttachment do
   end
 
   describe "#process_attachment" do
-    # TODO: support processor selection
-    it "should evaluate the callback in the context of a base processor" do
-      context = nil
-      Thing.has_attachment :photo do
-        on(:my_event){context = self}
-      end
-      thing = Thing.new
-      thing.process_attachment(:photo, :my_event)
-      context.should be_a(Processor::Base)
-    end
-
     it "should trigger the named custom callback" do
       args = nil
       Thing.has_attachment :photo do
@@ -53,7 +42,7 @@ describe HasAttachment do
       args.should == [thing, 1, 2]
     end
 
-    it "should raise an ArgumentError if you get the attachment name wrong" do
+    it "should raise an ArgumentError if the attachment name is invalid" do
       args = nil
       Thing.has_attachment :photo do
         on(:my_event){|*args|}
@@ -62,6 +51,31 @@ describe HasAttachment do
       lambda do
         thing.process_attachment(:fail, :my_event, 1, 2)
       end.should raise_error(ArgumentError)
+    end
+
+    it "should evaluate the callback in the context of the specified processor" do
+      Processor.const_set(:Test, Class.new(Processor::Base))
+      begin
+        context = nil
+        Thing.has_attachment :photo do
+          on(:my_event, :with => :test){context = self}
+        end
+        thing = Thing.new
+        thing.process_attachment(:photo, :my_event)
+        context.should be_a(Processor::Test)
+      ensure
+        Processor.send(:remove_const, :Test)
+      end
+    end
+
+    it "should default to a base processor instance" do
+      context = nil
+      Thing.has_attachment :photo do
+        on(:my_event){context = self}
+      end
+      thing = Thing.new
+      thing.process_attachment(:photo, :my_event)
+      context.should be_a(Processor::Base)
     end
   end
 

@@ -9,9 +9,9 @@ module Bulldog
     attr_reader :record, :name
 
     def process(event, *args)
-      reflection.events[event].each do |callback|
+      reflection.events[event].each do |processor_class, callback|
         with_input_file_name do |file_name|
-          processor = Processor::Base.new(file_name, reflection.styles)
+          processor = processor_class.new(file_name, reflection.styles)
           processor.process(record, *args, &callback)
         end
       end

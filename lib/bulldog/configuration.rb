@@ -20,16 +20,18 @@ module Bulldog
       styles << Style.new(name, attributes)
     end
 
-    def on(event, &block)
-      events[event] << block
+    def on(event, options={}, &block)
+      const_name = (options[:with] || 'base').to_s.camelize
+      processor_class = Processor.const_get(const_name)
+      events[event] << [processor_class, block]
     end
 
-    def before(event, &block)
-      on("before_#{event}".to_sym, &block)
+    def before(event, options={}, &block)
+      on("before_#{event}".to_sym, options, &block)
     end
 
-    def after(event, &block)
-      on("after_#{event}".to_sym, &block)
+    def after(event, options={}, &block)
+      on("after_#{event}".to_sym, options, &block)
     end
 
     def store_file_attributes(*args)

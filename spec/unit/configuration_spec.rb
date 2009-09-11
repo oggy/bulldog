@@ -42,6 +42,42 @@ describe Configuration do
     end
   end
 
+  describe "#on" do
+    it "should allow reflection on the defined event" do
+      Thing.has_attachment :photo do
+        on(:test_event){}
+      end
+      events = Thing.attachment_reflections[:photo].events[:test_event]
+      events.should have(1).event
+
+      event = events.first
+      event.should have(2).items
+      event[0].should be_a(Class)
+      event[1].should be_a(Proc)
+    end
+
+    it "should use the specified processor class if given" do
+      Processor.const_set(:Test, Class.new(Processor::Base))
+      begin
+        Thing.has_attachment :photo do
+          on(:test_event, :with => :test){}
+        end
+        event = Thing.attachment_reflections[:photo].events[:test_event].first
+        event[0].should equal(Processor::Test)
+      ensure
+        Processor.send(:remove_const, :Test)
+      end
+    end
+
+    it "should default to using the base processor class" do
+      Thing.has_attachment :photo do
+        on(:test_event){}
+      end
+      event = Thing.attachment_reflections[:photo].events[:test_event].first
+      event[0].should equal(Processor::Base)
+    end
+  end
+
   describe "#store_file_attributes" do
     it "should allow reflection on the file attributes" do
       Thing.has_attachment :photo do
