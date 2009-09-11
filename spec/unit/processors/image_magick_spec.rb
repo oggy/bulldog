@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe Processor::Photo do
+describe Processor::ImageMagick do
   before do
-    @original_convert_command = Processor::Photo.convert_command
-    Processor::Photo.convert_command = 'CONVERT'
+    @original_convert_command = Processor::ImageMagick.convert_command
+    Processor::ImageMagick.convert_command = 'CONVERT'
 
     @styles = StyleSet.new
   end
@@ -11,7 +11,7 @@ describe Processor::Photo do
   attr_reader :styles
 
   after do
-    Processor::Photo.convert_command = @original_convert_command
+    Processor::ImageMagick.convert_command = @original_convert_command
   end
 
   include Processor
@@ -21,7 +21,7 @@ describe Processor::Photo do
   end
 
   def process(&block)
-    Processor::Photo.new('INPUT.jpg', styles).process(nil, &block)
+    Processor::ImageMagick.new('INPUT.jpg', styles).process(nil, &block)
   end
 
   it "should run convert with the required arguments" do

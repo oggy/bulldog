@@ -4,4 +4,4 @@ module Bulldog
 end
 
 require 'bulldog/processor/base'
-require 'bulldog/processor/photo'
+require 'bulldog/processor/image_magick'
