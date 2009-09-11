@@ -5,18 +5,9 @@ describe HasAttachment do
     t.integer :value
   end
 
-  before do
-    @original_photo_processor = Processor.class_for(:photo)
-    Processor.register :photo, Processor::Base
-  end
-
-  after do
-    Processor.register :photo, @original_photo_processor
-  end
-
   describe ".has_attachment" do
     it "should provide accessors for the attachment" do
-      Thing.has_attachment :photo => :photo
+      Thing.has_attachment :photo
       thing = Thing.new
       file = uploaded_file("test.jpg")
       thing.photo = file
@@ -24,7 +15,7 @@ describe HasAttachment do
     end
 
     it "should provide a query method for the attachment" do
-      Thing.has_attachment :photo => :photo
+      Thing.has_attachment :photo
       thing = Thing.new
       file = uploaded_file("test.jpg")
       thing.photo?.should be_false
@@ -35,33 +26,26 @@ describe HasAttachment do
 
   describe ".attachment_reflections" do
     it "should allow reflection on the field names" do
-      Thing.has_attachment :photo => :photo
+      Thing.has_attachment :photo
       Thing.attachment_reflections[:photo].name.should == :photo
     end
   end
 
   describe "#process_attachment" do
-    class TestProcessor < Processor::Base
-    end
-
-    it "should evaluate the callback in the context of the appropriate processor" do
-      Processor.register :test, TestProcessor
-      begin
-        context = nil
-        Thing.has_attachment :photo => :test do
-          on(:my_event){context = self}
-        end
-        thing = Thing.new
-        thing.process_attachment(:photo, :my_event)
-        context.should be_a(TestProcessor)
-      ensure
-        Processor.register :test, nil
+    # TODO: support processor selection
+    it "should evaluate the callback in the context of a base processor" do
+      context = nil
+      Thing.has_attachment :photo do
+        on(:my_event){context = self}
       end
+      thing = Thing.new
+      thing.process_attachment(:photo, :my_event)
+      context.should be_a(Processor::Base)
     end
 
     it "should trigger the named custom callback" do
       args = nil
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         on(:my_event){|*args|}
       end
       thing = Thing.new
@@ -71,7 +55,7 @@ describe HasAttachment do
 
     it "should raise an ArgumentError if you get the attachment name wrong" do
       args = nil
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         on(:my_event){|*args|}
       end
       thing = Thing.new
@@ -84,7 +68,7 @@ describe HasAttachment do
   describe "lifecycle integration" do
     it "should fire :before_assignment before assigning to the association" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         before :assignment do |thing, value|
           checks << thing << value << thing.photo?
         end
@@ -97,7 +81,7 @@ describe HasAttachment do
 
     it "should fire :after_assignment after assigning to the association" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         after :assignment do |thing, value|
           checks << thing << value << thing.photo?
         end
@@ -111,7 +95,7 @@ describe HasAttachment do
     it "should fire :before_validation before validating the record" do
       checks = []
       Thing.validates_presence_of :value
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         before :validation do |thing|
           checks << thing << thing.errors.empty?
         end
@@ -125,7 +109,7 @@ describe HasAttachment do
     it "should fire :after_validation after validating the record" do
       checks = []
       Thing.validates_presence_of :value
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         after :validation do |thing|
           checks << thing << thing.errors.empty?
         end
@@ -138,7 +122,7 @@ describe HasAttachment do
 
     it "should fire :before_save before saving the record" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         before :save do |thing|
           checks << thing << thing.new_record?
         end
@@ -151,7 +135,7 @@ describe HasAttachment do
 
     it "should fire :after_save after saving the record" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         after :save do |thing|
           checks << thing << thing.new_record?
         end
@@ -164,7 +148,7 @@ describe HasAttachment do
 
     it "should fire :before_create before creating the record" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         before :create do |thing|
           checks << thing << thing.new_record?
         end
@@ -177,7 +161,7 @@ describe HasAttachment do
 
     it "should fire :after_create after creating the record" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         after :create do |thing|
           checks << thing << thing.new_record?
         end
@@ -190,7 +174,7 @@ describe HasAttachment do
 
     it "should fire :before_update before updating the record" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         before :update do |thing|
           checks << thing << Thing.count(:conditions => {:value => 2})
         end
@@ -204,7 +188,7 @@ describe HasAttachment do
 
     it "should fire :after_update after updating the record" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         after :update do |thing|
           checks << thing << Thing.count(:conditions => {:value => 2})
         end
@@ -218,7 +202,7 @@ describe HasAttachment do
 
     it "should not fire :before_create or :after_create when updating the record" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         before :update do
           checks << [:fail]
         end
@@ -233,7 +217,7 @@ describe HasAttachment do
 
     it "should not fire :before_update or :after_update when creating the record" do
       checks = []
-      Thing.has_attachment :photo => :photo do
+      Thing.has_attachment :photo do
         before :create do
           checks << [:fail]
         end
@@ -251,7 +235,7 @@ describe HasAttachment do
     describe "with multiple callbacks" do
       it "should support multiple assignment callbacks" do
         checks = []
-        Thing.has_attachment :photo => :photo do
+        Thing.has_attachment :photo do
           before(:assignment){checks << 1}
           before(:assignment){checks << 2}
           after(:assignment){checks << 3}
@@ -264,7 +248,7 @@ describe HasAttachment do
 
       it "should support multiple validation callbacks" do
         checks = []
-        Thing.has_attachment :photo => :photo do
+        Thing.has_attachment :photo do
           before(:validation){checks << 1}
           before(:validation){checks << 2}
           after(:validation){checks << 3}
@@ -278,7 +262,7 @@ describe HasAttachment do
 
       it "should support multiple save callbacks" do
         checks = []
-        Thing.has_attachment :photo => :photo do
+        Thing.has_attachment :photo do
           before(:save){checks << 1}
           before(:save){checks << 2}
           after(:save){checks << 3}
@@ -292,7 +276,7 @@ describe HasAttachment do
 
       it "should support multiple create callbacks" do
         checks = []
-        Thing.has_attachment :photo => :photo do
+        Thing.has_attachment :photo do
           before(:create){checks << 1}
           before(:create){checks << 2}
           after(:create){checks << 3}
@@ -305,7 +289,7 @@ describe HasAttachment do
 
       it "should support multiple update callbacks" do
         checks = []
-        Thing.has_attachment :photo => :photo do
+        Thing.has_attachment :photo do
           before(:update){checks << 1}
           before(:update){checks << 2}
           after(:update){checks << 3}
@@ -319,7 +303,7 @@ describe HasAttachment do
 
       it "should support multiple custom callbacks" do
         checks = []
-        Thing.has_attachment :photo => :photo do
+        Thing.has_attachment :photo do
           on(:background_processing){checks << 1}
           on(:background_processing){checks << 2}
         end

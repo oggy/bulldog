@@ -54,8 +54,8 @@ module Bulldog
       #
       # TODO: example that shows all the options.
       #
-      def has_attachment(name_with_optional_type, &block)
-        reflection = Reflection.new(self, name_with_optional_type, &block)
+      def has_attachment(name, &block)
+        reflection = Reflection.new(self, name, &block)
         define_attachment_accessors(reflection.name)
       end
 

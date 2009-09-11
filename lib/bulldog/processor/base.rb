@@ -32,13 +32,6 @@ module Bulldog
         instance_exec(*args, &block)
       end
 
-      #
-      # Declare that this Processor class processes the given type.
-      #
-      def self.processes(type)
-        Processor.register(type, self)
-      end
-
       protected  # ---------------------------------------------------
 
       def log(level, message)

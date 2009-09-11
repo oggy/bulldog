@@ -5,8 +5,6 @@ module Bulldog
         attr_accessor :convert_command
       end
 
-      processes :photo
-
       def process(record, *args)
         initialize_style_lists
         super

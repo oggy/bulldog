@@ -11,7 +11,7 @@ module Bulldog
     def process(event, *args)
       reflection.events[event].each do |callback|
         with_input_file_name do |file_name|
-          processor = Processor.class_for(reflection.type).new(file_name, reflection.styles)
+          processor = Processor::Base.new(file_name, reflection.styles)
           processor.process(record, *args, &callback)
         end
       end

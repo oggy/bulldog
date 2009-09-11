@@ -1,9 +1,8 @@
 module Bulldog
   class Configuration
-    def initialize(klass, name, type)
+    def initialize(klass, name)
       @class = klass
       @name = name
-      @type = type
       @path_template = Bulldog.default_path
       @options = {}
       @styles = StyleSet.new
@@ -11,7 +10,7 @@ module Bulldog
       @file_attributes = default_file_attributes
     end
 
-    attr_reader :class, :name, :type, :path_template, :options, :styles, :events, :file_attributes
+    attr_reader :class, :name, :path_template, :options, :styles, :events, :file_attributes
 
     def paths(path_template)
       @path_template = path_template
