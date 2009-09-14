@@ -48,6 +48,12 @@ module Bulldog
       calculate_path(style_name)
     end
 
+    def size
+      value = get or
+        return nil
+      value.is_a?(StringIO) ? value.size : File.size(value.path)
+    end
+
     def save
       if @assigned
         original_path = calculate_path(:original)
@@ -80,7 +86,7 @@ module Bulldog
 
     def set_file_attributes(value)
       if value
-        set_file_attribute(:file_name){value.original_path}
+        set_file_attribute(:file_name){value.is_a?(File) ? File.basename(value.path) : value.original_path}
         set_file_attribute(:content_type){value.content_type}
         set_file_attribute(:file_size){value.is_a?(File) ? File.size(value) : value.size}
       else

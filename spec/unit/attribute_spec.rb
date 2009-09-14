@@ -41,6 +41,58 @@ describe Attribute do
     end
   end
 
+  describe "#size" do
+    def with_temporary_file(path, content)
+      open(path, 'w'){|f| f.print '...'}
+      begin
+        yield path
+      ensure
+        File.delete(path)
+      end
+    end
+
+    describe "when the value is a small uploaded file (StringIO)" do
+      it "should return the content length of the uploaded data" do
+        @thing.photo = small_uploaded_file('test.jpg', '...')
+        @thing.photo.size.should == 3
+      end
+    end
+
+    describe "when the value is a large uploaded file (Tempfile)" do
+      it "should return the content length of the uploaded data" do
+        @thing.photo = large_uploaded_file('test.jpg', '...')
+        @thing.photo.size.should == 3
+      end
+    end
+
+    describe "when the value is a File object" do
+      it "should return the size of the file" do
+        with_temporary_file("#{temporary_directory}/test.jpg", '...') do |path|
+          open(path) do |file|
+            @thing.photo = file
+            @thing.photo.size.should == 3
+          end
+        end
+      end
+    end
+
+    describe "when the value is an existing file (UnopenedFile)" do
+      it "should return the size of the file" do
+        @thing.save
+        @thing = Thing.find(@thing.id)
+        with_temporary_file(original_path, '...') do |path|
+          @thing.photo.size.should == 3
+        end
+      end
+    end
+
+    describe "when the value is nil" do
+      it "should return nil" do
+        @thing.photo.size.should be_nil
+      end
+    end
+  end
+
   describe "before the attribute is assigned" do
     describe "when no attachment is present" do
       it "should make the query method return false" do

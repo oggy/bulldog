@@ -18,7 +18,7 @@ module Bulldog
           options[:less_than   ] = range.max + 1
         end
         validates_each(name, options) do |record, attributes, value|
-          file_size = value.get.is_a?(StringIO) ? value.get.size : File.size(value.get.path)
+          file_size = value.get.size
           if options[:greater_than]
             file_size > options[:greater_than] or
               record.errors.add attributes, options[:message] || :attachment_too_small
