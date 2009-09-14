@@ -24,17 +24,19 @@ describe Processor::ImageMagick do
     Processor::ImageMagick.new('INPUT.jpg', @styles).process(nil, nil, &block)
   end
 
-  it "should run convert with the required arguments" do
-    Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '/tmp/x.jpg')
-    style :x, {:path => '/tmp/x.jpg'}
-    process do
+  describe "when a simple conversion is performed" do
+    before do
+      style :x, {:path => '/tmp/x.jpg'}
     end
-  end
 
-  it "should log the command run" do
-    Bulldog.logger.expects(:info).with('Running: "CONVERT" "INPUT.jpg" "/tmp/x.jpg"')
-    style :x, {:path => '/tmp/x.jpg'}
-    process do
+    it "should run convert with the required arguments" do
+      Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '/tmp/x.jpg')
+      process
+    end
+
+    it "should log the command run" do
+      Bulldog.logger.expects(:info).with('Running: "CONVERT" "INPUT.jpg" "/tmp/x.jpg"')
+      process
     end
   end
 
