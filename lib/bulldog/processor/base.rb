@@ -62,7 +62,7 @@ module Bulldog
       def process(record, name, *args, &block)
         @record = record
         @name = name
-        instance_exec(*args, &block)
+        instance_exec(*args, &block) if block
       end
 
       protected  # ---------------------------------------------------

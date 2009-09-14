@@ -10,8 +10,6 @@ describe Processor::ImageMagick do
     @styles = StyleSet.new
   end
 
-  attr_reader :styles
-
   after do
     Processor::ImageMagick.convert_command = @original_convert_command
   end
@@ -23,7 +21,7 @@ describe Processor::ImageMagick do
   end
 
   def process(&block)
-    Processor::ImageMagick.new('INPUT.jpg', styles).process(nil, nil, &block)
+    Processor::ImageMagick.new('INPUT.jpg', @styles).process(nil, nil, &block)
   end
 
   it "should run convert with the required arguments" do
