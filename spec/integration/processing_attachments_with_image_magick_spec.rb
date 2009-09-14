@@ -3,12 +3,8 @@ require 'spec_helper'
 describe "Processing attachments with ImageMagick" do
   set_up_model_class :Thing
 
-  def convert
-    Bulldog::Processor::ImageMagick.convert_command
-  end
-
   def identify
-    File.dirname(convert) + '/identify'
+    File.dirname(Bulldog::Processor::ImageMagick.convert_command) + '/identify'
   end
 
   before do
@@ -25,7 +21,7 @@ describe "Processing attachments with ImageMagick" do
     @thing = Thing.new
     @thing.stubs(:id).returns(5)
 
-    system(convert, '-geometry', '100x100', 'pattern:checkerboard', "#{tmp}/tmp.png")
+    create_image("#{tmp}/tmp.png", :size => "100x100")
     @file = open("#{tmp}/tmp.png")
   end
 

@@ -13,6 +13,7 @@ PLUGIN_ROOT = File.dirname( File.dirname(__FILE__) )
 require 'helpers/time_travel'
 require 'helpers/temporary_directory'
 require 'helpers/test_upload_files'
+require 'helpers/image_creation'
 
 module SpecHelper
   def self.included(mod)
@@ -69,6 +70,7 @@ Spec::Runner.configure do |config|
   config.include TimeTravel
   config.include TemporaryDirectory
   config.include TestUploadFiles
+  config.include ImageCreation
 end
 
 ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :dbfile => ":memory:")
