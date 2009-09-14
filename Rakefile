@@ -4,17 +4,38 @@ require 'rake/rdoctask'
 
 PLUGIN_ROOT = File.dirname(__FILE__)
 
-desc 'Generate documentation for the bulldog plugin.'
-Rake::RDocTask.new(:rdoc) do |rdoc|
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gem|
+    gem.name = "bulldog"
+    gem.summary = "A heavy-duty paperclip.  File attachments for ActiveRecord."
+    gem.description = File.read("#{PLUGIN_ROOT}/DESCRIPTION.txt")
+    gem.email = "george.ogata@gmail.com"
+    gem.homepage = "http://github.com/oggy/bulldog"
+    gem.authors = ["George Ogata"]
+    gem.add_development_dependency "rspec"
+    gem.add_development_dependency "mocha"
+  end
+rescue LoadError
+  puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
+end
+
+require 'rake/rdoctask'
+Rake::RDocTask.new do |rdoc|
+  if File.exist?('VERSION')
+    version = File.read('VERSION')
+  else
+    version = ""
+  end
+
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'Bulldog'
-  rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.rdoc_files.include('README')
+  rdoc.title = "Bulldog #{version}"
+  rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
 desc "Run all specs."
-task :spec => ['spec:unit', 'spec:integration']
+task :spec => ['check_dependencies', 'spec:unit', 'spec:integration']
 
 namespace :spec do
   Spec::Rake::SpecTask.new(:unit) do |t|
