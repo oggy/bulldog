@@ -28,6 +28,9 @@ module Bulldog
     end
 
     def set(value)
+      unless record.read_attribute(name) == value
+        record.send(:attribute_will_change!, name)
+      end
       @assigned = true
       record.write_attribute(name, value)
       set_file_attributes(value)
@@ -57,6 +60,10 @@ module Bulldog
       value = get or
         return nil
       value.is_a?(StringIO) ? value.size : File.size(value.path)
+    end
+
+    def changed?
+      record.send(:attribute_changed?, :photo)
     end
 
     def save

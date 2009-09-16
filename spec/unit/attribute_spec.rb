@@ -201,6 +201,10 @@ describe Attribute do
         @thing.photo.path(:original).should be_nil
         @thing.photo.path(:small).should be_nil
       end
+
+      it "should not appear changed" do
+        @thing.photo.changed?.should be_false
+      end
     end
 
     describe "when an attachment is present" do
@@ -220,6 +224,10 @@ describe Attribute do
       it "should return the path to the file for all styles" do
         @thing.photo.path(:original).should == "#{temporary_directory}/#{@thing.id}.original.jpg"
         @thing.photo.path(:small).should == "#{temporary_directory}/#{@thing.id}.small.jpg"
+      end
+
+      it "should not appear changed" do
+        @thing.photo.changed?.should be_false
       end
     end
   end
@@ -254,6 +262,10 @@ describe Attribute do
           @thing.photo.path(:original).should == "#{temporary_directory}/#{@thing.id}.original.jpg"
           @thing.photo.path(:small).should == "#{temporary_directory}/#{@thing.id}.small.jpg"
         end
+
+        it "should appear changed" do
+          @thing.photo.changed?.should be_true
+        end
       end
 
       describe "when nil is assigned" do
@@ -272,6 +284,10 @@ describe Attribute do
         it "should return nil for the path of all styles" do
           @thing.photo.path(:original).should be_nil
           @thing.photo.path(:small).should be_nil
+        end
+
+        it "should not appear changed" do
+          @thing.photo.changed?.should be_false
         end
       end
     end
@@ -299,6 +315,10 @@ describe Attribute do
           @thing.photo.path(:original).should == "#{temporary_directory}/#{@thing.id}.original.jpg"
           @thing.photo.path(:small).should == "#{temporary_directory}/#{@thing.id}.small.jpg"
         end
+
+        it "should appear changed" do
+          @thing.photo.changed?.should be_true
+        end
       end
 
       describe "when nil is assigned" do
@@ -317,6 +337,10 @@ describe Attribute do
         it "should return nil for the path of all styles" do
           @thing.photo.path(:original).should be_nil
           @thing.photo.path(:small).should be_nil
+        end
+
+        it "should appear changed" do
+          @thing.photo.changed?.should be_true
         end
       end
     end
