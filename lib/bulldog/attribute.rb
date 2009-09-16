@@ -43,12 +43,12 @@ module Bulldog
       !!get
     end
 
-    def path(style_name)
+    def path(style_name = reflection.default_style)
       return nil if !query
       calculate_path(style_name)
     end
 
-    def url(style_name)
+    def url(style_name = reflection.default_style)
       return nil if !query
       calculate_url(style_name)
     end

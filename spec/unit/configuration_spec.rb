@@ -51,6 +51,29 @@ describe Configuration do
     end
   end
 
+  describe "#default_style" do
+    it "should allow reflection on the default_style" do
+      Thing.has_attachment :photo do
+        style :small, :size => '32x32'
+        default_style :small
+      end
+      Thing.attachment_reflections[:photo].default_style.should == :small
+    end
+
+    it "should default to :original" do
+      Thing.has_attachment :photo
+      Thing.attachment_reflections[:photo].default_style.should == :original
+    end
+
+    it "should raise an error if the argument does not name a style" do
+      lambda do
+        Thing.has_attachment :photo do
+          default_style :bad
+        end
+      end.should raise_error(Error)
+    end
+  end
+
   describe "#on" do
     it "should allow reflection on the defined event" do
       Thing.has_attachment :photo do

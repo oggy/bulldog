@@ -1,3 +1,4 @@
+require 'bulldog/error'
 require 'bulldog/has_attachment'
 require 'bulldog/validations'
 require 'bulldog/reflection'

@@ -6,6 +6,7 @@ module Bulldog
       @path_template = Bulldog.default_path
       @options = {}
       @styles = StyleSet.new
+      @default_style = :original
       @events = Hash.new{|h,k| h[k] = []}
       @file_attributes = default_file_attributes
     end
@@ -22,6 +23,17 @@ module Bulldog
 
     def style(name, attributes)
       styles << Style.new(name, attributes)
+    end
+
+    def default_style(*args)
+      if args.empty?
+        @default_style
+      else
+        name = args.first
+        styles.find{|style| style.name == name} or
+          raise Error, "invalid style name: #{name.inspect}"
+        @default_style = name
+      end
     end
 
     def on(event, options={}, &block)

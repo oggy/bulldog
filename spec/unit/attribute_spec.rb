@@ -45,10 +45,24 @@ describe Attribute do
       @thing.photo.path(:original).should == original_path
       @thing.photo.path(:small).should == small_path
     end
+
+    describe "when no style is given" do
+      configure_attachment do
+        path "/tmp/:id.:style.jpg"
+        style :small, {}
+        default_style :small
+      end
+
+      it "should default to the default_style" do
+        @thing.stubs(:id).returns(5)
+        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.photo.path.should == "/tmp/5.small.jpg"
+      end
+    end
   end
 
   describe "#url" do
-    describe "when not explicitly set, and the path is in the docroot" do
+    describe "when not explicitly set, and the path is under the docroot" do
       configure_attachment do
         path ":rails_root/public/images/:id.:style.jpg"
         style :small, {}
@@ -63,7 +77,7 @@ describe Attribute do
       end
     end
 
-    describe "when not explicitly set, and the path is not in the docroot" do
+    describe "when not explicitly set, and the path is not under the docroot" do
       configure_attachment do
         path "/tmp/:id.:style.jpg"
         style :small, {}
@@ -91,6 +105,20 @@ describe Attribute do
         @thing.stubs(:id).returns(5)
         @thing.photo.url(:original).should == "/assets/5.original.jpg"
         @thing.photo.url(:small).should == "/assets/5.small.jpg"
+      end
+    end
+
+    describe "when no style is given" do
+      configure_attachment do
+        url "/assets/:id.:style.jpg"
+        style :small, {}
+        default_style :small
+      end
+
+      it "should default to the default_style" do
+        @thing.stubs(:id).returns(5)
+        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.photo.url.should == "/assets/5.small.jpg"
       end
     end
   end

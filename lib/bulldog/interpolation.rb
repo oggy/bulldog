@@ -1,6 +1,6 @@
 module Bulldog
   module Interpolation
-    InterpolationError = Class.new(RuntimeError)
+    InterpolationError = Class.new(Error)
 
     def self.interpolate(template, attribute, style)
       template.gsub(/:(\w+)/) do

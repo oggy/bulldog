@@ -6,12 +6,12 @@ module Bulldog
       configure(&block)
     end
 
-    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :file_attributes
+    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :default_style, :events, :file_attributes
 
     def configure(&block)
       configuration = Configuration.new(model_class, name)
       configuration.instance_eval(&block) if block
-      [:path_template, :url_template, :styles, :events, :file_attributes].each do |field|
+      [:path_template, :url_template, :styles, :default_style, :events, :file_attributes].each do |field|
         send("#{field}=", configuration.send(field))
       end
       model_class.attachment_reflections[name] = self
