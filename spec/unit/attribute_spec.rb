@@ -8,7 +8,7 @@ describe Attribute do
   before do
     tmp = temporary_directory
     Thing.has_attachment :photo do
-      paths "#{tmp}/:id.:style.jpg"
+      path "#{tmp}/:id.:style.jpg"
       style :small, {}
       store_file_attributes :file_name
     end

@@ -13,16 +13,16 @@ describe Configuration do
     t.datetime :custom_updated_at
   end
 
-  describe "#paths" do
+  describe "#path" do
     it "should default to the global setting" do
       Bulldog.default_path = "/test.jpg"
       Thing.has_attachment :photo
       Thing.attachment_reflections[:photo].path_template.should == "/test.jpg"
     end
 
-    it "should allow reflection on the paths" do
+    it "should allow reflection on the path" do
       Thing.has_attachment :photo do
-        paths "/path/to/somewhere"
+        path "/path/to/somewhere"
       end
       Thing.attachment_reflections[:photo].path_template.should == "/path/to/somewhere"
     end

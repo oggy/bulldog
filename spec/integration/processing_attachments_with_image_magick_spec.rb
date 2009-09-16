@@ -10,7 +10,7 @@ describe "Processing attachments with ImageMagick" do
   before do
     tmp = temporary_directory
     Thing.has_attachment :photo do
-      paths "#{tmp}/:id.:style.png"
+      path "#{tmp}/:id.:style.png"
       style :small, {:size => '10x10'}
       style :large, {:size => '1000x1000'}
 

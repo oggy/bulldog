@@ -15,7 +15,7 @@ describe "Saving an attachment" do
   it "should not leave any file handles left open" do
     tmp = temporary_directory
     Thing.has_attachment :photo do
-      paths "#{tmp}/:style.png"
+      path "#{tmp}/:style.png"
       style :small, :size => '10x10'
       after :save, :with => :image_magick do
         resize(styles)

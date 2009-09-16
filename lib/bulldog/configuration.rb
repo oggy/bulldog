@@ -12,7 +12,7 @@ module Bulldog
 
     attr_reader :class, :name, :path_template, :options, :styles, :events, :file_attributes
 
-    def paths(path_template)
+    def path(path_template)
       @path_template = path_template
     end
 
