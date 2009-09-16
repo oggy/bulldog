@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Configuration do
+describe Reflection do
   set_up_model_class :Thing do |t|
     t.string :photo_file_name
     t.string :photo_content_type
@@ -13,38 +13,41 @@ describe Configuration do
     t.datetime :custom_updated_at
   end
 
-  describe "#path" do
-    it "should default to the global setting" do
-      Bulldog.default_path = "/test.jpg"
-      Thing.has_attachment :photo
-      Thing.attachment_reflections[:photo].path_template.should == "/test.jpg"
-    end
+  def reflection
+    Thing.attachment_reflections[:photo]
+  end
 
-    it "should allow reflection on the path" do
+  describe "#path_template" do
+    it "should return the configured path" do
       Thing.has_attachment :photo do
         path "/path/to/somewhere"
       end
-      Thing.attachment_reflections[:photo].path_template.should == "/path/to/somewhere"
+      reflection.path_template.should == "/path/to/somewhere"
+    end
+
+    it "should default to the global setting" do
+      Bulldog.default_path = "/test.jpg"
+      Thing.has_attachment :photo
+      reflection.path_template.should == "/test.jpg"
     end
   end
 
-  describe "#url" do
-    it "should allow reflection on the url" do
+  describe "#url_template" do
+    it "should return the configured URL template" do
       Thing.has_attachment :photo do
         url "/path/to/somewhere"
       end
-      Thing.attachment_reflections[:photo].url_template.should == "/path/to/somewhere"
+      reflection.url_template.should == "/path/to/somewhere"
     end
   end
 
   describe "#style" do
-    it "should allow reflection on the styles" do
+    it "should return the set of styles" do
       Thing.has_attachment :photo do
         style :small, :size => '32x32'
         style :large, :size => '512x512'
       end
-
-      Thing.attachment_reflections[:photo].styles.should == StyleSet[
+      reflection.styles.should == StyleSet[
         Style.new(:small, {:size => '32x32'}),
         Style.new(:large, {:size => '512x512'}),
       ]
@@ -52,34 +55,33 @@ describe Configuration do
   end
 
   describe "#default_style" do
-    it "should allow reflection on the default_style" do
+    it "should return the configured default_style" do
       Thing.has_attachment :photo do
         style :small, :size => '32x32'
         default_style :small
       end
-      Thing.attachment_reflections[:photo].default_style.should == :small
+      reflection.default_style.should == :small
     end
 
     it "should default to :original" do
       Thing.has_attachment :photo
-      Thing.attachment_reflections[:photo].default_style.should == :original
+      reflection.default_style.should == :original
     end
 
-    it "should raise an error if the argument does not name a style" do
-      lambda do
-        Thing.has_attachment :photo do
-          default_style :bad
-        end
-      end.should raise_error(Error)
+    it "should raise an error if the configured default_style is invalid" do
+      Thing.has_attachment :photo do
+        default_style :bad
+      end
+      lambda{reflection.default_style}.should raise_error(Error)
     end
   end
 
-  describe "#on" do
-    it "should allow reflection on the defined event" do
+  describe "#events" do
+    it "should return the map of configured events" do
       Thing.has_attachment :photo do
         on(:test_event){}
       end
-      events = Thing.attachment_reflections[:photo].events[:test_event]
+      events = reflection.events[:test_event]
       events.should have(1).event
 
       event = events.first
@@ -94,7 +96,7 @@ describe Configuration do
         Thing.has_attachment :photo do
           on(:test_event, :with => :test){}
         end
-        event = Thing.attachment_reflections[:photo].events[:test_event].first
+        event = reflection.events[:test_event].first
         event[0].should equal(Processor::Test)
       ensure
         Processor.send(:remove_const, :Test)
@@ -105,13 +107,13 @@ describe Configuration do
       Thing.has_attachment :photo do
         on(:test_event){}
       end
-      event = Thing.attachment_reflections[:photo].events[:test_event].first
+      event = reflection.events[:test_event].first
       event[0].should equal(Processor::Base)
     end
   end
 
-  describe "#store_file_attributes" do
-    it "should allow reflection on the file attributes" do
+  describe "#file_attributes" do
+    it "should return the configured file attributes to store" do
       Thing.has_attachment :photo do
         store_file_attributes(
           :file_name => :custom_file_name,
@@ -120,7 +122,7 @@ describe Configuration do
           :updated_at => :custom_updated_at
         )
       end
-      Thing.attachment_reflections[:photo].file_attributes.should == {
+      reflection.file_attributes.should == {
           :file_name => :custom_file_name,
           :content_type => :custom_content_type,
           :file_size => :custom_file_size,
@@ -132,7 +134,7 @@ describe Configuration do
       Thing.has_attachment :photo do
         store_file_attributes :file_name, :content_type, :file_size, :updated_at
       end
-      Thing.attachment_reflections[:photo].file_attributes.should == {
+      reflection.file_attributes.should == {
         :file_name => :photo_file_name,
         :content_type => :photo_content_type,
         :file_size => :photo_file_size,
