@@ -28,6 +28,15 @@ describe Configuration do
     end
   end
 
+  describe "#url" do
+    it "should allow reflection on the url" do
+      Thing.has_attachment :photo do
+        url "/path/to/somewhere"
+      end
+      Thing.attachment_reflections[:photo].url_template.should == "/path/to/somewhere"
+    end
+  end
+
   describe "#style" do
     it "should allow reflection on the styles" do
       Thing.has_attachment :photo do

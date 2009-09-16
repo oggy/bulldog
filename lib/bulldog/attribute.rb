@@ -48,6 +48,11 @@ module Bulldog
       calculate_path(style_name)
     end
 
+    def url(style_name)
+      return nil if !query
+      calculate_url(style_name)
+    end
+
     def size
       value = get or
         return nil
@@ -80,6 +85,18 @@ module Bulldog
 
     def calculate_path(style_name)
       template = reflection.path_template
+      style = reflection.styles[style_name]
+      Interpolation.interpolate(template, self, style)
+    end
+
+    def calculate_url(style_name)
+      if reflection.url_template
+        template = reflection.url_template
+      elsif reflection.path_template =~ /\A:rails_root\/public/
+        template = $'
+      else
+        raise "cannot infer url from path - please set the #url for the :#{name} attachment"
+      end
       style = reflection.styles[style_name]
       Interpolation.interpolate(template, self, style)
     end

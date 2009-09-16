@@ -10,10 +10,14 @@ module Bulldog
       @file_attributes = default_file_attributes
     end
 
-    attr_reader :class, :name, :path_template, :options, :styles, :events, :file_attributes
+    attr_reader :class, :name, :path_template, :url_template, :options, :styles, :events, :file_attributes
 
     def path(path_template)
       @path_template = path_template
+    end
+
+    def url(url_template)
+      @url_template = url_template
     end
 
     def style(name, attributes)

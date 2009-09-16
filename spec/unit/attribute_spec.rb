@@ -5,14 +5,14 @@ describe Attribute do
     t.string :photo_file_name
   end
 
-  before do
-    tmp = temporary_directory
-    Thing.has_attachment :photo do
-      path "#{tmp}/:id.:style.jpg"
-      style :small, {}
-      store_file_attributes :file_name
+  def self.configure_attachment(&block)
+    before do
+      spec = self
+      Thing.has_attachment :photo do
+        instance_exec(spec, &block)
+      end
+      @thing = Thing.new
     end
-    @thing = Thing.new
   end
 
   def original_path
@@ -33,6 +33,12 @@ describe Attribute do
   end
 
   describe "#path" do
+    configure_attachment do |spec|
+      path "#{spec.temporary_directory}/:id.:style.jpg"
+      style :small, {}
+      store_file_attributes :file_name
+    end
+
     it "should return the path of the given style, interpolated from the path template" do
       @thing.photo = uploaded_file('test.jpg', '')
       @thing.stubs(:id).returns(5)
@@ -41,7 +47,61 @@ describe Attribute do
     end
   end
 
+  describe "#url" do
+    describe "when not explicitly set, and the path is in the docroot" do
+      configure_attachment do
+        path ":rails_root/public/images/:id.:style.jpg"
+        style :small, {}
+        store_file_attributes :file_name
+      end
+
+      it "should return the #path relative to the docroot" do
+        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.stubs(:id).returns(5)
+        @thing.photo.url(:original).should == "/images/5.original.jpg"
+        @thing.photo.url(:small).should == "/images/5.small.jpg"
+      end
+    end
+
+    describe "when not explicitly set, and the path is not in the docroot" do
+      configure_attachment do
+        path "/tmp/:id.:style.jpg"
+        style :small, {}
+        store_file_attributes :file_name
+      end
+
+      it "should raise an error" do
+        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.stubs(:id).returns(5)
+        lambda{@thing.photo.url(:original)}.should raise_error
+        lambda{@thing.photo.url(:small)}.should raise_error
+      end
+    end
+
+    describe "when explicitly set" do
+      configure_attachment do
+        path "/tmp/:id.:style.jpg"
+        url "/assets/:id.:style.jpg"
+        style :small, {}
+        store_file_attributes :file_name
+      end
+
+      it "should return the url of the given style, interpolated from the url template" do
+        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.stubs(:id).returns(5)
+        @thing.photo.url(:original).should == "/assets/5.original.jpg"
+        @thing.photo.url(:small).should == "/assets/5.small.jpg"
+      end
+    end
+  end
+
   describe "#size" do
+    configure_attachment do |spec|
+      path "#{spec.temporary_directory}/:id.:style.jpg"
+      style :small, {}
+      store_file_attributes :file_name
+    end
+
     def with_temporary_file(path, content)
       open(path, 'w'){|f| f.print '...'}
       begin
@@ -94,6 +154,12 @@ describe Attribute do
   end
 
   describe "before the attribute is assigned" do
+    configure_attachment do |spec|
+      path "#{spec.temporary_directory}/:id.:style.jpg"
+      style :small, {}
+      store_file_attributes :file_name
+    end
+
     describe "when no attachment is present" do
       it "should make the query method return false" do
         @thing.photo?.should be_false
@@ -131,6 +197,12 @@ describe Attribute do
   end
 
   describe "#set" do
+    configure_attachment do |spec|
+      path "#{spec.temporary_directory}/:id.:style.jpg"
+      style :small, {}
+      store_file_attributes :file_name
+    end
+
     describe "when no attachment was present" do
       before do
         @thing = Thing.create(:photo => nil)
@@ -223,6 +295,12 @@ describe Attribute do
   end
 
   describe "when the record is saved" do
+    configure_attachment do |spec|
+      path "#{spec.temporary_directory}/:id.:style.jpg"
+      style :small, {}
+      store_file_attributes :file_name
+    end
+
     describe "when the attachment was created" do
       before do
         @file = uploaded_file('test.jpg', '...')
