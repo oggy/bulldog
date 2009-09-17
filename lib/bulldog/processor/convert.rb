@@ -1,16 +1,16 @@
 module Bulldog
   module Processor
-    class ImageMagick < Base
+    class Convert < Base
       class << self
-        attr_accessor :convert_command
+        attr_accessor :command
       end
 
-      self.convert_command = find_in_path('convert')
+      self.command = find_in_path('convert')
 
       def process(*args)
         initialize_style_lists
         super
-        run_image_magick
+        run_convert
       end
 
       def resize(options={})
@@ -36,7 +36,7 @@ module Bulldog
 
       attr_reader :style_lists
 
-      def run_image_magick
+      def run_convert
         prefix = extract_common_prefix
         add_stack_manipulations
         run_command *make_command(prefix)
@@ -73,7 +73,7 @@ module Bulldog
 
       def make_command(prefix)
         operations = styles.map{|s| style_lists[s.name]}
-        [self.class.convert_command, input_file, prefix, operations].flatten
+        [self.class.command, input_file, prefix, operations].flatten
       end
     end
   end

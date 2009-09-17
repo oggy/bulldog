@@ -1,17 +1,17 @@
 require 'spec_helper'
 
-describe Processor::ImageMagick do
+describe Processor::Convert do
   before do
     stub_system_calls
 
-    @original_convert_command = Processor::ImageMagick.convert_command
-    Processor::ImageMagick.convert_command = 'CONVERT'
+    @original_command = Processor::Convert.command
+    Processor::Convert.command = 'CONVERT'
 
     @styles = StyleSet.new
   end
 
   after do
-    Processor::ImageMagick.convert_command = @original_convert_command
+    Processor::Convert.command = @original_command
   end
 
   include Processor
@@ -21,7 +21,7 @@ describe Processor::ImageMagick do
   end
 
   def process(&block)
-    Processor::ImageMagick.new('INPUT.jpg', @styles).process(nil, nil, &block)
+    Processor::Convert.new('INPUT.jpg', @styles).process(nil, nil, &block)
   end
 
   describe "when a simple conversion is performed" do
