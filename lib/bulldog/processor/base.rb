@@ -91,6 +91,35 @@ module Bulldog
         # Call #system on Kernel so mocha can detect it...
         Kernel.system(*command)
       end
+
+      def command_output(*command)
+        string = command.map{|arg| shell_escape(arg)}.join(' ')
+        # Call #` on Kernel so mocha can detect it...
+        Kernel.send(:'`', string)
+      end
+
+      def shell_escape(str)
+        if RUBY_VERSION >= '1.9'
+          Shellwords.shellescape(str)
+        else
+          # Taken from ruby 1.9.
+
+          # An empty argument will be skipped, so return empty quotes.
+          return "''" if str.empty?
+
+          str = str.dup
+
+          # Process as a single byte sequence because not all shell
+          # implementations are multibyte aware.
+          str.gsub!(/([^A-Za-z0-9_\-.,:\/@\n])/n, "\\\\\\1")
+
+          # A LF cannot be escaped with a backslash because a backslash + LF
+          # combo is regarded as line continuation and simply ignored.
+          str.gsub!(/\n/, "'\n'")
+
+          return str
+        end
+      end
     end
   end
 end

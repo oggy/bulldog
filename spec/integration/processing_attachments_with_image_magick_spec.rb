@@ -1,7 +1,10 @@
 require 'spec_helper'
 
 describe "Processing attachments with Convert" do
-  set_up_model_class :Thing
+  set_up_model_class :Thing do |t|
+    t.integer :width
+    t.integer :height
+  end
 
   def identify
     File.dirname(Bulldog::Processor::Convert.command) + '/identify'
@@ -11,8 +14,14 @@ describe "Processing attachments with Convert" do
     tmp = temporary_directory
     Thing.has_attachment :photo do
       path "#{tmp}/:id.:style.png"
-      style :small, {:size => '10x10'}
-      style :large, {:size => '1000x1000'}
+      style :small, {:size => '10x10!'}
+      style :large, {:size => '1000x1000!'}
+
+      before :save, :with => :identify do
+        width, height = dimensions
+        record.width = width
+        record.height = height
+      end
 
       on :resize, :with => :convert do
         resize
@@ -21,7 +30,7 @@ describe "Processing attachments with Convert" do
     @thing = Thing.new
     @thing.stubs(:id).returns(5)
 
-    create_image("#{tmp}/tmp.png", :size => "100x100")
+    create_image("#{tmp}/tmp.png", :size => "40x30")
     @file = open("#{tmp}/tmp.png")
   end
 
@@ -33,6 +42,12 @@ describe "Processing attachments with Convert" do
     "#{temporary_directory}/5.#{style}.png"
   end
 
+  it "should run the after_save process after saving" do
+    @thing.update_attributes(:photo => @file)
+    @thing.width.should == 40
+    @thing.height.should == 30
+  end
+
   it "should process the attachment when the processor is run" do
     File.exist?(path(:original)).should be_false
     File.exist?(path(:small)).should be_false
@@ -41,11 +56,8 @@ describe "Processing attachments with Convert" do
     @thing.update_attributes(:photo => @file).should be_true
     @thing.process_attachment(:photo, :resize)
 
-    `"#{identify}" "#{path(:original)}"`.should =~ /100\s*x\s*100/
-    $?.should be_success
-    `"#{identify}" "#{path(:small)}"`.should =~ /10\s*x\s*10/
-    $?.should be_success
-    `"#{identify}" "#{path(:large)}"`.should =~ /1000\s*x\s*1000/
-    $?.should be_success
+    `"#{identify}" -format "%w %h" "#{path(:original)}"`.chomp.should == '40 30'
+    `"#{identify}" -format "%w %h" "#{path(:small)}"`.chomp.should == '10 10'
+    `"#{identify}" -format "%w %h" "#{path(:large)}"`.chomp.should == '1000 1000'
   end
 end

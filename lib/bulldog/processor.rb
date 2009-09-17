@@ -5,4 +5,5 @@ end
 
 require 'bulldog/processor/base'
 require 'bulldog/processor/convert'
+require 'bulldog/processor/identify'
 require 'bulldog/processor/ffmpeg'
