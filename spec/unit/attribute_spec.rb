@@ -508,6 +508,45 @@ describe Attribute do
       end
     end
   end
+
+  describe "when the record is destroyed" do
+    configure_attachment do |spec|
+      path "#{spec.temporary_directory}/:id.:style.jpg"
+      style :small, {:size => '10x10'}
+      store_file_attributes :file_name
+    end
+
+    before do
+      @thing.photo = large_uploaded_file('test.jpg', 'content')
+      @thing.save.should be_true
+      write_file(original_path, '...')
+      File.exist?(original_path).should be_true
+    end
+
+    describe "before the attachment has been processed" do
+      it "should delete the original file" do
+        @thing.destroy.should be_true
+        File.exist?(original_path).should be_false
+      end
+    end
+
+    describe "when the attachment has been processed" do
+      before do
+        write_file(small_path, '...')
+        File.exist?(small_path).should be_true
+      end
+
+      it "should delete the original file" do
+        @thing.destroy.should be_true
+        File.exist?(original_path).should be_false
+      end
+
+      it "should delete any processed files" do
+        @thing.destroy.should be_true
+        File.exist?(small_path).should be_false
+      end
+    end
+  end
 end
 
 describe "Attribute which stores file attributes" do

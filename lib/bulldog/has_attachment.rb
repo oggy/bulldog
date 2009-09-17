@@ -6,6 +6,7 @@ module Bulldog
       base.attachment_reflections ||= {}
 
       base.after_save :save_attachments
+      base.after_destroy :destroy_attachments
       %w[validation save create update].each do |event|
         base.send("before_#{event}", "process_attachments_for_before_#{event}")
         base.send("after_#{event}", "process_attachments_for_after_#{event}")
@@ -15,6 +16,12 @@ module Bulldog
     def save_attachments
       attachment_reflections.each do |name, reflection|
         attachment_attribute(name).save
+      end
+    end
+
+    def destroy_attachments
+      attachment_reflections.each do |name, reflection|
+        attachment_attribute(name).destroy
       end
     end
 

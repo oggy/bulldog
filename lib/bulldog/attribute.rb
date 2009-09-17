@@ -77,11 +77,18 @@ module Bulldog
             FileUtils.cp(file.path, original_path)
           end
         when nil
-          FileUtils.rm_f(original_path)
+          delete_file_and_empty_parent_directories(original_path)
         else
           raise "unexpected value for file: #{file.inspect}"
         end
       end
+    end
+
+    def destroy
+      reflection.styles.each do |style|
+        delete_file_and_empty_parent_directories(path(style.name))
+      end
+      delete_file_and_empty_parent_directories(path(:original))
     end
 
     def reflection
@@ -106,6 +113,18 @@ module Bulldog
       end
       style = reflection.styles[style_name]
       Interpolation.interpolate(template, self, style)
+    end
+
+    def delete_file_and_empty_parent_directories(path)
+      FileUtils.rm_f(path)
+      begin
+        loop do
+          path = File.dirname(path)
+          FileUtils.rmdir(path)
+        end
+      rescue Errno::EEXIST, Errno::ENOTEMPTY, Errno::ENOENT, Errno::EINVAL, Errno::ENOTDIR
+        # Can't delete any further.
+      end
     end
 
     def set_file_attributes(value)
