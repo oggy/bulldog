@@ -25,6 +25,22 @@ module Bulldog
         end
       end
 
+      #
+      # Create thumbnails.
+      #
+      # For the styles given with a :crop option, this shrinks the
+      # image until either the width or height fit, and then crops off
+      # the edges.  For other styles, this is the same as #resize.
+      #
+      def thumbnail(options={})
+        styles(options).each do |style|
+          @style_lists[style.name] <<
+            ['-resize', "#{style[:size]}^"] <<
+            ['-gravity', 'Center'] <<
+            ['-crop', style[:size]]
+        end
+      end
+
       private  # -----------------------------------------------------
 
       def initialize_style_lists

@@ -57,6 +57,22 @@ describe Processor::Convert do
     end
   end
 
+  describe "#thumbnail" do
+    it "should resize, and crop off the edges" do
+      style :small, {:size => '10x10', :path => '/tmp/small.jpg'}
+      Kernel.expects(:system).once.with(
+        'CONVERT', 'INPUT.jpg',
+        '-resize', '10x10^',
+        '-gravity', 'Center',
+        '-crop', '10x10',
+        '/tmp/small.jpg'
+      )
+      process do
+        thumbnail
+      end
+    end
+  end
+
   it "should extract a common prefix if there are multiple styles which start with the same operations" do
     Kernel.expects(:system).once.with(
       'CONVERT', 'INPUT.jpg', '-auto-orient',
