@@ -63,7 +63,7 @@ module Bulldog
     end
 
     def changed?
-      record.send(:attribute_changed?, :photo)
+      record.send(:attribute_changed?, name)
     end
 
     def save
