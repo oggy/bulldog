@@ -85,10 +85,10 @@ module Bulldog
     end
 
     def destroy
-      reflection.styles.each do |style|
-        delete_file_and_empty_parent_directories(path(style.name))
+      style_names = reflection.styles.map{|style| style.name} << :original
+      style_names.each do |name|
+        delete_file_and_empty_parent_directories(path(name))
       end
-      delete_file_and_empty_parent_directories(path(:original))
     end
 
     def reflection
