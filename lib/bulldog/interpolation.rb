@@ -3,8 +3,8 @@ module Bulldog
     InterpolationError = Class.new(Error)
 
     def self.interpolate(template, attribute, style)
-      template.gsub(/:(\w+)/) do
-        key = $1
+      template.gsub(/:(?:(\w+)|\{(\w+?)\})/) do
+        key = $1 || $2
         if @interpolations.key?(key)
           @interpolations[key].call(attribute, style)
         else

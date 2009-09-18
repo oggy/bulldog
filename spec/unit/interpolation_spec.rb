@@ -80,6 +80,11 @@ describe Interpolation do
       interpolate("a/:extension/b").should == "a/jpg/b"
     end
 
+    it "should allow using braces for interpolating between symbol characters" do
+      @thing.stubs(:id).returns(5)
+      interpolate("a/x:{id}x/b").should == "a/x5x/b"
+    end
+
     describe "when the file name is not being stored" do
       before do
         Thing.has_attachment :photo do
