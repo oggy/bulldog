@@ -199,9 +199,9 @@ describe Reflection do
   describe "#default_processor_class" do
     it "should return a type-specific class if one exists" do
       Thing.has_attachment :photo do
-        type :image_magick
+        type :image
       end
-      reflection.default_processor_class.should == Processor::ImageMagick
+      reflection.default_processor_class.should == Processor::Image
     end
 
     it "should return the base Processor class otherwise" do

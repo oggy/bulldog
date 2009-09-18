@@ -1,20 +1,20 @@
 require 'spec_helper'
 
-describe Processor::ImageMagick do
+describe Processor::Image do
   before do
     stub_system_calls
 
-    @original_convert_command = Processor::ImageMagick.convert_command
-    @original_identify_command = Processor::ImageMagick.identify_command
-    Processor::ImageMagick.convert_command = 'CONVERT'
-    Processor::ImageMagick.identify_command = 'IDENTIFY'
+    @original_convert_command = Processor::Image.convert_command
+    @original_identify_command = Processor::Image.identify_command
+    Processor::Image.convert_command = 'CONVERT'
+    Processor::Image.identify_command = 'IDENTIFY'
 
     @styles = StyleSet.new
   end
 
   after do
-    Processor::ImageMagick.convert_command = @original_convert_command
-    Processor::ImageMagick.identify_command = @original_identify_command
+    Processor::Image.convert_command = @original_convert_command
+    Processor::Image.identify_command = @original_identify_command
   end
 
   def style(name, attributes)
@@ -22,7 +22,7 @@ describe Processor::ImageMagick do
   end
 
   def process(&block)
-    Processor::ImageMagick.new('INPUT.jpg', @styles).process(nil, nil, &block)
+    Processor::Image.new('INPUT.jpg', @styles).process(nil, nil, &block)
   end
 
   describe "#dimensions" do

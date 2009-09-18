@@ -1,6 +1,6 @@
 module Bulldog
   module Processor
-    class ImageMagick < Base
+    class Image < Base
       class << self
         attr_accessor :convert_command
         attr_accessor :identify_command

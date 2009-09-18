@@ -18,7 +18,7 @@ describe "Saving an attachment" do
       type :image
       path "#{tmp}/:style.png"
       style :small, :size => '10x10'
-      after :save, :with => :image_magick do
+      after :save, :with => :image do
         resize(styles)
       end
     end

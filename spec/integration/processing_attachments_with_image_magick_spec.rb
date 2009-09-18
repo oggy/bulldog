@@ -1,13 +1,13 @@
 require 'spec_helper'
 
-describe "Processing attachments with ImageMagick" do
+describe "Processing image attachments" do
   set_up_model_class :Thing do |t|
     t.integer :width
     t.integer :height
   end
 
   def identify
-    Bulldog::Processor::ImageMagick.identify_command
+    Bulldog::Processor::Image.identify_command
   end
 
   before do
@@ -18,13 +18,13 @@ describe "Processing attachments with ImageMagick" do
       style :small, {:size => '10x10!'}
       style :large, {:size => '1000x1000!'}
 
-      before :save, :with => :image_magick do
+      before :save, :with => :image do
         width, height = dimensions
         record.width = width
         record.height = height
       end
 
-      on :resize, :with => :image_magick do
+      on :resize, :with => :image do
         resize
       end
     end
