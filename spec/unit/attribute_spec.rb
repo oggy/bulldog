@@ -396,17 +396,19 @@ describe Attribute do
     describe "when the attachment was deleted" do
       before do
         @thing.update_attributes(:photo => uploaded_file('test.jpg', '...')).should be_true
+        write_file(small_path, '...')
         @thing = Thing.find(@thing.id)
-        @file = nil
-        @thing.photo = @file
+        @thing.photo = nil
       end
 
       it "should delete the original file" do
+        File.exist?(original_path).should be_true
         @thing.save.should be_true
         File.exist?(original_path).should be_false
       end
 
       it "should delete any existing processed files" do
+        File.exist?(small_path).should be_true
         @thing.save.should be_true
         File.exist?(small_path).should be_false
       end
