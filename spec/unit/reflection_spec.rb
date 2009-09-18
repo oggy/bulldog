@@ -123,13 +123,15 @@ describe Reflection do
       end
     end
 
-    it "should default to using the base processor class" do
+    it "should default to using the default processor class" do
+      test_processor_class = Class.new(Processor::Base)
+      Reflection.any_instance.stubs(:default_processor_class).returns(test_processor_class)
       Thing.has_attachment :photo do
         type :base
         on(:test_event){}
       end
       event = reflection.events[:test_event].first
-      event[0].should equal(Processor::Base)
+      event[0].should equal(test_processor_class)
     end
   end
 
@@ -181,16 +183,32 @@ describe Reflection do
   describe "#attribute_class" do
     it "should return a type-specific class if one exists" do
       Thing.has_attachment :photo do
+        type :image
+      end
+      reflection.attribute_class.should == Attribute::Image
+    end
+
+    it "should return the base Attribute class otherwise" do
+      Thing.has_attachment :photo do
         type :psychic_holograph
       end
       reflection.attribute_class.should == Attribute::Base
     end
+  end
 
-    it "should return Attribute::Base otherwise" do
+  describe "#default_processor_class" do
+    it "should return a type-specific class if one exists" do
       Thing.has_attachment :photo do
-        type :image
+        type :image_magick
       end
-      reflection.attribute_class.should == Attribute::Image
+      reflection.default_processor_class.should == Processor::ImageMagick
+    end
+
+    it "should return the base Processor class otherwise" do
+      Thing.has_attachment :photo do
+        type :psychic_holograph
+      end
+      reflection.default_processor_class.should == Processor::Base
     end
   end
 end
