@@ -73,7 +73,7 @@ Spec::Runner.configure do |config|
   config.include ImageCreation
 end
 
-ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :dbfile => ":memory:")
+ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
 
 # So we don't have to qualify all our classes.
 include Bulldog
