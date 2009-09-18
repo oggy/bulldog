@@ -13,6 +13,8 @@ module Bulldog
 
       Configuration.configure(self, &block) if block
       model_class.attachment_reflections[name] = self
+
+      validate_type
     end
 
     attr_accessor :model_class, :name, :type, :path_template, :url_template, :styles, :events, :file_attributes
@@ -77,6 +79,11 @@ module Bulldog
     end
 
     private  # -------------------------------------------------------
+
+    def validate_type
+      @type or
+        raise ConfigurationError, "please specify a type - e.g., type(:image)"
+    end
 
     def default_file_attributes
       file_attributes = {}

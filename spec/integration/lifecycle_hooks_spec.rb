@@ -8,6 +8,7 @@ describe "Lifecycle hooks" do
   it "should run before-assignment hooks before assigning to the association" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       before :assignment do
         checks << value.query
       end
@@ -21,6 +22,7 @@ describe "Lifecycle hooks" do
   it "should run after-assignment hooks after assigning to the association" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       after :assignment do
         checks << value.query
       end
@@ -35,6 +37,7 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.validates_presence_of :value
     Thing.has_attachment :photo do
+      type :image
       before :validation do
         checks << record.errors.empty?
       end
@@ -49,6 +52,7 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.validates_presence_of :value
     Thing.has_attachment :photo do
+      type :image
       after :validation do
         checks << record.errors.empty?
       end
@@ -62,6 +66,7 @@ describe "Lifecycle hooks" do
   it "should run before-save hooks before saving the record" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       before :save do
         checks << record.new_record?
       end
@@ -75,6 +80,7 @@ describe "Lifecycle hooks" do
   it "should run after-save hooks after saving the record" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       after :save do
         checks << record.new_record?
       end
@@ -88,6 +94,7 @@ describe "Lifecycle hooks" do
   it "should run before-create hooks before creating the record" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       before :create do
         checks << record.new_record?
       end
@@ -101,6 +108,7 @@ describe "Lifecycle hooks" do
   it "should run after-create hooks after creating the record" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       after :create do
         checks << record.new_record?
       end
@@ -114,6 +122,7 @@ describe "Lifecycle hooks" do
   it "should run before-update hooks before updating the record" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       before :update do
         checks << Thing.count(:conditions => {:value => 2})
       end
@@ -128,6 +137,7 @@ describe "Lifecycle hooks" do
   it "should run after-update hooks after updating the record" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       after :update do
         checks << Thing.count(:conditions => {:value => 2})
       end
@@ -142,6 +152,7 @@ describe "Lifecycle hooks" do
   it "should not run create hooks when updating the record" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       before :update do
         checks << [:fail]
       end
@@ -157,6 +168,7 @@ describe "Lifecycle hooks" do
   it "should not run update hooks when creating the record" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       before :create do
         checks << [:fail]
       end
@@ -174,6 +186,7 @@ describe "Lifecycle hooks" do
   it "should run multiple callbacks if given" do
     checks = []
     Thing.has_attachment :photo do
+      type :image
       on(:test_event){checks << 1}
       on(:test_event){checks << 2}
     end

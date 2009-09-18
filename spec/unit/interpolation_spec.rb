@@ -28,6 +28,7 @@ describe Interpolation do
   describe "when the file name is being stored" do
     before do
       Thing.has_attachment :photo do
+        type :image
         style :small, {}
         store_file_attributes :file_name => :photo_file_name
       end
@@ -82,6 +83,7 @@ describe Interpolation do
     describe "when the file name is not being stored" do
       before do
         Thing.has_attachment :photo do
+          type :image
           style :small, {}
         end
         @attribute = Thing.new.attachment_attribute(:photo)
