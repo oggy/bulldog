@@ -9,7 +9,7 @@ describe Attribute do
     before do
       spec = self
       Thing.has_attachment :photo do
-        type :image
+        type :base
         instance_exec(spec, &block)
       end
       @thing = Thing.new
@@ -563,7 +563,7 @@ describe "Attribute which stores file attributes" do
 
     before do
       Thing.has_attachment :photo do
-        type :image
+        type :base
       end
       Thing.attachment_reflections[:photo].stubs(:file_attributes).returns(
         :file_name => :photo_file_name,

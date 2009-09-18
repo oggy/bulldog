@@ -8,7 +8,7 @@ describe HasAttachment do
   describe ".has_attachment" do
     it "should provide accessors for the attachment" do
       Thing.has_attachment :photo do
-        type :image
+        type :base
       end
       thing = Thing.new
       file = uploaded_file("test.jpg")
@@ -18,7 +18,7 @@ describe HasAttachment do
 
     it "should provide a query method for the attachment" do
       Thing.has_attachment :photo do
-        type :image
+        type :base
       end
       thing = Thing.new
       file = uploaded_file("test.jpg")
@@ -31,7 +31,7 @@ describe HasAttachment do
   describe ".attachment_reflections" do
     it "should allow reflection on the field names" do
       Thing.has_attachment :photo do
-        type :image
+        type :base
       end
       Thing.attachment_reflections[:photo].name.should == :photo
     end
@@ -41,7 +41,7 @@ describe HasAttachment do
     it "should trigger the named custom callback" do
       args = nil
       Thing.has_attachment :photo do
-        type :image
+        type :base
         on(:my_event){|*args|}
       end
       thing = Thing.new
@@ -52,7 +52,7 @@ describe HasAttachment do
     it "should raise an ArgumentError if the attachment name is invalid" do
       args = nil
       Thing.has_attachment :photo do
-        type :image
+        type :base
         on(:my_event){|*args|}
       end
       thing = Thing.new
@@ -66,7 +66,7 @@ describe HasAttachment do
       begin
         context = nil
         Thing.has_attachment :photo do
-          type :image
+          type :base
           on(:my_event, :with => :test){context = self}
         end
         thing = Thing.new
@@ -80,7 +80,7 @@ describe HasAttachment do
     it "should default to a base processor instance" do
       context = nil
       Thing.has_attachment :photo do
-        type :image
+        type :base
         on(:my_event){context = self}
       end
       thing = Thing.new

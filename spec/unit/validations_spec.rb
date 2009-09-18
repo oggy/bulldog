@@ -7,7 +7,7 @@ describe Validations do
 
   before do
     Thing.has_attachment :photo do
-      type :image
+      type :base
     end
   end
 
