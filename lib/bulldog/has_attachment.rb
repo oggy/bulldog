@@ -27,7 +27,8 @@ module Bulldog
 
     def attachment_attribute(name)
       @attachment_attributes ||= {}
-      @attachment_attributes[name] ||= Attribute::Base.new(self, name)
+      attribute_class = self.class.attachment_reflections[name].attribute_class
+      @attachment_attributes[name] ||= attribute_class.new(self, name)
     end
 
     def process_attachment(name, event, *args)

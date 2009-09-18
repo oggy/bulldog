@@ -26,6 +26,10 @@ module Bulldog
       @default_style
     end
 
+    def attribute_class
+      Attribute.const_get(type.to_s.camelize)
+    end
+
     class Configuration
       def self.configure(reflection, &block)
         new(reflection).instance_eval(&block)
