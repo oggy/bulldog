@@ -6,20 +6,20 @@ describe HasAttachment do
   end
 
   describe ".has_attachment" do
-    it "should provide accessors for the attachment" do
+    before do
       Thing.has_attachment :photo do
         type :base
       end
-      thing = Thing.new
-      file = uploaded_file("test.jpg")
-      thing.photo = file
-      thing.photo.should be_a(Attribute::Base)
     end
 
-    it "should provide a query method for the attachment" do
-      Thing.has_attachment :photo do
-        type :base
-      end
+    it "should provide a reader for the attachment of the appropriate class" do
+      test_attribute_class = Class.new(Attribute::Base)
+      reflection = Thing.attachment_reflections[:photo]
+      reflection.stubs(:attribute_class).returns(test_attribute_class)
+      Thing.new.photo.should be_a(test_attribute_class)
+    end
+
+    it "should provide a writer and query method for the attachment" do
       thing = Thing.new
       file = uploaded_file("test.jpg")
       thing.photo?.should be_false

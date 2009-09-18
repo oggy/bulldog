@@ -27,7 +27,12 @@ module Bulldog
     end
 
     def attribute_class
-      Attribute.const_get(type.to_s.camelize)
+      name = type.to_s.camelize
+      if Attribute.const_defined?(name)
+        Attribute.const_get(name)
+      else
+        Attribute::Base
+      end
     end
 
     class Configuration

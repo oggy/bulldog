@@ -177,4 +177,20 @@ describe Reflection do
       thing.photo_updated_at.should == Time.now
     end
   end
+
+  describe "#attribute_class" do
+    it "should return a type-specific class if one exists" do
+      Thing.has_attachment :photo do
+        type :psychic_holograph
+      end
+      reflection.attribute_class.should == Attribute::Base
+    end
+
+    it "should return Attribute::Base otherwise" do
+      Thing.has_attachment :photo do
+        type :image
+      end
+      reflection.attribute_class.should == Attribute::Image
+    end
+  end
 end
