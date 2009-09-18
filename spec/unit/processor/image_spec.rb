@@ -77,8 +77,24 @@ describe Processor::Image do
     end
   end
 
+  describe "#resize" do
+    it "should resize the images to the style's size" do
+      style :small, {:size => '10x10', :path => '/tmp/small.jpg'}
+      Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '-resize', '10x10', '/tmp/small.jpg')
+      process{resize}
+    end
+  end
+
+  describe "#auto_orient" do
+    it "should auto-orient the images" do
+      style :small, {:path => '/tmp/small.jpg'}
+      Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '-auto-orient', '/tmp/small.jpg')
+      process{auto_orient}
+    end
+  end
+
   describe "#strip" do
-    it "should strip the image" do
+    it "should strip the images" do
       style :small, {:size => '10x10', :path => '/tmp/small.jpg'}
       Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '-strip', '/tmp/small.jpg')
       process{strip}
