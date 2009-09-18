@@ -4,6 +4,5 @@ module Bulldog
 end
 
 require 'bulldog/processor/base'
-require 'bulldog/processor/convert'
-require 'bulldog/processor/identify'
+require 'bulldog/processor/image_magick'
 require 'bulldog/processor/ffmpeg'

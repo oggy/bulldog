@@ -1,13 +1,13 @@
 require 'spec_helper'
 
-describe "Processing attachments with Convert" do
+describe "Processing attachments with ImageMagick" do
   set_up_model_class :Thing do |t|
     t.integer :width
     t.integer :height
   end
 
   def identify
-    File.dirname(Bulldog::Processor::Convert.command) + '/identify'
+    Bulldog::Processor::ImageMagick.identify_command
   end
 
   before do
@@ -17,13 +17,13 @@ describe "Processing attachments with Convert" do
       style :small, {:size => '10x10!'}
       style :large, {:size => '1000x1000!'}
 
-      before :save, :with => :identify do
+      before :save, :with => :image_magick do
         width, height = dimensions
         record.width = width
         record.height = height
       end
 
-      on :resize, :with => :convert do
+      on :resize, :with => :image_magick do
         resize
       end
     end

@@ -1,59 +1,64 @@
 require 'spec_helper'
 
-describe Processor::Convert do
+describe Processor::ImageMagick do
   before do
     stub_system_calls
 
-    @original_command = Processor::Convert.command
-    Processor::Convert.command = 'CONVERT'
+    @original_convert_command = Processor::ImageMagick.convert_command
+    @original_identify_command = Processor::ImageMagick.identify_command
+    Processor::ImageMagick.convert_command = 'CONVERT'
+    Processor::ImageMagick.identify_command = 'IDENTIFY'
 
     @styles = StyleSet.new
   end
 
   after do
-    Processor::Convert.command = @original_command
+    Processor::ImageMagick.convert_command = @original_convert_command
+    Processor::ImageMagick.identify_command = @original_identify_command
   end
-
-  include Processor
 
   def style(name, attributes)
     @styles << Style.new(name, attributes)
   end
 
   def process(&block)
-    Processor::Convert.new('INPUT.jpg', @styles).process(nil, nil, &block)
+    Processor::ImageMagick.new('INPUT.jpg', @styles).process(nil, nil, &block)
   end
 
-  describe "when a simple conversion is performed" do
+  describe "#dimensions" do
+    it "should return the dimensions of the input file" do
+      Kernel.expects(:'`').with("IDENTIFY -format \\%w\\ \\%h INPUT.jpg\\[0\\]").returns('40 30')
+      value = nil
+      process do
+        value = dimensions
+      end
+      value.should == [40, 30]
+    end
+  end
+
+  describe "#convert" do
     before do
       style :x, {:path => '/tmp/x.jpg'}
     end
 
     it "should run convert with the required arguments" do
       Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '/tmp/x.jpg')
-      process
+      process do
+        convert
+      end
     end
 
-    it "should log the command run" do
+    it "should log the command run if a logger is set" do
       Bulldog.logger.expects(:info).with('Running: "CONVERT" "INPUT.jpg" "/tmp/x.jpg"')
-      process
+      process do
+        convert
+      end
     end
-  end
 
-  it "should not blow up if the logger is set to nil" do
-    Bulldog.logger = nil
-    style :x, {:path => '/tmp/x.jpg'}
-    lambda{process{}}.should_not raise_error
-  end
-
-  it "should run a simple pipeline if there is 1 output file" do
-    Kernel.expects(:system).once.with(
-      'CONVERT', 'INPUT.jpg', '-auto-orient', '-resize', '40x40', '/tmp/small.jpg'
-    )
-    style :small, {:size => '40x40', :path => '/tmp/small.jpg'}
-    process do
-      auto_orient
-      resize
+    it "should not blow up if the logger is set to nil" do
+      Bulldog.logger = nil
+      style :x, {:path => '/tmp/x.jpg'}
+      lambda{process{convert}}.should_not raise_error
     end
   end
 
@@ -116,6 +121,7 @@ describe Processor::Convert do
     process do
       auto_orient(:except => :unaltered)
       resize(:except => [:unaltered, :unresized])
+      convert
     end
   end
 end
