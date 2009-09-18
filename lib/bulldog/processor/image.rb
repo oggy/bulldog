@@ -81,9 +81,18 @@ module Bulldog
       def run_convert
         prefix = extract_common_prefix
         remove_nonoutput_lists
+        add_image_setting_arguments
         unless style_lists.empty?
           add_stack_manipulations
           run_convert_command(prefix)
+        end
+      end
+
+      def add_image_setting_arguments
+        style_lists.each do |name, list|
+          style = styles[name]
+          list << ['-quality', style[:quality].to_s] if style[:quality]
+          list << ['-colorspace', style[:colorspace]] if style[:colorspace]
         end
       end
 

@@ -37,27 +37,42 @@ describe Processor::Image do
   end
 
   describe "#convert" do
-    before do
-      style :x, {:path => '/tmp/x.jpg'}
-    end
+    describe "when there are no image settings" do
+      before do
+        style :x, {:path => '/tmp/x.jpg'}
+      end
 
-    it "should run convert with the required arguments" do
-      Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '/tmp/x.jpg')
-      process do
-        convert
+      it "should run convert with the required arguments" do
+        Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '/tmp/x.jpg')
+        process do
+          convert
+        end
+      end
+
+      it "should log the command run if a logger is set" do
+        Bulldog.logger.expects(:info).with('Running: "CONVERT" "INPUT.jpg" "/tmp/x.jpg"')
+        process do
+          convert
+        end
+      end
+
+      it "should not blow up if the logger is set to nil" do
+        Bulldog.logger = nil
+        lambda{process{convert}}.should_not raise_error
       end
     end
 
-    it "should log the command run if a logger is set" do
-      Bulldog.logger.expects(:info).with('Running: "CONVERT" "INPUT.jpg" "/tmp/x.jpg"')
-      process do
-        convert
-      end
-    end
-
-    it "should not blow up if the logger is set to nil" do
+    it "should apply the :quality style, if given" do
       Bulldog.logger = nil
-      style :x, {:path => '/tmp/x.jpg'}
+      style :x, {:path => '/tmp/x.jpg', :quality => 50}
+      Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '-quality', '50', '/tmp/x.jpg')
+      lambda{process{convert}}.should_not raise_error
+    end
+
+    it "should apply the colorspace style, if given" do
+      Bulldog.logger = nil
+      style :x, {:path => '/tmp/x.jpg', :colorspace => 'rgb'}
+      Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '-colorspace', 'rgb', '/tmp/x.jpg')
       lambda{process{convert}}.should_not raise_error
     end
   end
