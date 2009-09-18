@@ -4,6 +4,7 @@ module Bulldog
       @model_class = model_class
       @name = name
 
+      @type = nil
       @path_template = Bulldog.default_path
       @styles = StyleSet.new
       @default_style = :original
@@ -14,7 +15,7 @@ module Bulldog
       model_class.attachment_reflections[name] = self
     end
 
-    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :file_attributes
+    attr_accessor :model_class, :name, :type, :path_template, :url_template, :styles, :events, :file_attributes
     attr_writer :default_style
 
     def default_style
@@ -30,6 +31,10 @@ module Bulldog
 
       def initialize(reflection)
         @reflection = reflection
+      end
+
+      def type(type)
+        @reflection.type = type
       end
 
       def path(path_template)

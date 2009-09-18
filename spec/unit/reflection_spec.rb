@@ -17,6 +17,15 @@ describe Reflection do
     Thing.attachment_reflections[:photo]
   end
 
+  describe "#type" do
+    it "should return the configured type" do
+      Thing.has_attachment :photo do
+        type :image
+      end
+      reflection.type.should == :image
+    end
+  end
+
   describe "#path_template" do
     it "should return the configured path" do
       Thing.has_attachment :photo do
