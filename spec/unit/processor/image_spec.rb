@@ -77,6 +77,14 @@ describe Processor::Image do
     end
   end
 
+  describe "#strip" do
+    it "should strip the image" do
+      style :small, {:size => '10x10', :path => '/tmp/small.jpg'}
+      Kernel.expects(:system).once.with('CONVERT', 'INPUT.jpg', '-strip', '/tmp/small.jpg')
+      process{strip}
+    end
+  end
+
   describe "#thumbnail" do
     it "should resize, and crop off the edges" do
       style :small, {:size => '10x10', :path => '/tmp/small.jpg'}

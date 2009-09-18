@@ -38,6 +38,13 @@ module Bulldog
         convert(options)
       end
 
+      def strip(options={})
+        styles(options).each do |style|
+          @style_lists[style.name] << '-strip'
+        end
+        convert(options)
+      end
+
       #
       # Create thumbnails.
       #
