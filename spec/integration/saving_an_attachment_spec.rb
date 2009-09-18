@@ -9,7 +9,7 @@ describe "Saving an attachment" do
   # The list of files this process has open.
   #
   def open_files
-    `lsof -p #{Process.pid}`.split(/\n/).sort
+    `lsof -p #{Process.pid} -F n`.split(/\n/).sort
   end
 
   it "should not leave any file handles left open" do
