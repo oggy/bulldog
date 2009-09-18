@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Attribute do
+describe Attribute::Base do
   set_up_model_class :Thing do |t|
     t.string :photo_file_name
   end
