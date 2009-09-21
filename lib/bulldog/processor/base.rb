@@ -93,6 +93,7 @@ module Bulldog
       end
 
       def command_output(*command)
+        log :info, "Running: #{command.map(&:inspect).join(' ')}"
         string = command.map{|arg| shell_escape(arg)}.join(' ')
         # Call #` on Kernel so mocha can detect it...
         Kernel.send(:'`', string)

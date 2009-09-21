@@ -1,3 +1,5 @@
+require 'stringio'
+
 module Bulldog
   module Processor
     class Image < Base
@@ -10,16 +12,43 @@ module Bulldog
       self.identify_command = find_in_path('identify')
 
       def process(*args)
-        initialize_lists
+        reset
         super
         run_convert
       end
 
       # Input image attributes  --------------------------------------
 
-      def dimensions
-        output = run_identify('-format', '%w %h', "#{input_file}[0]")
-        output.split.map(&:to_i)
+      def dimensions(options={}, &block)
+        if block
+          # TODO: run once for each set of styles, and yield the style
+          # set to the block
+          styles(options).each do |style|
+            list = @style_lists[style.name]
+            list << ['-format', '%w %h', '-identify']
+          end
+          after_convert do |output|
+            width, height = output.gets.split
+            block.call(width.to_i, height.to_i)
+          end
+          convert(options)
+        else
+          output = run_identify('-format', '%w %h', "#{input_file}[0]")
+          output.split.map(&:to_i)
+        end
+      end
+
+      private  # -----------------------------------------------------
+
+      def after_convert(&callback)
+        @after_convert_callbacks << callback
+      end
+
+      def run_after_convert_callbacks(output)
+        io = StringIO.new(output)
+        @after_convert_callbacks.each do |callback|
+          callback.call(io)
+        end
       end
 
       # Image operations  --------------------------------------------
@@ -59,13 +88,14 @@ module Bulldog
 
       private  # -----------------------------------------------------
 
-      def initialize_lists
+      def reset
         @style_lists = ActiveSupport::OrderedHash.new
         @output_flags = {}
         styles.each do |style|
           @style_lists[style.name] = []
           @output_flags[style.name] = false
         end
+        @after_convert_callbacks = []
       end
 
       attr_reader :style_lists, :output_flags
@@ -80,7 +110,8 @@ module Bulldog
         add_image_setting_arguments
         unless style_lists.empty?
           add_stack_manipulations
-          run_convert_command(prefix)
+          output = run_convert_command(prefix)
+          run_after_convert_callbacks(output)
         end
       end
 
@@ -130,7 +161,7 @@ module Bulldog
       def run_convert_command(prefix)
         operations = output_styles.map{|s| style_lists[s.name]}
         command = [self.class.convert_command, input_file, prefix, operations].flatten
-        run_command *command
+        command_output *command
       end
 
       def output_styles
