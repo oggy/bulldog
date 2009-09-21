@@ -135,20 +135,55 @@ describe Validations do
 
     def self.it_should_use_i18n_key(key, validation_options={}, &block)
       describe "when the value is #{key.to_s.humanize.downcase}" do
-        set_up_model_class :SubThing, :Thing
+        set_up_model_class :Subthing, :Thing
 
         before do
           I18n.default_locale = :en
           Thing.send validation, :photo, validation_options
-          @thing = Thing.new
-          make_thing_fail
+          @thing = Subthing.new
+          instance_eval(&block)
         end
 
-        it "should use the activerecord.errors.models.CLASS.attributes.ATTRIBUTE.#{key} translation if available"
-        it "should fallback to activerecord.errors.models.CLASS.#{key} translation if available"
-        it "should fallback to the activerecord.errors.models.CLASS.attributes.ATTRIBUTE.#{key} of any superclasses if available"
-        it "should fallback to the activerecord.errors.models.CLASS.#{key} translation of any superclasses if available"
-        it "should fallback to activerecord.errors.messages.#{key} translation if available"
+        def define_translation(path, value)
+          hash = path.split(/\./).reverse.inject(value){|hash, key| {key => hash}}
+          path = "#{temporary_directory}/translations.yml"
+          open(path, 'w'){|f| f.write(hash.to_yaml)}
+          begin
+            I18n.backend.load_translations(path)
+          ensure
+            File.unlink(path)
+          end
+        end
+
+        it "should use the activerecord.errors.models.CLASS.attributes.ATTRIBUTE.#{key} translation if available" do
+          define_translation "en.activerecord.errors.models.subthing.attributes.photo.#{key}", "ERROR"
+          @thing.valid?.should be_false
+          @thing.errors[:photo].should == 'ERROR'
+        end
+
+        it "should fallback to activerecord.errors.models.CLASS.#{key} translation if available" do
+          define_translation "en.activerecord.errors.models.subthing.#{key}", "ERROR"
+          @thing.valid?.should be_false
+          @thing.errors[:photo].should == 'ERROR'
+        end
+
+        it "should fallback to the activerecord.errors.models.SUPERCLASS.attributes.ATTRIBUTE.#{key} if available" do
+          define_translation "en.activerecord.errors.models.thing.attributes.photo.#{key}", "ERROR"
+          @thing.valid?.should be_false
+          @thing.errors[:photo].should == 'ERROR'
+        end
+
+        it "should fallback to the activerecord.errors.models.SUPERCLASS.#{key} translation if available" do
+          define_translation "en.activerecord.errors.models.thing.#{key}", "ERROR"
+          @thing.valid?.should be_false
+          @thing.errors[:photo].should == 'ERROR'
+        end
+
+        it "should fallback to activerecord.errors.messages.#{key} translation if available" do
+          define_translation "en.activerecord.errors.messages.#{key}", "ERROR"
+          @thing.valid?.should be_false
+          @thing.errors[:photo].should == 'ERROR'
+        end
       end
     end
   end
