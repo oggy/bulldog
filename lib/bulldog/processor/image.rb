@@ -24,42 +24,31 @@ module Bulldog
 
       # Image operations  --------------------------------------------
 
-      def resize(options={})
-        styles(options).each do |style|
-          @style_lists[style.name] << ['-resize', style[:size]]
+      class << self
+        def operation(name, &block)
+          self.operations[name] = block
+          class_eval <<-EOS, __FILE__, __LINE__
+            def #{name}(options={})
+              styles(options).each do |style|
+                list = @style_lists[style.name]
+                self.class.operations[:#{name}].call(style, list)
+              end
+              convert(options)
+            end
+          EOS
         end
-        convert(options)
+        attr_reader :operations
       end
+      @operations = {}
 
-      def auto_orient(options={})
-        styles(options).each do |style|
-          @style_lists[style.name] << '-auto-orient'
-        end
-        convert(options)
-      end
-
-      def strip(options={})
-        styles(options).each do |style|
-          @style_lists[style.name] << '-strip'
-        end
-        convert(options)
-      end
-
-      #
-      # Create thumbnails.
-      #
-      # For the styles given with a :crop option, this shrinks the
-      # image until either the width or height fits, and then crops
-      # off the edges.  For other styles, this is the same as #resize.
-      #
-      def thumbnail(options={})
-        styles(options).each do |style|
-          @style_lists[style.name] <<
-            ['-resize', "#{style[:size]}^"] <<
-            ['-gravity', 'Center'] <<
-            ['-crop', style[:size]]
-        end
-        convert(options)
+      operation(:resize     ){|style, list| list << ['-resize', style[:size]]}
+      operation(:auto_orient){|style, list| list << '-auto-orient'}
+      operation(:strip      ){|style, list| list << '-strip'}
+      operation(:thumbnail) do |style, list|
+            list <<
+              ['-resize', "#{style[:size]}^"] <<
+              ['-gravity', 'Center'] <<
+              ['-crop', style[:size]]
       end
 
       def convert(options={})
