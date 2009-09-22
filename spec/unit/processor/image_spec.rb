@@ -48,7 +48,23 @@ describe Processor::Image do
       values.should == [[@styles, 40, 30]]
     end
 
-    it "should support being called with a block after the pipeline branches (yielding the styles along with the values)"
+    it "should yield the dimensions once per branch if called with a block after a branch in the pipeline" do
+      input_path = create_image("#{temporary_directory}/input.jpg", :size => '40x30')
+      Kernel.expects(:'`').once.with("CONVERT #{input_path} \\( \\+clone -resize 10x10 -format \\%w\\ \\%h -identify -write /tmp/small.jpg \\+delete \\) " +
+                                     "-resize 100x100 -format \\%w\\ \\%h -identify /tmp/large.jpg").returns("10 10\n100 100\n")
+      style :small, :size => '10x10', :path => '/tmp/small.jpg'
+      style :large, :size => '100x100', :path => '/tmp/large.jpg'
+      values = []
+      process(input_path) do
+        resize
+        dimensions do |*args|
+          values << args
+        end
+      end
+      values.should have(2).set_of_arguments
+      values[0].should == [[@styles[0]], 10, 10]
+      values[1].should == [[@styles[1]], 100, 100]
+    end
   end
 
   describe "#convert" do

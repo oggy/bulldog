@@ -10,6 +10,7 @@ module Bulldog
 
       attr_reader :styles, :root, :heads
 
+      # Note: arguments must be hashable (no procs!)
       def add(styles_to_arguments)
         arguments_to_styles = ActiveSupport::OrderedHash.new{|h,k| h[k] = []}
         styles_to_arguments.each do |style, arguments|
@@ -17,6 +18,12 @@ module Bulldog
         end
         arguments_to_styles.each do |arguments, styles|
           add_for_styles(styles, arguments)
+        end
+      end
+
+      def add_for_styles(styles, arguments)
+        heads_for_styles(styles).each do |head|
+          head.arguments.concat(arguments)
         end
       end
 
@@ -43,12 +50,6 @@ module Bulldog
       end
 
       private  # ---------------------------------------------------
-
-      def add_for_styles(styles, arguments)
-        heads_for_styles(styles).each do |head|
-          head.arguments.concat(arguments)
-        end
-      end
 
       def heads_for_styles(styles)
         heads = []

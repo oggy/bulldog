@@ -22,12 +22,9 @@ module Bulldog
       def dimensions(options={}, &block)
         if block
           operate(options){['-format', '%w %h', '-identify']}
-          # TODO: need to run one callback per style, in the order
-          # they appear in the command.  Probably need to store
-          # callbacks in the tree.
-          after_convert do |output|
-            width, height = output.gets.split
-            block.call(styles(options), width.to_i, height.to_i)
+          after_convert(options) do |styles, output|
+            width, height = output.gets.split.map(&:to_i)
+            block.call(styles, width, height)
           end
           convert(options)
         else
@@ -37,10 +34,6 @@ module Bulldog
       end
 
       private  # -----------------------------------------------------
-
-      def after_convert(&callback)
-        @after_convert_callbacks << callback
-      end
 
       def run_after_convert_callbacks(output)
         io = StringIO.new(output)
@@ -103,6 +96,10 @@ module Bulldog
         convert(options)
       end
 
+      def after_convert(options={}, &callback)
+        @tree.add_for_styles(styles(options), [callback])
+      end
+
       def run_identify(*args)
         command_output self.class.identify_command, *args
       end
@@ -160,7 +157,10 @@ module Bulldog
           construct_convert_command(words, node, false)
           words << '+delete' << ')'
         else
-          words.concat(node.arguments)
+          procs, strings = node.arguments.partition{|a| a.is_a?(Proc)}
+          words.concat(strings)
+          callbacks = procs.map{|proc| lambda{|output| proc.call(node.styles, output)}}
+          @after_convert_callbacks.concat(callbacks)
           if node.children.empty?
             # TODO: Support multiple styles here. (Not likely you'd
             # want to generate the same file twice, though.)
