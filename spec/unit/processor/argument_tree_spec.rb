@@ -2,15 +2,19 @@ require 'spec_helper'
 
 describe Processor::ArgumentTree do
   Tree = Processor::ArgumentTree
+
   before do
     @a = Style.new(:a)
     @b = Style.new(:b)
     @c = Style.new(:c)
     @d = Style.new(:d)
-    @tree = Tree.new([@a, @b, @c, @d])
   end
 
   describe "initially" do
+    before do
+      @tree = Tree.new([@a, @b])
+    end
+
     it "should have only the root node" do
       @tree.root.should be_a(Tree::Node)
       @tree.root.children.should be_empty
@@ -18,11 +22,15 @@ describe Processor::ArgumentTree do
 
     it "should have all heads pointing to the root node" do
       root = @tree.root
-      [@a, @b, @c, @d].map{|style| @tree.heads[style]}.should == [root, root, root, root]
+      [@a, @b].map{|style| @tree.heads[style]}.should == [root, root]
     end
   end
 
   describe "#add" do
+    before do
+      @tree = Tree.new([@a, @b, @c, @d])
+    end
+
     describe "when the operations apply to all of the styles of a head node" do
       before do
         @tree.add(@a => ['a', 'b'], @b => ['a', 'b'], @c => ['a', 'b'], @d => ['a', 'b'])
@@ -78,8 +86,8 @@ describe Processor::ArgumentTree do
       before do
         @first = Tree::Node.new([@a, @b], ['a'])
         @second = Tree::Node.new([@c], ['b'])
-        @tree.root.children << @first
-        @tree.root.children << @second
+        @tree.root.add_child(@first)
+        @tree.root.add_child(@second)
         @tree.heads[@a] = @first
         @tree.heads[@b] = @first
         @tree.heads[@c] = @second
@@ -101,6 +109,57 @@ describe Processor::ArgumentTree do
         child1, child2 = *@first.children
         child1.arguments.should == ['c']
         child2.arguments.should == []
+      end
+    end
+  end
+
+  describe "#remove_style" do
+    describe "when the head has other styles in it" do
+      before do
+        @tree = Tree.new([@a, @b, @c])
+        @tree.root.add_child(Tree::Node.new([@a, @b, @c]))
+        @tree.add(@a => 'a')
+      end
+
+      it "should remove the style from the head" do
+        @tree.root.children.last.styles.should == [@b, @c]
+        @tree.remove_style(@b)
+        @tree.root.children.last.styles.should == [@c]
+      end
+
+      it "should no longer have a head for the style" do
+        @tree.remove_style(@b)
+        @tree.heads[@b].should be_nil
+      end
+    end
+
+    describe "when the style is the only style in its head" do
+      before do
+        @tree = Tree.new([@a, @b])
+        @tree.add(@a => 'a')
+      end
+
+      it "should remove the node entirely" do
+        @tree.root.children.map(&:styles) == [[@a], [@b]]
+        @tree.remove_style(@b)
+        @tree.root.children.map(&:styles) == [[@a]]
+      end
+
+      it "should no longer have a head for the style" do
+        @tree.remove_style(@b)
+        @tree.heads[@b].should be_nil
+      end
+    end
+
+    describe "when the style is the only style in its head and the head is the root node" do
+      before do
+        @tree = Tree.new([@a])
+      end
+
+      it "should not remove the root node" do
+        @tree.remove_style(@a)
+        @tree.root.should_not be_nil
+        @tree.root.styles.should be_empty
       end
     end
   end

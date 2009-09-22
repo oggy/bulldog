@@ -20,6 +20,28 @@ module Bulldog
         end
       end
 
+      def remove_style(style)
+        head = @heads.delete(style)
+        if head.styles == [style] && head != @root
+          head.parent.remove_child(head)
+        else
+          head.styles.delete(style)
+        end
+      end
+
+      def inspect
+        io = StringIO.new
+        inspect_node(io, @root)
+        io.string
+      end
+
+      def inspect_node(io, node, margin='')
+        puts "#{margin}* #{node.styles.map(&:name).join(', ')}: #{node.arguments.join(' ')}"
+        node.children.each do |child|
+          inspect_node(io, child, margin + '  ')
+        end
+      end
+
       private  # ---------------------------------------------------
 
       def add_for_styles(styles, arguments)
@@ -42,7 +64,7 @@ module Bulldog
           if wanted.size < head.styles.size
             wanted_child = Node.new(wanted)
             unwanted_child = Node.new(head.styles - wanted)
-            head.children << wanted_child << unwanted_child
+            head.add_child(wanted_child).add_child(unwanted_child)
             wanted_child.styles.each{|c| @heads[c] = wanted_child}
             unwanted_child.styles.each{|c| @heads[c] = unwanted_child}
             heads << wanted_child
@@ -55,11 +77,22 @@ module Bulldog
 
       class Node
         def initialize(styles, arguments=[])
+          @parent = nil
           @styles = styles
           @arguments = arguments
           @children = []
         end
 
+        def add_child(child)
+          children << child
+          child.parent = self
+        end
+
+        def remove_child(child)
+          children.delete(child)
+        end
+
+        attr_accessor :parent
         attr_reader :styles, :arguments, :children
       end
     end
