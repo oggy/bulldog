@@ -19,17 +19,23 @@ module Bulldog
 
       # Input image attributes  --------------------------------------
 
+      def operate(name, &block)
+        arguments = ActiveSupport::OrderedHash.new
+        styles(options).each do |style|
+          arguments[style] = yield(style)
+        end
+        @tree.add(args)
+        convert(options)
+      end
       def dimensions(options={}, &block)
         if block
-          # TODO: run once for each set of styles, and yield the style
-          # set to the block
-          styles(options).each do |style|
-            list = @style_lists[style.name]
-            list << ['-format', '%w %h', '-identify']
-          end
+          operate(options){['-format', '%w %h', '-identify']}
+          # TODO: need to run one callback per style, in the order
+          # they appear in the command.  Probably need to store
+          # callbacks in the tree.
           after_convert do |output|
             width, height = output.gets.split
-            block.call(width.to_i, height.to_i)
+            block.call(styles(options), width.to_i, height.to_i)
           end
           convert(options)
         else
@@ -53,119 +59,129 @@ module Bulldog
 
       # Image operations  --------------------------------------------
 
-      class << self
-        def operation(name, &block)
-          self.operations[name] = block
-          class_eval <<-EOS, __FILE__, __LINE__
-            def #{name}(options={})
-              styles(options).each do |style|
-                list = @style_lists[style.name]
-                self.class.operations[:#{name}].call(style, list)
-              end
-              convert(options)
-            end
-          EOS
-        end
-        attr_reader :operations
+      def resize(options={})
+        operate(options){|style| ['-resize', style[:size]]}
       end
-      @operations = {}
 
-      operation(:resize     ){|style, list| list << ['-resize', style[:size]]}
-      operation(:auto_orient){|style, list| list << '-auto-orient'}
-      operation(:strip      ){|style, list| list << '-strip'}
-      operation(:thumbnail) do |style, list|
-            list <<
-              ['-resize', "#{style[:size]}^"] <<
-              ['-gravity', 'Center'] <<
-              ['-crop', style[:size]]
+      def auto_orient(options={})
+        operate(options){|style| '-auto-orient'}
+      end
+
+      def strip(options={})
+        operate(options){|style| '-strip'}
+      end
+
+      def flip(options={})
+        operate(options){|style| '-flip'}
+      end
+
+      def flop(options={})
+        operate(options){|style| '-flop'}
+      end
+
+      def thumbnail(options={})
+        operate(options){|style| [['-resize', "#{style[:size]}^"], ['-gravity', 'Center'], ['-crop', style[:size]]]}
       end
 
       def convert(options={})
         styles(options).each do |style|
-          @output_flags[style.name] = true
+          @output_flags[style] = true
         end
       end
 
       private  # -----------------------------------------------------
 
       def reset
-        @style_lists = ActiveSupport::OrderedHash.new
+        @tree = ArgumentTree.new(styles)
         @output_flags = {}
         styles.each do |style|
-          @style_lists[style.name] = []
-          @output_flags[style.name] = false
+          @output_flags[style] = false
         end
         @after_convert_callbacks = []
       end
 
-      attr_reader :style_lists, :output_flags
+      attr_reader :output_flags
+
+      def operate(options={}, &block)
+        arguments = ActiveSupport::OrderedHash.new
+        styles(options).each do |style|
+          arguments[style] = yield(style)
+        end
+        @tree.add(arguments)
+        convert(options)
+      end
 
       def run_identify(*args)
         command_output self.class.identify_command, *args
       end
 
       def run_convert
-        prefix = extract_common_prefix
-        remove_nonoutput_lists
+        @output_flags.any?{|style, flag| flag} or
+          return
+        remove_nodes_for_non_output_styles
         add_image_setting_arguments
-        unless style_lists.empty?
-          add_stack_manipulations
-          output = run_convert_command(prefix)
-          run_after_convert_callbacks(output)
+        add_output_arguments
+        output = run_convert_command
+        run_after_convert_callbacks(output)
+      end
+
+      def remove_nodes_for_non_output_styles
+        @output_flags.each do |style, flag|
+          @tree.remove_style(style) if !flag
         end
+      end
+
+      def add_output_arguments
+        arguments = ActiveSupport::OrderedHash.new
+        @output_flags.each do |style, flag|
+          arguments[style] = ['-write', output_file(style.name)]
+        end
+        @tree.add(arguments)
       end
 
       def add_image_setting_arguments
-        style_lists.each do |name, list|
-          style = styles[name]
+        arguments = ActiveSupport::OrderedHash.new
+        styles.each do |style|
+          @output_flags[style] or
+            next
+          list = []
           list << ['-quality', style[:quality].to_s] if style[:quality]
           list << ['-colorspace', style[:colorspace]] if style[:colorspace]
+          arguments[style] = list
         end
+        @tree.add(arguments)
       end
 
-      def remove_nonoutput_lists
-        style_lists.delete_if do |name, list|
-          !output_flags[name]
-        end
+      def run_convert_command
+        words = []
+        construct_convert_command(words, @tree.root, false)
+        command = [self.class.convert_command, input_file, *words].flatten
+        command[-2] == '-write' or
+          raise '[BULLDOG BUG]: expected second last word of convert command to be -write'
+        command.delete_at(-2)
+        command_output(*command)
       end
 
-      def extract_common_prefix
-        return [] if styles.empty?
-        length = 0
-        first, *rest = style_lists.values
-        first.zip(*rest) do |elements|
-          if elements.uniq.size == 1
-            length += 1
+      def construct_convert_command(words, node, clone_needed)
+        if clone_needed
+          words << '(' << '+clone'
+          construct_convert_command(words, node, false)
+          words << '+delete' << ')'
+        else
+          words.concat(node.arguments)
+          if node.children.empty?
+            # TODO: Support multiple styles here. (Not likely you'd
+            # want to generate the same file twice, though.)
+            #words << '-write' << output_file(node.styles.first.name)
           else
-            break
+            children = node.children.dup
+            last_child = children.pop
+            children.each do |child|
+              construct_convert_command(words, child, true)
+            end
+            construct_convert_command(words, last_child, false)
           end
         end
-        rest.each{|list| list[0, length] = []}
-        first.slice!(0, length)
-      end
-
-      def add_stack_manipulations
-        output_files = output_styles.map{|style| output_file(style.name)}
-        lists        = output_styles.map{|style| style_lists[style.name]}
-
-        last_output_file = output_files.pop
-        last_list = lists.pop
-
-        lists.zip(output_files).each do |list, output_file|
-          list.unshift('(', '+clone')
-          list.push('-write', output_file, '+delete', ')')
-        end
-        last_list << last_output_file
-      end
-
-      def run_convert_command(prefix)
-        operations = output_styles.map{|s| style_lists[s.name]}
-        command = [self.class.convert_command, input_file, prefix, operations].flatten
-        command_output *command
-      end
-
-      def output_styles
-        @output_styles ||= styles.select{|style| @output_flags[style.name]}
       end
     end
   end

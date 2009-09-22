@@ -11,7 +11,7 @@ module Bulldog
       attr_reader :styles, :root, :heads
 
       def add(styles_to_arguments)
-        arguments_to_styles = Hash.new{|h,k| h[k] = []}
+        arguments_to_styles = ActiveSupport::OrderedHash.new{|h,k| h[k] = []}
         styles_to_arguments.each do |style, arguments|
           arguments_to_styles[Array(arguments)] << style
         end

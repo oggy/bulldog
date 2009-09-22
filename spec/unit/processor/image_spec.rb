@@ -41,11 +41,11 @@ describe Processor::Image do
       style :x, :size => '12x12', :path => '/tmp/x.jpg'
       values = []
       process(input_path) do
-        dimensions do |width, height|
-          values << [width, height]
+        dimensions do |*args|
+          values << args
         end
       end
-      values.should == [[40, 30]]
+      values.should == [[@styles, 40, 30]]
     end
 
     it "should support being called with a block after the pipeline branches (yielding the styles along with the values)"
@@ -118,6 +118,22 @@ describe Processor::Image do
     end
   end
 
+  describe "#flip" do
+    it "should flip the image vertically" do
+      style :flipped, {:path => '/tmp/flipped.jpg'}
+      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -flip /tmp/flipped.jpg").returns('')
+      process{flip}
+    end
+  end
+
+  describe "#flop" do
+    it "should flip the image horizontally" do
+      style :flopped, {:path => '/tmp/flopped.jpg'}
+      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -flop /tmp/flopped.jpg").returns('')
+      process{flop}
+    end
+  end
+
   describe "#thumbnail" do
     it "should resize, and crop off the edges" do
       style :small, {:size => '10x10', :path => '/tmp/small.jpg'}
@@ -140,6 +156,32 @@ describe Processor::Image do
     end
   end
 
+  it "should handle a complex tree of arguments optimally" do
+    # The tree:
+    #   auto-orient
+    #     resize 10x20
+    #       flip        [:a]
+    #       flop        [:b]
+    #     flip
+    #       strip       [:c]
+    #       quality 75  [:d]
+    Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -auto-orient " +
+      "\\( \\+clone -resize 10x20 \\( \\+clone -flip -write /tmp/a.jpg \\+delete \\) " +
+                                              "-flop -write /tmp/b.jpg \\+delete \\) " +
+      "-flip \\( \\+clone -flop -write /tmp/c.jpg \\+delete \\) " +
+                               "-quality 75 /tmp/d.jpg").returns('')
+    style :a, :path => "/tmp/a.jpg", :size => '10x20'
+    style :b, :path => "/tmp/b.jpg", :size => '10x20'
+    style :c, :path => "/tmp/c.jpg", :size => '30x40'
+    style :d, :path => "/tmp/d.jpg", :size => '30x40', :quality => 75
+    process do
+      auto_orient
+      resize(:only => [:a, :b])
+      flip(:except => :b)
+      flop(:only => [:b, :c])
+    end
+  end
+
   it "should allow specifying operations only for some styles with an :only option" do
     Kernel.expects(:'`').once.with("CONVERT INPUT.jpg \\( \\+clone " +
       "-auto-orient -write /tmp/auto_oriented.jpg \\+delete \\) \\( \\+clone " +
@@ -154,9 +196,10 @@ describe Processor::Image do
   end
 
   it "should allow protecting styles from an operation with an :except option" do
-    Kernel.expects(:'`').once.with("CONVERT INPUT.jpg \\( \\+clone -write " +
-      "/tmp/unaltered.jpg \\+delete \\) \\( \\+clone -auto-orient -write " +
-      "/tmp/unresized.jpg \\+delete \\) -auto-orient -resize 40x40 /tmp/small.jpg").returns('')
+    Kernel.expects(:'`').once.with("CONVERT INPUT.jpg " +
+      "\\( \\+clone -auto-orient \\( \\+clone -resize 40x40 -write /tmp/small.jpg \\+delete \\) " +
+                                    "-write /tmp/unresized.jpg \\+delete \\) " +
+      "/tmp/unaltered.jpg").returns('')
     style :unaltered, {:path => '/tmp/unaltered.jpg'}
     style :unresized, {:path => '/tmp/unresized.jpg'}
     style :small, {:size => '40x40', :path => '/tmp/small.jpg'}
