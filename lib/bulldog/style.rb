@@ -15,6 +15,10 @@ module Bulldog
         super
     end
 
+    def inspect
+      "#<Style #{name.inspect} #{super}>"
+    end
+
     delegate :hash, :eql?, :to => :name
 
     ORIGINAL = new(:original, {})

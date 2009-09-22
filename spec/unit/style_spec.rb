@@ -34,4 +34,11 @@ describe Style do
       a.should_not == b
     end
   end
+
+  describe "#inspect" do
+    it "should show the name and attributes" do
+      style = Style.new(:big, :size => '100x100')
+      style.inspect.should == "#<Style :big {:size=>\"100x100\"}>"
+    end
+  end
 end
