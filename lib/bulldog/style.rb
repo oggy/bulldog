@@ -1,6 +1,6 @@
 module Bulldog
   class Style < Hash
-    def initialize(name, attributes)
+    def initialize(name, attributes={})
       super()
       merge!(attributes)
       @name = name
@@ -14,6 +14,8 @@ module Bulldog
         name == other.name &&
         super
     end
+
+    delegate :hash, :eql?, :to => :name
 
     ORIGINAL = new(:original, {})
   end
