@@ -19,14 +19,6 @@ module Bulldog
 
       # Input image attributes  --------------------------------------
 
-      def operate(name, &block)
-        arguments = ActiveSupport::OrderedHash.new
-        styles(options).each do |style|
-          arguments[style] = yield(style)
-        end
-        @tree.add(args)
-        convert(options)
-      end
       def dimensions(options={}, &block)
         if block
           operate(options){['-format', '%w %h', '-identify']}
