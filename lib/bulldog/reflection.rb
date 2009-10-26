@@ -12,8 +12,6 @@ module Bulldog
       @events = Hash.new{|h,k| h[k] = []}
 
       Configuration.configure(self, &block) if block
-      model_class.attachment_reflections[name] = self
-
       validate_type
     end
 

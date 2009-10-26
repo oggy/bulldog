@@ -64,6 +64,7 @@ module Bulldog
       #
       def has_attachment(name, &block)
         reflection = Reflection.new(self, name, &block)
+        attachment_reflections[name] = reflection
         define_attachment_accessors(reflection.name)
       end
 
