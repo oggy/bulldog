@@ -13,10 +13,10 @@ describe HasAttachment do
     end
 
     it "should provide a reader for the attachment of the appropriate class" do
-      test_attribute_class = Class.new(Attribute::Base)
+      test_attachment_class = Class.new(Attachment::Base)
       reflection = Thing.attachment_reflections[:photo]
-      reflection.stubs(:attribute_class).returns(test_attribute_class)
-      Thing.new.photo.should be_a(test_attribute_class)
+      reflection.stubs(:attachment_class).returns(test_attachment_class)
+      Thing.new.photo.should be_a(test_attachment_class)
     end
 
     it "should provide a writer and query method for the attachment" do

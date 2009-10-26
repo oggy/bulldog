@@ -22,7 +22,7 @@ describe Interpolation do
   end
 
   def interpolate(template)
-    Interpolation.interpolate(template, @attribute, @style)
+    Interpolation.interpolate(template, @attachment, @style)
   end
 
   describe "when the file name is being stored" do
@@ -34,7 +34,7 @@ describe Interpolation do
       end
 
       @thing = Thing.new(:photo => uploaded_file('test.jpg', '...'))
-      @attribute = @thing.attachment_attribute(:photo)
+      @attachment = @thing.attachment_for(:photo)
       @style = Thing.attachment_reflections[:photo].styles[:small]
     end
 
@@ -91,7 +91,7 @@ describe Interpolation do
           type :base
           style :small, {}
         end
-        @attribute = Thing.new.attachment_attribute(:photo)
+        @attachment = Thing.new.attachment_for(:photo)
         @style = Thing.attachment_reflections[:photo].styles[:small]
       end
 

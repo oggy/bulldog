@@ -24,12 +24,12 @@ module Bulldog
       @default_style
     end
 
-    def attribute_class
+    def attachment_class
       name = type.to_s.camelize
-      if Attribute.const_defined?(name)
-        Attribute.const_get(name)
+      if Attachment.const_defined?(name)
+        Attachment.const_get(name)
       else
-        Attribute::Base
+        Attachment::Base
       end
     end
 

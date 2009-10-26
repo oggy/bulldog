@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Attribute::Base do
+describe Attachment::Base do
   set_up_model_class :Thing do |t|
     t.string :photo_file_name
   end
@@ -182,7 +182,7 @@ describe Attribute::Base do
     end
   end
 
-  describe "before the attribute is assigned" do
+  describe "before the attachment is assigned" do
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:id.:style.jpg"
       style :small, {}
@@ -552,7 +552,7 @@ describe Attribute::Base do
   end
 end
 
-describe "Attribute which stores file attributes" do
+describe "Attachment which stores file attributes" do
   describe "assigning to an attachment" do
     set_up_model_class :Thing do |t|
       t.string :photo_file_name

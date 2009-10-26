@@ -1,5 +1,5 @@
 module Bulldog
-  module Attribute
+  module Attachment
     class Base
       def initialize(record, name)
         @record = record
@@ -153,7 +153,7 @@ module Bulldog
       # Yield the name of the file this attachment is stored in.  The
       # file will be kept for the duration of the block.
       #
-      # If the attribute is nil, the block is not yielded.
+      # If the attribute value is nil, the block is not yielded.
       #
       def with_input_file_name
         value = record.read_attribute(name)

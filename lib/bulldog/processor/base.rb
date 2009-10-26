@@ -17,9 +17,9 @@ module Bulldog
         path = @styles[style_name][:path] and
           return path
         # TODO: This sucks.  Don't violate Demeter.
-        attribute = record.attachment_attribute(name)
-        template = attribute.reflection.path_template
-        Interpolation.interpolate(template, attribute, @styles[style_name])
+        attachment = record.attachment_for(name)
+        template = attachment.reflection.path_template
+        Interpolation.interpolate(template, attachment, @styles[style_name])
       end
 
       #
@@ -28,12 +28,12 @@ module Bulldog
       attr_reader :record
 
       #
-      # The attribute name being processed.
+      # The name of the attachment being processed.
       #
       attr_reader :name
 
       #
-      # Return the value of the attachment attribute.
+      # Return the value of the attachment.
       #
       def value
         record.send(name)

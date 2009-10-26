@@ -180,19 +180,19 @@ describe Reflection do
     end
   end
 
-  describe "#attribute_class" do
+  describe "#attachment_class" do
     it "should return a type-specific class if one exists" do
       Thing.has_attachment :photo do
         type :image
       end
-      reflection.attribute_class.should == Attribute::Image
+      reflection.attachment_class.should == Attachment::Image
     end
 
-    it "should return the base Attribute class otherwise" do
+    it "should return the base Attachment class otherwise" do
       Thing.has_attachment :photo do
         type :psychic_holograph
       end
-      reflection.attribute_class.should == Attribute::Base
+      reflection.attachment_class.should == Attachment::Base
     end
   end
 

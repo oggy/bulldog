@@ -2,11 +2,11 @@ module Bulldog
   module Interpolation
     InterpolationError = Class.new(Error)
 
-    def self.interpolate(template, attribute, style)
+    def self.interpolate(template, attachment, style)
       template.gsub(/:(?:(\w+)|\{(\w+?)\})/) do
         key = $1 || $2
         if @interpolations.key?(key)
-          @interpolations[key].call(attribute, style)
+          @interpolations[key].call(attachment, style)
         else
           raise InterpolationError, "no such interpolation key: #{key}"
         end
@@ -26,36 +26,36 @@ module Bulldog
       RAILS_ENV
     end
 
-    define_interpolation :class do |attribute, style|
-      attribute.record.class.name.underscore.pluralize
+    define_interpolation :class do |attachment, style|
+      attachment.record.class.name.underscore.pluralize
     end
 
-    define_interpolation :id do |attribute, style|
-      record = attribute.record
+    define_interpolation :id do |attachment, style|
+      record = attachment.record
       record.send(record.class.primary_key)
     end
 
-    define_interpolation :id_partition do |attribute, style|
-      record = attribute.record
+    define_interpolation :id_partition do |attachment, style|
+      record = attachment.record
       id = record.send(record.class.primary_key)
       ("%09d" % id).scan(/\d{3}/).join("/")
     end
 
-    define_interpolation :attachment do |attribute, style|
-      attribute.name
+    define_interpolation :attachment do |attachment, style|
+      attachment.name
     end
 
-    define_interpolation :style do |attribute, style|
+    define_interpolation :style do |attachment, style|
       style.name
     end
 
-    define_interpolation :basename do |attribute, style|
-      attribute.basename or
+    define_interpolation :basename do |attachment, style|
+      attachment.basename or
         raise InterpolationError, ":basename interpolation requires storing the file name - use store_file_attributes to store the file_name"
     end
 
-    define_interpolation :extension do |attribute, style|
-      basename = attribute.basename or
+    define_interpolation :extension do |attachment, style|
+      basename = attachment.basename or
         raise InterpolationError, ":basename interpolation requires storing the file name - use store_file_attributes to store the file_name"
       File.extname(basename).sub(/^\./, '')
     end

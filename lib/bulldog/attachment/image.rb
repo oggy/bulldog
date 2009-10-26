@@ -1,5 +1,5 @@
 module Bulldog
-  module Attribute
+  module Attachment
     class Image < Base
     end
   end

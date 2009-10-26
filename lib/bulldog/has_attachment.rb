@@ -15,31 +15,31 @@ module Bulldog
 
     def save_attachments
       attachment_reflections.each do |name, reflection|
-        attachment_attribute(name).save
+        attachment_for(name).save
       end
     end
 
     def destroy_attachments
       attachment_reflections.each do |name, reflection|
-        attachment_attribute(name).destroy
+        attachment_for(name).destroy
       end
     end
 
-    def attachment_attribute(name)
-      @attachment_attributes ||= {}
-      attribute_class = self.class.attachment_reflections[name].attribute_class
-      @attachment_attributes[name] ||= attribute_class.new(self, name)
+    def attachment_for(name)
+      @attachments ||= {}
+      attribute_class = self.class.attachment_reflections[name].attachment_class
+      @attachments[name] ||= attribute_class.new(self, name)
     end
 
     def process_attachment(name, event, *args)
       reflection = attachment_reflections[name] or
         raise ArgumentError, "no such attachment: #{name}"
-      attachment_attribute(name).process(event, *args)
+      attachment_for(name).process(event, *args)
     end
 
     def process_attachments_for_event(event, *args)
       self.class.attachment_reflections.each do |name, reflection|
-        attachment_attribute(reflection.name).process(event, *args)
+        attachment_for(reflection.name).process(event, *args)
       end
     end
 
@@ -71,17 +71,17 @@ module Bulldog
       def define_attachment_accessors(name)
         module_eval <<-EOS, __FILE__, __LINE__
           def #{name}
-            attachment_attribute(:#{name})
+            attachment_for(:#{name})
           end
 
           def #{name}=(value)
             process_attachment(:#{name}, :before_assignment, value)
-            attachment_attribute(:#{name}).set(value)
+            attachment_for(:#{name}).set(value)
             process_attachment(:#{name}, :after_assignment, value)
           end
 
           def #{name}?
-            attachment_attribute(:#{name}).query
+            attachment_for(:#{name}).query
           end
         EOS
       end
