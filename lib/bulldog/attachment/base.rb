@@ -37,12 +37,6 @@ module Bulldog
         set_file_attributes(value)
       end
 
-      def basename
-        if (attribute = reflection.file_attributes[:file_name])
-          record.send(attribute)
-        end
-      end
-
       def query
         !!get
       end
@@ -98,7 +92,7 @@ module Bulldog
       def calculate_path(style_name)
         template = reflection.path_template
         style = reflection.styles[style_name]
-        Interpolation.interpolate(template, self, style)
+        Interpolation.interpolate(template, record, name, style)
       end
 
       def calculate_url(style_name)
@@ -110,7 +104,7 @@ module Bulldog
           raise "cannot infer url from path - please set the #url for the :#{name} attachment"
         end
         style = reflection.styles[style_name]
-        Interpolation.interpolate(template, self, style)
+        Interpolation.interpolate(template, record, name, style)
       end
 
       def delete_files_and_empty_parent_directories

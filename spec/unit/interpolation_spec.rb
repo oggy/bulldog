@@ -22,19 +22,17 @@ describe Interpolation do
   end
 
   def interpolate(template)
-    Interpolation.interpolate(template, @attachment, @style)
+    Interpolation.interpolate(template, @thing, :photo, @style)
   end
 
-  describe "when the file name is being stored" do
+  describe "when the file name is not being stored" do
     before do
       Thing.has_attachment :photo do
         type :base
         style :small, {}
-        store_file_attributes :file_name => :photo_file_name
+        store_file_attributes :file_name => nil
       end
-
       @thing = Thing.new(:photo => uploaded_file('test.jpg', '...'))
-      @attachment = @thing.attachment_for(:photo)
       @style = Thing.attachment_reflections[:photo].styles[:small]
     end
 
@@ -72,36 +70,38 @@ describe Interpolation do
       interpolate("a/:style/b").should == "a/small/b"
     end
 
-    it "should interpolate :basename as the basename of the uploaded file" do
-      interpolate("a/:basename/b").should == "a/test.jpg/b"
+    it "should raise an error for :basename" do
+      lambda{interpolate("a/:basename/b")}.should raise_error(Interpolation::InterpolationError)
     end
 
-    it "should interpolate :extension as the extension of the uploaded file" do
-      interpolate("a/:extension/b").should == "a/jpg/b"
+    it "should raise an error for :extension" do
+      lambda{interpolate("a/:extension/b")}.should raise_error(Interpolation::InterpolationError)
     end
 
     it "should allow using braces for interpolating between symbol characters" do
       @thing.stubs(:id).returns(5)
       interpolate("a/x:{id}x/b").should == "a/x5x/b"
     end
+  end
 
-    describe "when the file name is not being stored" do
-      before do
-        Thing.has_attachment :photo do
-          type :base
-          style :small, {}
-        end
-        @attachment = Thing.new.attachment_for(:photo)
-        @style = Thing.attachment_reflections[:photo].styles[:small]
+  describe "when the file name is being stored" do
+    before do
+      Thing.has_attachment :photo do
+        type :base
+        style :small, {}
+        store_file_attributes :file_name => :photo_file_name
       end
 
-      it "should raise an error for :basename" do
-        lambda{interpolate("a/:basename/b")}.should raise_error(Interpolation::InterpolationError)
-      end
+      @thing = Thing.new(:photo => uploaded_file('test.jpg', '...'))
+      @style = Thing.attachment_reflections[:photo].styles[:small]
+    end
 
-      it "should raise an error for :extension" do
-        lambda{interpolate("a/:extension/b")}.should raise_error(Interpolation::InterpolationError)
-      end
+    it "should interpolate :basename as the basename of the uploaded file" do
+      interpolate("a/:basename/b").should == "a/test.jpg/b"
+    end
+
+    it "should interpolate :extension as the extension of the uploaded file" do
+      interpolate("a/:extension/b").should == "a/jpg/b"
     end
   end
 end

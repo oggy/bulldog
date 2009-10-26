@@ -43,6 +43,10 @@ module Bulldog
       end
     end
 
+    def attachment_reflection_for(name)
+      self.class.attachment_reflections[name]
+    end
+
     %w[validation save create update].each do |event|
       module_eval <<-EOS
         def process_attachments_for_before_#{event}

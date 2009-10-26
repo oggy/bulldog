@@ -19,7 +19,7 @@ module Bulldog
         # TODO: This sucks.  Don't violate Demeter.
         attachment = record.attachment_for(name)
         template = attachment.reflection.path_template
-        Interpolation.interpolate(template, attachment, @styles[style_name])
+        Interpolation.interpolate(template, record, name, @styles[style_name])
       end
 
       #
