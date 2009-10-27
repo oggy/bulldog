@@ -15,6 +15,20 @@ require 'helpers/temporary_values'
 require 'helpers/temporary_directory'
 require 'helpers/test_upload_files'
 require 'helpers/image_creation'
+require 'matchers/file_operations'
+
+class Time
+  #
+  # Return a new Time object with subsecond components dropped.
+  #
+  # This is useful for testing Time values that have been roundtripped
+  # through the database, as not all databases store subsecond
+  # precision.
+  #
+  def drop_subseconds
+    self.class.mktime(year, month, day, hour, min, sec)
+  end
+end
 
 module SpecHelper
   def self.included(mod)
@@ -73,6 +87,7 @@ Spec::Runner.configure do |config|
   config.include TemporaryDirectory
   config.include TestUploadFiles
   config.include ImageCreation
+  config.include Matchers
 end
 
 ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")

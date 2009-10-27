@@ -5,8 +5,18 @@ module Bulldog
       base.class_inheritable_accessor :attachment_reflections
       base.attachment_reflections ||= {}
 
+      # We need to store the attachment changes ourselves, since
+      # they're unavailable in an after_save.
+      base.before_save :store_attachment_changes
       base.after_save :save_attachments
+      base.after_save :clear_attachment_changes
+
       base.after_destroy :destroy_attachments
+
+      # Force initialization of attachments, as #destroy will freeze
+      # the attributes afterwards.
+      base.before_destroy :initialize_remaining_attachments
+
       %w[validation save create update].each do |event|
         base.send("before_#{event}", "process_attachments_for_before_#{event}")
         base.send("after_#{event}", "process_attachments_for_after_#{event}")
@@ -15,7 +25,10 @@ module Bulldog
 
     def save_attachments
       attachment_reflections.each do |name, reflection|
-        attachment_for(name).save
+        next unless @attachment_changes.include?(name)
+        old, new = @attachment_changes[name]
+        old.destroy
+        new.save
       end
     end
 
@@ -37,15 +50,12 @@ module Bulldog
 
     private  # -------------------------------------------------------
 
-    def attachments
-      @attachments ||= {}
-    end
-
     def attachment_for(name)
-      attachments[name] ||= initial_attachment(name)
+      read_attribute(name) or
+        initialize_attachment(name)
     end
 
-    def initial_attachment(name)
+    def initialize_attachment(name)
       if new_record?
         value = nil
       else
@@ -56,7 +66,9 @@ module Bulldog
           value = nil
         end
       end
-      Attachment.new(self, name, value)
+      attachment = Attachment.new(self, name, value)
+      # Take care here not to mark the attribute as dirty.
+      write_attribute_without_dirty(name, attachment)
     end
 
     def original_path(name)
@@ -70,13 +82,32 @@ module Bulldog
       unless attachment_for(name).value == value
         attachment = Attachment.new(self, name, value)
         attachment.set_file_attributes
-        attachments[name] = attachment
+        write_attribute(name, attachment)
       end
+    end
+
+    def store_attachment_changes
+      @attachment_changes = {}
+      attachment_reflections.each do |name, reflection|
+        if attribute_changed?(name.to_s)
+          @attachment_changes[name] = attribute_change(name.to_s)
+        end
+      end
+    end
+
+    def clear_attachment_changes
+      remove_instance_variable :@attachment_changes
     end
 
     def process_attachments_for_event(event, *args)
       self.class.attachment_reflections.each do |name, reflection|
         attachment_for(reflection.name).process(event, *args)
+      end
+    end
+
+    def initialize_remaining_attachments
+      self.attachment_reflections.each do |name, reflection|
+        attachment_for(name)  # force initialization
       end
     end
 

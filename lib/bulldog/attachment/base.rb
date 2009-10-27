@@ -5,9 +5,18 @@ module Bulldog
         @record = record
         @name = name
         @value = value
+        @saved = value.is_a?(UnopenedFile)
       end
 
       attr_reader :record, :name, :value
+
+      #
+      # Return true if the original file for this attachment has been
+      # saved.
+      #
+      def saved?
+        @saved
+      end
 
       #
       # Run the processors for the given event.
@@ -34,6 +43,8 @@ module Bulldog
       end
 
       def save
+        return if saved?
+        saved = true
         original_path = calculate_path(:original)
         case (file = value)
         when File, Tempfile, StringIO
