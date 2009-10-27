@@ -24,15 +24,6 @@ module Bulldog
       @default_style
     end
 
-    def attachment_class
-      name = type.to_s.camelize
-      if Attachment.const_defined?(name)
-        Attachment.const_get(name)
-      else
-        Attachment::Base
-      end
-    end
-
     def default_processor_class
       name = type.to_s.camelize
       if Processor.const_defined?(name)

@@ -208,6 +208,12 @@ describe Validations do
     it_should_behave_like "an ActiveRecord validation"
 
     describe "validation" do
+      it "should fail if the value is blank" do
+        Thing.validates_attachment_presence :photo
+        @thing = Thing.new(:photo => nil)
+        @thing.should_not be_valid
+      end
+
       it "should fail if the file is empty" do
         Thing.validates_attachment_presence :photo
         @thing = Thing.new(:photo => uploaded_file('test.jpg', ''))
@@ -244,6 +250,12 @@ describe Validations do
     it_should_behave_like "an ActiveRecord validation"
 
     describe "validation" do
+      it "should not fail if the attachment is blank" do
+        Thing.validates_attachment_size :photo, :greater_than => 5
+        thing = Thing.new
+        thing.should be_valid
+      end
+
       describe "when :greater_than is given" do
         before do
           Thing.validates_attachment_size :photo, :greater_than => 5

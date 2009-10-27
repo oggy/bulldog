@@ -12,16 +12,15 @@ describe HasAttachment do
       end
     end
 
-    it "should provide a reader for the attachment of the appropriate class" do
-      test_attachment_class = Class.new(Attachment::Base)
-      reflection = Thing.attachment_reflections[:photo]
-      reflection.stubs(:attachment_class).returns(test_attachment_class)
-      Thing.new.photo.should be_a(test_attachment_class)
+    it "should provide accessors for the attachment" do
+      thing = Thing.new
+      thing.photo = uploaded_file
+      thing.photo.should be_a(Attachment::Base)
     end
 
-    it "should provide a writer and query method for the attachment" do
+    it "should provide a query method for the attachment" do
       thing = Thing.new
-      file = uploaded_file("test.jpg")
+      file = uploaded_file
       thing.photo?.should be_false
       thing.photo = file
       thing.photo?.should be_true
@@ -38,15 +37,30 @@ describe HasAttachment do
   end
 
   describe "#process_attachment" do
-    it "should trigger the named custom callback" do
-      args = nil
-      Thing.has_attachment :photo do
-        type :base
-        on(:my_event){|*args|}
+    describe "when there is an attachment set" do
+      it "should trigger the configured callbacks" do
+        args = nil
+        Thing.has_attachment :photo do
+          type :base
+          on(:my_event){|*args|}
+        end
+        thing = Thing.new(:photo => uploaded_file)
+        thing.process_attachment(:photo, :my_event, 1, 2)
+        args.should == [1, 2]
       end
-      thing = Thing.new
-      thing.process_attachment(:photo, :my_event, 1, 2)
-      args.should == [1, 2]
+    end
+
+    describe "when there is no attachment set" do
+      it "should not trigger any callbacks" do
+        args = nil
+        Thing.has_attachment :photo do
+          type :base
+          on(:my_event){|*args|}
+        end
+        thing = Thing.new(:photo => nil)
+        thing.process_attachment(:photo, :my_event, 1, 2)
+        args.should be_nil
+      end
     end
 
     it "should raise an ArgumentError if the attachment name is invalid" do
@@ -62,18 +76,15 @@ describe HasAttachment do
     end
 
     it "should evaluate the callback in the context of the specified processor" do
-      Processor.const_set(:Test, Class.new(Processor::Base))
-      begin
+      with_temporary_constant_value Processor, :Test, Class.new(Processor::Base) do
         context = nil
         Thing.has_attachment :photo do
           type :base
           on(:my_event, :with => :test){context = self}
         end
-        thing = Thing.new
+        thing = Thing.new(:photo => uploaded_file)
         thing.process_attachment(:photo, :my_event)
         context.should be_a(Processor::Test)
-      ensure
-        Processor.send(:remove_const, :Test)
       end
     end
 
@@ -83,7 +94,7 @@ describe HasAttachment do
         type :base
         on(:my_event){context = self}
       end
-      thing = Thing.new
+      thing = Thing.new(:photo => uploaded_file)
       thing.process_attachment(:photo, :my_event)
       context.should be_a(Processor::Base)
     end

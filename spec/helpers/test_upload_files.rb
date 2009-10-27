@@ -4,14 +4,14 @@ module TestUploadFiles
     mod.after{close_test_upload_files}
   end
 
-  def small_uploaded_file(path, content='')
+  def small_uploaded_file(path=unused_temp_path, content='')
     io = ActionController::UploadedStringIO.new(content)
     io.original_path = path
     io.content_type = Rack::Mime::MIME_TYPES[File.extname(path)]
     io
   end
 
-  def large_uploaded_file(path, content='')
+  def large_uploaded_file(path=unused_temp_path, content='')
     file = ActionController::UploadedTempfile.new(path)
     file.write(content)
     file.rewind
@@ -32,5 +32,14 @@ module TestUploadFiles
 
   def close_test_upload_files
     @files_to_close.each(&:close)
+  end
+
+  def unused_temp_path
+    i = 0
+    path = nil
+    begin
+      path = File.join(temporary_directory, "test-#{i}.jpg")
+    end while File.exist?(path)
+    path
   end
 end

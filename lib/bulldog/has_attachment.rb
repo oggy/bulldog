@@ -25,26 +25,59 @@ module Bulldog
       end
     end
 
-    def attachment_for(name)
-      @attachments ||= {}
-      attribute_class = self.class.attachment_reflections[name].attachment_class
-      @attachments[name] ||= attribute_class.new(self, name)
-    end
-
     def process_attachment(name, event, *args)
       reflection = attachment_reflections[name] or
         raise ArgumentError, "no such attachment: #{name}"
       attachment_for(name).process(event, *args)
     end
 
+    def attachment_reflection_for(name)
+      self.class.attachment_reflections[name]
+    end
+
+    private  # -------------------------------------------------------
+
+    def attachments
+      @attachments ||= {}
+    end
+
+    def attachment_for(name)
+      attachments[name] ||= initial_attachment(name)
+    end
+
+    def initial_attachment(name)
+      if new_record?
+        value = nil
+      else
+        original_path = original_path(name)
+        if File.exist?(original_path)
+          value = UnopenedFile.new(original_path)
+        else
+          value = nil
+        end
+      end
+      Attachment.new(self, name, value)
+    end
+
+    def original_path(name)
+      reflection = attachment_reflection_for(name)
+      template = reflection.path_template
+      style = reflection.styles[:original]
+      Interpolation.interpolate(template, self, name, style)
+    end
+
+    def assign_attachment(name, value)
+      unless attachment_for(name).value == value
+        attachment = Attachment.new(self, name, value)
+        attachment.set_file_attributes
+        attachments[name] = attachment
+      end
+    end
+
     def process_attachments_for_event(event, *args)
       self.class.attachment_reflections.each do |name, reflection|
         attachment_for(reflection.name).process(event, *args)
       end
-    end
-
-    def attachment_reflection_for(name)
-      self.class.attachment_reflections[name]
     end
 
     %w[validation save create update].each do |event|
@@ -79,13 +112,11 @@ module Bulldog
           end
 
           def #{name}=(value)
-            process_attachment(:#{name}, :before_assignment, value)
-            attachment_for(:#{name}).set(value)
-            process_attachment(:#{name}, :after_assignment, value)
+            assign_attachment(:#{name}, value)
           end
 
           def #{name}?
-            attachment_for(:#{name}).query
+            !!attachment_for(:#{name}).value
           end
         EOS
       end

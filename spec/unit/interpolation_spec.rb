@@ -5,22 +5,6 @@ describe Interpolation do
     t.string :photo_file_name
   end
 
-  def with_temporary_constant_value(mod, constant_name, value)
-    defined = mod.const_defined?(constant_name)
-    if defined
-      original_value = mod.const_get(constant_name)
-      mod.send(:remove_const, constant_name)
-    end
-    mod.const_set(constant_name, value)
-    yield
-  ensure
-    if defined
-      mod.const_set(constant_name, original_value)
-    else
-      mod.send(:remove_const, constant_name)
-    end
-  end
-
   def interpolate(template)
     Interpolation.interpolate(template, @thing, :photo, @style)
   end
@@ -57,9 +41,9 @@ describe Interpolation do
       interpolate("a/:id/b").should == "a/123/b"
     end
 
-    it "should interpolate :id_partition as the record ID split into 3 digit partitions, 0-padded" do
-      @thing.stubs(:id).returns(12345678)
-      interpolate("a/:id_partition/b").should == "a/012/345/678/b"
+    it "should interpolate :id_partition as the record ID split into 3 3-digit partitions, 0-padded" do
+      @thing.stubs(:id).returns(12345)
+      interpolate("a/:id_partition/b").should == "a/000/012/345/b"
     end
 
     it "should interpolate :attachment as the attachment name" do

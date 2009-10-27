@@ -171,28 +171,12 @@ describe Reflection do
       Thing.has_attachment :photo do
         type :base
       end
-      file = uploaded_file('test.jpg', 'hi')
+      file = uploaded_file('test.jpg', "\xff\xd8")  # jpeg magic number
       thing = Thing.new(:photo => file)
       thing.photo_file_name.should == 'test.jpg'
-      thing.photo_content_type.should == 'image/jpeg'
+      thing.photo_content_type.split(/;/).first.should == 'image/jpeg'
       thing.photo_file_size.should == 2
       thing.photo_updated_at.should == Time.now
-    end
-  end
-
-  describe "#attachment_class" do
-    it "should return a type-specific class if one exists" do
-      Thing.has_attachment :photo do
-        type :image
-      end
-      reflection.attachment_class.should == Attachment::Image
-    end
-
-    it "should return the base Attachment class otherwise" do
-      Thing.has_attachment :photo do
-        type :psychic_holograph
-      end
-      reflection.attachment_class.should == Attachment::Base
     end
   end
 

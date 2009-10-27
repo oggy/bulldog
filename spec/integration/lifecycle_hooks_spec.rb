@@ -5,32 +5,8 @@ describe "Lifecycle hooks" do
     t.integer :value
   end
 
-  it "should run before-assignment hooks before assigning to the association" do
-    checks = []
-    Thing.has_attachment :photo do
-      type :image
-      before :assignment do
-        checks << value.query
-      end
-    end
-    thing = Thing.new
-    checks.should == []
-    thing.photo = uploaded_file("test.jpg")
-    checks.should == [false]
-  end
-
-  it "should run after-assignment hooks after assigning to the association" do
-    checks = []
-    Thing.has_attachment :photo do
-      type :image
-      after :assignment do
-        checks << value.query
-      end
-    end
-    thing = Thing.new
-    checks.should == []
-    thing.photo = uploaded_file("test.jpg")
-    checks.should == [true]
+  before do
+    @file = uploaded_file
   end
 
   it "should run before-validation hooks before validating the record" do
@@ -42,7 +18,7 @@ describe "Lifecycle hooks" do
         checks << record.errors.empty?
       end
     end
-    thing = Thing.new
+    thing = Thing.new(:photo => @file)
     checks.should == []
     thing.valid?.should be_false
     checks.should == [true]
@@ -57,7 +33,7 @@ describe "Lifecycle hooks" do
         checks << record.errors.empty?
       end
     end
-    thing = Thing.new
+    thing = Thing.new(:photo => @file)
     checks.should == []
     thing.valid?.should be_false
     checks.should == [false]
@@ -71,7 +47,7 @@ describe "Lifecycle hooks" do
         checks << record.new_record?
       end
     end
-    thing = Thing.new
+    thing = Thing.new(:photo => @file)
     checks.should == []
     thing.save.should be_true
     checks.should == [true]
@@ -85,7 +61,7 @@ describe "Lifecycle hooks" do
         checks << record.new_record?
       end
     end
-    thing = Thing.new
+    thing = Thing.new(:photo => @file)
     checks.should == []
     thing.save.should be_true
     checks.should == [false]
@@ -99,7 +75,7 @@ describe "Lifecycle hooks" do
         checks << record.new_record?
       end
     end
-    thing = Thing.new
+    thing = Thing.new(:photo => @file)
     checks.should == []
     thing.save.should be_true
     checks.should == [true]
@@ -113,7 +89,7 @@ describe "Lifecycle hooks" do
         checks << record.new_record?
       end
     end
-    thing = Thing.new
+    thing = Thing.new(:photo => @file)
     checks.should == []
     thing.save.should be_true
     checks.should == [false]
@@ -127,7 +103,7 @@ describe "Lifecycle hooks" do
         checks << Thing.count(:conditions => {:value => 2})
       end
     end
-    Thing.create(:value => 1)
+    Thing.create(:photo => @file, :value => 1)
     thing = Thing.first
     checks.should == []
     thing.update_attributes(:value => 2).should be_true
@@ -142,7 +118,7 @@ describe "Lifecycle hooks" do
         checks << Thing.count(:conditions => {:value => 2})
       end
     end
-    Thing.create(:value => 1)
+    Thing.create(:photo => @file, :value => 1)
     thing = Thing.first
     checks.should == []
     thing.update_attributes(:value => 2).should be_true
@@ -161,7 +137,7 @@ describe "Lifecycle hooks" do
         checks << [:fail]
       end
     end
-    Thing.create
+    Thing.create(:photo => @file)
     checks.should == []
   end
 
@@ -177,7 +153,7 @@ describe "Lifecycle hooks" do
         checks << [:fail]
       end
     end
-    thing = Thing.create(:value => 1)
+    thing = Thing.create(:photo => @file, :value => 1)
     checks = []
     thing.update_attributes(:value => 2)
     checks.should == []
@@ -190,7 +166,7 @@ describe "Lifecycle hooks" do
       on(:test_event){checks << 1}
       on(:test_event){checks << 2}
     end
-    thing = Thing.new
+    thing = Thing.new(:photo => @file)
     thing.process_attachment(:photo, :test_event)
     checks.should == [1, 2]
   end

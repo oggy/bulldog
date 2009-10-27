@@ -6,8 +6,8 @@ module Bulldog
 
     module ClassMethods
       def validates_attachment_presence(name, options={})
-        validates_each(name, options) do |record, attribute, value|
-          value.get.size > 0 or
+        validates_each(name, options) do |record, attribute, attachment|
+          attachment.present? && attachment.size > 0 or
             record.errors.add attribute, options[:message] || :attachment_blank
         end
       end
@@ -17,15 +17,17 @@ module Bulldog
           options[:greater_than] = range.min - 1
           options[:less_than   ] = range.max + 1
         end
-        validates_each(name, options) do |record, attributes, value|
-          file_size = value.get.size
-          if options[:greater_than]
-            file_size > options[:greater_than] or
-              record.errors.add attributes, options[:message] || :attachment_too_small
-          end
-          if options[:less_than]
-            file_size < options[:less_than] or
-              record.errors.add attributes, options[:message] || :attachment_too_large
+        validates_each(name, options) do |record, attribute, attachment|
+          if attachment.present?
+            file_size = attachment.size
+            if options[:greater_than]
+              file_size > options[:greater_than] or
+                record.errors.add attribute, options[:message] || :attachment_too_small
+            end
+            if options[:less_than]
+              file_size < options[:less_than] or
+                record.errors.add attribute, options[:message] || :attachment_too_large
+            end
           end
         end
       end

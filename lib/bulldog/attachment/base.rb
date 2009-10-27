@@ -1,14 +1,17 @@
 module Bulldog
   module Attachment
     class Base
-      def initialize(record, name)
+      def initialize(record, name, value)
         @record = record
         @name = name
-        @assigned = false
+        @value = value
       end
 
-      attr_reader :record, :name
+      attr_reader :record, :name, :value
 
+      #
+      # Run the processors for the given event.
+      #
       def process(event, *args)
         reflection.events[event].each do |processor_class, callback|
           with_input_file_name do |file_name|
@@ -18,64 +21,31 @@ module Bulldog
         end
       end
 
-      def get
-        if !@assigned
-          path = calculate_path(:original)
-          value = File.exist?(path) ? UnopenedFile.new(path) : nil
-          record.write_attribute(name, value)
-          @assigned = true
-        end
-        record.read_attribute(name)
-      end
-
-      def set(value)
-        unless record.read_attribute(name) == value
-          record.send(:attribute_will_change!, name)
-        end
-        @assigned = true
-        record.write_attribute(name, value)
-        set_file_attributes(value)
-      end
-
-      def query
-        !!get
-      end
-
       def path(style_name = reflection.default_style)
-        return nil if !query
         calculate_path(style_name)
       end
 
       def url(style_name = reflection.default_style)
-        return nil if !query
         calculate_url(style_name)
       end
 
       def size
-        value = get or
-          return nil
         value.is_a?(StringIO) ? value.size : File.size(value.path)
       end
 
-      def changed?
-        record.send(:attribute_changed?, name)
-      end
-
       def save
-        if @assigned
-          original_path = calculate_path(:original)
-          case (file = get)
-          when File, Tempfile, StringIO
-            write_stream(file, original_path)
-          when UnopenedFile
-            unless file.path == original_path
-              FileUtils.cp(file.path, original_path)
-            end
-          when nil
-            delete_files_and_empty_parent_directories
-          else
-            raise "unexpected value for file: #{file.inspect}"
+        original_path = calculate_path(:original)
+        case (file = value)
+        when File, Tempfile, StringIO
+          write_stream(file, original_path)
+        when UnopenedFile
+          unless file.path == original_path
+            FileUtils.cp(file.path, original_path)
           end
+        when nil
+          delete_files_and_empty_parent_directories
+        else
+          raise "unexpected value for file: #{file.inspect}"
         end
       end
 
@@ -85,6 +55,53 @@ module Bulldog
 
       def reflection
         @reflection ||= record.class.attachment_reflections[name]
+      end
+
+      #
+      # Set any file attributes that the attachment is configured to
+      # store.
+      #
+      def set_file_attributes
+        if value.is_a?(File)
+          set_file_attribute(:file_name){File.basename(value.path)}
+          set_file_attribute(:file_size){File.size(value)}
+        else
+          set_file_attribute(:file_name){value.original_path}
+          set_file_attribute(:file_size){value.size}
+        end
+
+        set_file_attribute(:content_type){content_type}
+        set_file_attribute(:updated_at){Time.now}
+      end
+
+      #
+      # Return the content type of the data.
+      #
+      def content_type
+        @content_type ||=
+          with_input_file_name do |path|
+            self.class.content_type_of(path)
+          end
+      end
+
+      #
+      # Return the content type of the file at the given path.
+      #
+      def self.content_type_of(path)
+        `file --brief --mime #{path}`
+      end
+
+      protected  # ---------------------------------------------------
+
+      #
+      # Set the named file attribute to the value yielded by the
+      # block.  The block is not called unless the file attribute is
+      # to be set.
+      #
+      def set_file_attribute(file_attribute)
+        if (column_name = reflection.file_attributes[file_attribute])
+          record.send("#{column_name}=", yield)
+        end
       end
 
       private  # -------------------------------------------------------
@@ -124,33 +141,11 @@ module Bulldog
         end
       end
 
-      def set_file_attributes(value)
-        if value
-          set_file_attribute(:file_name){value.is_a?(File) ? File.basename(value.path) : value.original_path}
-          set_file_attribute(:content_type){value.content_type}
-          set_file_attribute(:file_size){value.is_a?(File) ? File.size(value) : value.size}
-        else
-          [:file_name, :content_type, :file_size].each do |name|
-            set_file_attribute(name){nil}
-          end
-        end
-        set_file_attribute(:updated_at){Time.now}
-      end
-
-      def set_file_attribute(name, &block)
-        if (column_name = reflection.file_attributes[name])
-          record.send("#{column_name}=", yield)
-        end
-      end
-
       #
       # Yield the name of the file this attachment is stored in.  The
       # file will be kept for the duration of the block.
       #
-      # If the attribute value is nil, the block is not yielded.
-      #
       def with_input_file_name
-        value = record.read_attribute(name)
         case value
         when UnopenedFile, Tempfile, File
           yield value.path
@@ -162,8 +157,6 @@ module Bulldog
               yield file_name
             end
           end
-        when nil
-          yield nil
         else
           raise "unexpected value for attachment `#{name}': #{value.inspect}"
         end

@@ -14,10 +14,11 @@ module Bulldog
       attr_reader :input_file
 
       def output_file(style_name)
+        # TODO: Make Processor take an Attachment.  This then just
+        # becomes attachment.path(style_name).
         path = @styles[style_name][:path] and
           return path
-        # TODO: This sucks.  Don't violate Demeter.
-        attachment = record.attachment_for(name)
+        attachment = record.send(:attachment_for, name)
         template = attachment.reflection.path_template
         Interpolation.interpolate(template, record, name, @styles[style_name])
       end
@@ -36,7 +37,7 @@ module Bulldog
       # Return the value of the attachment.
       #
       def value
-        record.send(name)
+        record.send(name).value
       end
 
       #

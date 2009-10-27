@@ -11,6 +11,7 @@ require 'init'
 PLUGIN_ROOT = File.dirname( File.dirname(__FILE__) )
 
 require 'helpers/time_travel'
+require 'helpers/temporary_values'
 require 'helpers/temporary_directory'
 require 'helpers/test_upload_files'
 require 'helpers/image_creation'
@@ -68,6 +69,7 @@ Spec::Runner.configure do |config|
   config.mock_with :mocha
   config.include SpecHelper
   config.include TimeTravel
+  config.include TemporaryValues
   config.include TemporaryDirectory
   config.include TestUploadFiles
   config.include ImageCreation
