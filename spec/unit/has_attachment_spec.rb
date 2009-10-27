@@ -1,9 +1,7 @@
 require 'spec_helper'
 
 describe HasAttachment do
-  set_up_model_class :Thing do |t|
-    t.integer :value
-  end
+  set_up_model_class :Thing
 
   describe ".has_attachment" do
     before do
