@@ -7,9 +7,9 @@ module Bulldog
 
       # We need to store the attachment changes ourselves, since
       # they're unavailable in an after_save.
-      base.before_save :store_attachment_changes
+      base.before_save :store_original_attachments
       base.after_save :save_attachments
-      base.after_save :clear_attachment_changes
+      base.after_save :clear_original_attachments
 
       base.after_destroy :destroy_attachments
 
@@ -25,10 +25,10 @@ module Bulldog
 
     def save_attachments
       attachment_reflections.each do |name, reflection|
-        next unless @attachment_changes.include?(name)
-        old, new = @attachment_changes[name]
-        old.destroy
-        new.save
+        original_attachment = @original_attachments[name] or
+          next
+        original_attachment.destroy
+        attachment_for(name).save
       end
     end
 
@@ -86,17 +86,17 @@ module Bulldog
       end
     end
 
-    def store_attachment_changes
-      @attachment_changes = {}
+    def store_original_attachments
+      @original_attachments = {}
       attachment_reflections.each do |name, reflection|
-        if attribute_changed?(name.to_s)
-          @attachment_changes[name] = attribute_change(name.to_s)
+        if send("#{name}_changed?")
+          @original_attachments[name] = send("#{name}_was")
         end
       end
     end
 
-    def clear_attachment_changes
-      remove_instance_variable :@attachment_changes
+    def clear_original_attachments
+      remove_instance_variable :@original_attachments
     end
 
     def process_attachments_for_event(event, *args)
