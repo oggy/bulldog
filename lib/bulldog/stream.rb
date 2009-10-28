@@ -54,6 +54,14 @@ module Bulldog
       def content_type
         @content_type ||= `file --brief --mime #{path}`.strip
       end
+
+      #
+      # Write the content to the given path.
+      #
+      def write_to(path)
+        FileUtils.mkdir_p File.dirname(path)
+        FileUtils.cp self.path, path unless @path == path
+      end
     end
 
     class ForTempfile < Base
@@ -88,21 +96,32 @@ module Bulldog
     class ForIO < Base
       def path
         return @path if @path
-        write_file
+        Tempfile.open('bulldog') do |file|
+          write_to_io(file)
+          @path = file.path
+        end
         @path
+      end
+
+      def write_to(path)
+        if @path
+          super
+        else
+          open(path, 'w') do |file|
+            write_to_io(file)
+            @path = file.path
+          end
+        end
       end
 
       private  # -----------------------------------------------------
 
       BLOCK_SIZE = 64*1024
-      def write_file
-        Tempfile.open('bulldog') do |file|
-          target.rewind rescue nil  # not rewindable
-          buffer = ""
-          while target.read(BLOCK_SIZE, buffer)
-            file.write(buffer)
-          end
-          @path = file.path
+      def write_to_io(io)
+        target.rewind rescue nil  # not rewindable
+        buffer = ""
+        while target.read(BLOCK_SIZE, buffer)
+          io.write(buffer)
         end
       end
     end

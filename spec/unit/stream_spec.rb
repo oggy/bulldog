@@ -43,6 +43,15 @@ describe Stream do
         stream.content_type.split(/;/).first.should == 'image/jpeg'
       end
     end
+
+    describe "#write_to" do
+      it "should write the contents of the file to the given path" do
+        stream = stream('content')
+        path = "#{temporary_directory}/written"
+        stream.write_to(path)
+        File.read(path).should == 'content'
+      end
+    end
   end
 
   describe 'for a StringIO' do

@@ -23,6 +23,7 @@ module Bulldog
       end
 
       def save
+        delete_files_and_empty_parent_directories
       end
 
       def destroy

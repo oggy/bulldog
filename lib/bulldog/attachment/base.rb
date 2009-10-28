@@ -54,20 +54,9 @@ module Bulldog
 
       def save
         return if saved?
-        saved = true
+        @saved = true
         original_path = calculate_path(:original)
-        case (file = value)
-        when File, Tempfile, StringIO
-          write_stream(file, original_path)
-        when UnopenedFile
-          unless file.path == original_path
-            FileUtils.cp(file.path, original_path)
-          end
-        when nil
-          delete_files_and_empty_parent_directories
-        else
-          raise "unexpected value for file: #{file.inspect}"
-        end
+        stream.write_to(original_path)
       end
 
       def destroy
@@ -160,23 +149,6 @@ module Bulldog
           rescue Errno::EEXIST, Errno::ENOTEMPTY, Errno::ENOENT, Errno::EINVAL, Errno::ENOTDIR
             # Can't delete any further.
           end
-        end
-      end
-
-      def copy_stream(src, dst, block_size=8192)
-        src.rewind
-        buffer = ""
-        while src.read(block_size, buffer)
-          dst.write(buffer)
-        end
-        dst.rewind
-        dst
-      end
-
-      def write_stream(io, path, block_size=8192)
-        FileUtils.mkdir_p(File.dirname(path))
-        open(path, 'w') do |file|
-          copy_stream(io, file, block_size)
         end
       end
     end
