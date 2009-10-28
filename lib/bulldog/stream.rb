@@ -52,7 +52,7 @@ module Bulldog
       # Return the mime-type of the content.
       #
       def content_type
-        `file --brief --mime #{path}`
+        @content_type ||= `file --brief --mime #{path}`.strip
       end
     end
 

@@ -39,9 +39,15 @@ module Bulldog
         calculate_url(style_name)
       end
 
-      def size
-        stream.size
-      end
+      #
+      # Return the size of the attached file.
+      #
+      delegate :size, :to => 'stream'
+
+      #
+      # Return the content type of the data.
+      #
+      delegate :content_type, :to => 'stream'
 
       def save
         return if saved?
@@ -84,23 +90,6 @@ module Bulldog
 
         set_file_attribute(:content_type){content_type}
         set_file_attribute(:updated_at){Time.now}
-      end
-
-      #
-      # Return the content type of the data.
-      #
-      def content_type
-        @content_type ||=
-          with_input_file_name do |path|
-            self.class.content_type_of(path)
-          end
-      end
-
-      #
-      # Return the content type of the file at the given path.
-      #
-      def self.content_type_of(path)
-        `file --brief --mime #{path}`
       end
 
       #
