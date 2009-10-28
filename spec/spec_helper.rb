@@ -8,7 +8,7 @@ require 'action_controller'
 
 require 'init'
 
-PLUGIN_ROOT = File.dirname( File.dirname(__FILE__) )
+ROOT = File.dirname( File.dirname(__FILE__) )
 
 require 'helpers/time_travel'
 require 'helpers/temporary_values'

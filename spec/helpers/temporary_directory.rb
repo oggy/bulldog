@@ -5,7 +5,7 @@ module TemporaryDirectory
   end
 
   def temporary_directory
-    "#{PLUGIN_ROOT}/spec/tmp"
+    "#{ROOT}/spec/tmp"
   end
 
   private  # ---------------------------------------------------------
