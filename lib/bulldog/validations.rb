@@ -31,6 +31,17 @@ module Bulldog
           end
         end
       end
+
+      def validates_attachment_type(name, options={})
+        validates_each(name, options) do |record, attribute, attachment|
+          if attachment.present?
+            if (pattern = options[:matches])
+              attachment.content_type =~ pattern or
+                record.errors.add attribute, options[:message] || :wrong_type
+            end
+          end
+        end
+      end
     end
   end
 end

@@ -353,5 +353,50 @@ describe Validations do
     it_should_use_i18n_key(:attachment_too_small, :greater_than => 5){@thing.photo = uploaded_file('test.jpg', '..')}
   end
 
-  # TODO: validates_attachment_processible?
+  describe ".validates_attachment_type" do
+    def validation
+      :validates_attachment_type
+    end
+
+    def validation_options
+      {:matches => /\Aimage/}
+    end
+
+    def make_thing_pass
+      @thing.photo = uploaded_file('test.jpg', "\xff\xd8")
+    end
+
+    def make_thing_fail
+      @thing.photo = uploaded_file('test.avi', "RIFF    AVI ")
+    end
+
+    it_should_behave_like "an ActiveRecord validation"
+
+    describe "validation" do
+      describe "when :matches is given" do
+        before do
+          Thing.validates_attachment_type :photo, :matches => /^image/
+          @thing = Thing.new(:photo => uploaded_file)
+        end
+
+        it "should pass if the attachment is nil" do
+          @thing.photo = nil
+          @thing.should be_valid
+        end
+
+        it "should pass if the content type matches the given pattern" do
+          @thing.photo = uploaded_file('test.jpg', "\xff\xd8")
+          @thing.should be_valid
+        end
+
+        it "should fail if the content type does not match the given pattern" do
+          @thing.photo = uploaded_file('test.jpg', "RIFF    AVI ")
+          @thing.should_not be_valid
+          @thing.errors.on(:photo).should_not be_blank
+        end
+      end
+    end
+
+    it_should_use_i18n_key(:wrong_type, :matches => /\Aimage/){@thing.photo = uploaded_file('test.avi', "RIFF    AVI ")}
+  end
 end
