@@ -53,9 +53,10 @@ module Bulldog
         @reflection.default_style = name
       end
 
-      def on(event, options={}, &block)
+      def on(event, options={}, &callback)
         processor_type = options[:with]
-        @reflection.events[event] << [processor_type, block]
+        @reflection.events[event] << Event.new(:processor_type => processor_type,
+                                               :callback => callback)
       end
 
       def before(event, options={}, &block)
@@ -73,6 +74,21 @@ module Bulldog
         end
         @reflection.file_attributes = hash
       end
+    end
+
+    class Event
+      def initialize(attributes={})
+        attributes.each do |name, value|
+          send("#{name}=", value)
+        end
+      end
+
+      #
+      # The configured type of the event, or nil if not configured.
+      #
+      # The type of an event 
+      #
+      attr_accessor :processor_type, :callback
     end
 
     private  # -------------------------------------------------------

@@ -102,33 +102,34 @@ describe Reflection do
       end
       events = reflection.events[:test_event]
       events.should have(1).event
+      events.first.should be_a(Reflection::Event)
     end
 
-    it "should have the configured processor type as the first element" do
+    it "should provide access to the processor type of each event" do
       Thing.has_attachment :photo do
         type :base
         on(:test_event, :with => :test){}
       end
       event = reflection.events[:test_event].first
-      event[0].should == :test
+      event.processor_type.should == :test
     end
 
-    it "should have nil as the first element if the default processor type is to be used" do
+    it "should have nil as the processor type if the default processor type is to be used" do
       Thing.has_attachment :photo do
         type :base
         on(:test_event){}
       end
       event = reflection.events[:test_event].first
-      event[0].should be_nil
+      event.processor_type.should be_nil
     end
 
-    it "should have the configured proc as the second element" do
+    it "should provide access to the callback of each event" do
       Thing.has_attachment :photo do
         type :base
         on(:test_event){}
       end
       event = reflection.events[:test_event].first
-      event[1].should be_a(Proc)
+      event.callback.should be_a(Proc)
     end
   end
 

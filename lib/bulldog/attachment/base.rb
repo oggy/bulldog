@@ -20,15 +20,15 @@ module Bulldog
       end
 
       #
-      # Run the processors for the given event.
+      # Run the processors for the named event.
       #
-      def process(event, *args)
-        reflection.events[event].each do |processor_type, callback|
+      def process(event_name, *args)
+        reflection.events[event_name].each do |event|
           with_input_file_name do |file_name|
-            processor_type ||= default_processor_type
+            processor_type = event.processor_type || default_processor_type
             processor_class = Processor.const_get(processor_type.to_s.camelize)
             processor = processor_class.new(file_name, reflection.styles)
-            processor.process(record, name, *args, &callback)
+            processor.process(record, name, *args, &event.callback)
           end
         end
       end
