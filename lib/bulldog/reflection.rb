@@ -4,7 +4,6 @@ module Bulldog
       @model_class = model_class
       @name = name
 
-      @type = nil
       @path_template = Bulldog.default_path
       @styles = StyleSet.new
       @default_style = :original
@@ -12,10 +11,9 @@ module Bulldog
       @events = Hash.new{|h,k| h[k] = []}
 
       Configuration.configure(self, &block) if block
-      validate_type
     end
 
-    attr_accessor :model_class, :name, :type, :path_template, :url_template, :styles, :events, :file_attributes
+    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :file_attributes
     attr_writer :default_style
 
     def default_style
@@ -31,10 +29,6 @@ module Bulldog
 
       def initialize(reflection)
         @reflection = reflection
-      end
-
-      def type(type)
-        @reflection.type = type
       end
 
       def path(path_template)
@@ -111,11 +105,6 @@ module Bulldog
     end
 
     private  # -------------------------------------------------------
-
-    def validate_type
-      @type or
-        raise ConfigurationError, "please specify a type - e.g., type(:image)"
-    end
 
     def default_file_attributes
       file_attributes = {}

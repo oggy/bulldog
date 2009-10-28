@@ -5,9 +5,7 @@ describe HasAttachment do
     set_up_model_class :Thing
 
     before do
-      Thing.has_attachment :photo do
-        type :base
-      end
+      Thing.has_attachment :photo
     end
 
     it "should provide accessors for the attachment" do
@@ -29,9 +27,7 @@ describe HasAttachment do
     set_up_model_class :Thing
 
     it "should allow reflection on the field names" do
-      Thing.has_attachment :photo do
-        type :base
-      end
+      Thing.has_attachment :photo
       Thing.attachment_reflections[:photo].name.should == :photo
     end
   end
@@ -43,7 +39,6 @@ describe HasAttachment do
       it "should trigger the configured callbacks" do
         args = nil
         Thing.has_attachment :photo do
-          type :base
           process(:on => :my_event){|*args|}
         end
         thing = Thing.new(:photo => uploaded_file)
@@ -56,7 +51,6 @@ describe HasAttachment do
       it "should not trigger any callbacks" do
         args = nil
         Thing.has_attachment :photo do
-          type :base
           process(:on => :my_event){|*args|}
         end
         thing = Thing.new(:photo => nil)
@@ -68,7 +62,6 @@ describe HasAttachment do
     it "should raise an ArgumentError if the attachment name is invalid" do
       args = nil
       Thing.has_attachment :photo do
-        type :base
         process(:on => :my_event){|*args|}
       end
       thing = Thing.new
@@ -81,7 +74,6 @@ describe HasAttachment do
       with_temporary_constant_value Processor, :Test, Class.new(Processor::Base) do
         context = nil
         Thing.has_attachment :photo do
-          type :base
           process(:on => :my_event, :with => :test){context = self}
         end
         thing = Thing.new(:photo => uploaded_file)
@@ -93,7 +85,6 @@ describe HasAttachment do
     it "should default to a base processor instance" do
       context = nil
       Thing.has_attachment :photo do
-        type :base
         process(:on => :my_event){context = self}
       end
       thing = Thing.new(:photo => uploaded_file)
@@ -113,7 +104,6 @@ describe HasAttachment do
     before do
       spec = self
       Thing.has_attachment :photo do
-        type :image
         path "#{spec.temporary_directory}/photos/:id-:style.jpg"
         style :small, :size => '10x10'
       end
@@ -415,7 +405,6 @@ describe HasAttachment do
     before do
       spec = self
       Thing.has_attachment :photo do
-        type :photo
         path "#{spec.temporary_directory}/:id.jpg"
       end
       thing = Thing.create(:name => 'old', :photo => uploaded_file)

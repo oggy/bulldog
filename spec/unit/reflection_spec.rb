@@ -17,19 +17,9 @@ describe Reflection do
     Thing.attachment_reflections[:photo]
   end
 
-  describe "#type" do
-    it "should return the configured type" do
-      Thing.has_attachment :photo do
-        type :image
-      end
-      reflection.type.should == :image
-    end
-  end
-
   describe "#path_template" do
     it "should return the configured path" do
       Thing.has_attachment :photo do
-        type :base
         path "/path/to/somewhere"
       end
       reflection.path_template.should == "/path/to/somewhere"
@@ -37,9 +27,7 @@ describe Reflection do
 
     it "should default to the global setting" do
       Bulldog.default_path = "/test.jpg"
-      Thing.has_attachment :photo do
-        type :base
-      end
+      Thing.has_attachment :photo
       reflection.path_template.should == "/test.jpg"
     end
   end
@@ -47,7 +35,6 @@ describe Reflection do
   describe "#url_template" do
     it "should return the configured URL template" do
       Thing.has_attachment :photo do
-        type :base
         url "/path/to/somewhere"
       end
       reflection.url_template.should == "/path/to/somewhere"
@@ -57,7 +44,6 @@ describe Reflection do
   describe "#style" do
     it "should return the set of styles" do
       Thing.has_attachment :photo do
-        type :base
         style :small, :size => '32x32'
         style :large, :size => '512x512'
       end
@@ -71,7 +57,6 @@ describe Reflection do
   describe "#default_style" do
     it "should return the configured default_style" do
       Thing.has_attachment :photo do
-        type :base
         style :small, :size => '32x32'
         default_style :small
       end
@@ -79,15 +64,12 @@ describe Reflection do
     end
 
     it "should default to :original" do
-      Thing.has_attachment :photo do
-        type :base
-      end
+      Thing.has_attachment :photo
       reflection.default_style.should == :original
     end
 
     it "should raise an error if the configured default_style is invalid" do
       Thing.has_attachment :photo do
-        type :base
         default_style :bad
       end
       lambda{reflection.default_style}.should raise_error(Error)
@@ -97,7 +79,6 @@ describe Reflection do
   describe "#events" do
     it "should return the map of configured events" do
       Thing.has_attachment :photo do
-        type :base
         process(:on => :test_event){}
       end
       events = reflection.events[:test_event]
@@ -107,7 +88,6 @@ describe Reflection do
 
     it "should provide access to the processor type of each event" do
       Thing.has_attachment :photo do
-        type :base
         process(:on => :test_event, :with => :test){}
       end
       event = reflection.events[:test_event].first
@@ -116,7 +96,6 @@ describe Reflection do
 
     it "should have nil as the processor type if the default processor type is to be used" do
       Thing.has_attachment :photo do
-        type :base
         process(:on => :test_event){}
       end
       event = reflection.events[:test_event].first
@@ -125,7 +104,6 @@ describe Reflection do
 
     it "should provide access to the callback of each event" do
       Thing.has_attachment :photo do
-        type :base
         process(:on => :test_event){}
       end
       event = reflection.events[:test_event].first
@@ -136,7 +114,6 @@ describe Reflection do
   describe "#file_attributes" do
     it "should return the configured file attributes to store" do
       Thing.has_attachment :photo do
-        type :base
         store_file_attributes(
           :file_name => :custom_file_name,
           :content_type => :custom_content_type,
@@ -154,7 +131,6 @@ describe Reflection do
 
     it "should allow a shortcut if the field names follow convention" do
       Thing.has_attachment :photo do
-        type :base
         store_file_attributes :file_name, :content_type, :file_size, :updated_at
       end
       reflection.file_attributes.should == {
@@ -166,9 +142,7 @@ describe Reflection do
     end
 
     it "should store any existing columns that match the default names by default" do
-      Thing.has_attachment :photo do
-        type :base
-      end
+      Thing.has_attachment :photo
       file = uploaded_file('test.jpg', "\xff\xd8")  # jpeg magic number
       thing = Thing.new(:photo => file)
       thing.photo_file_name.should == 'test.jpg'

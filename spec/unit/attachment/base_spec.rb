@@ -5,7 +5,6 @@ describe Attachment::Base do
     before do
       spec = self
       Thing.has_attachment :photo do
-        type :base
         instance_exec(spec, &block)
       end
       @thing = Thing.new
@@ -186,7 +185,6 @@ describe Attachment::Base do
       begin
         context = nil
         Thing.has_attachment :photo do
-          type :image
           process :on => :test_event do
             context = self
           end
@@ -205,7 +203,6 @@ describe Attachment::Base do
       begin
         context = nil
         Thing.has_attachment :photo do
-          type :image
           process :on => :test_event, :with => :test do
             context = self
           end
@@ -221,7 +218,6 @@ describe Attachment::Base do
     it "should not run any processors if no attachment is set" do
       run = false
       Thing.has_attachment :photo do
-        type :image
         process :on => :test_event do
           run = true
         end
@@ -241,9 +237,7 @@ describe Attachment::Base do
     end
 
     before do
-      Thing.has_attachment :photo do
-        type :base
-      end
+      Thing.has_attachment :photo
       Thing.attachment_reflections[:photo].stubs(:file_attributes).returns(
         :file_name => :photo_file_name,
         :content_type => :photo_content_type,

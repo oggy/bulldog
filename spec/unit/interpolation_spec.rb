@@ -12,7 +12,6 @@ describe Interpolation do
   describe "when the file name is not being stored" do
     before do
       Thing.has_attachment :photo do
-        type :base
         style :small, {}
         store_file_attributes :file_name => nil
       end
@@ -71,7 +70,6 @@ describe Interpolation do
   describe "when the file name is being stored" do
     before do
       Thing.has_attachment :photo do
-        type :base
         style :small, {}
         store_file_attributes :file_name => :photo_file_name
       end

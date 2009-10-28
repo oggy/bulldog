@@ -5,9 +5,7 @@ describe Attachment do
 
   describe ".new" do
     before do
-      Thing.has_attachment :photo do
-        type :image
-      end
+      Thing.has_attachment :photo
       @record = Thing.new
       @name = :photo
     end

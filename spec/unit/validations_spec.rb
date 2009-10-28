@@ -6,9 +6,7 @@ describe Validations do
   end
 
   before do
-    Thing.has_attachment :photo do
-      type :base
-    end
+    Thing.has_attachment :photo
   end
 
   describe "an ActiveRecord validation", :shared => true do
