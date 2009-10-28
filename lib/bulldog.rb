@@ -8,6 +8,7 @@ require 'bulldog/style_set'
 require 'bulldog/interpolation'
 require 'bulldog/unopened_file'
 require 'bulldog/processor'
+require 'bulldog/stream'
 
 module Bulldog
   class << self

@@ -1,14 +1,15 @@
 module Bulldog
   module Attachment
     class Base
-      def initialize(record, name, value)
+      def initialize(record, name, stream)
         @record = record
         @name = name
-        @value = value
+        @stream = stream
+        @value = stream && stream.target
         @saved = value.is_a?(UnopenedFile)
       end
 
-      attr_reader :record, :name, :value
+      attr_reader :record, :name, :stream, :value
 
       #
       # Return true if the original file for this attachment has been
@@ -39,7 +40,7 @@ module Bulldog
       end
 
       def size
-        value.is_a?(StringIO) ? value.size : File.size(value.path)
+        stream.size
       end
 
       def save

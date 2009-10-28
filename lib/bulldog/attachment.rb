@@ -1,6 +1,7 @@
 require 'bulldog/attachment/base'
 require 'bulldog/attachment/none'
 require 'bulldog/attachment/image'
+require 'bulldog/attachment/video'
 
 module Bulldog
   module Attachment
@@ -9,8 +10,21 @@ module Bulldog
     # value.
     #
     def self.new(record, name, value)
-      klass = value.nil? ? None : Base
-      klass.new(record, name, value)
+      klass =
+        if value.blank?
+          None
+        else
+          stream = Stream.new(value)
+          case stream.content_type[/\w+/]
+          when 'image'
+            Image
+          when 'video'
+            Video
+          else
+            Base
+          end
+        end
+      attachment = klass.new(record, name, stream)
     end
   end
 end
