@@ -176,6 +176,62 @@ describe Attachment::Base do
     end
   end
 
+  describe "#process" do
+    set_up_model_class :Thing do |t|
+      t.string
+    end
+
+    it "should use the default processor if no processor was specified" do
+      Processor.const_set(:Test, Class.new(Processor::Base))
+      begin
+        context = nil
+        Thing.has_attachment :photo do
+          type :image
+          on :test_event do
+            context = self
+          end
+        end
+        thing = Thing.new(:photo => uploaded_file)
+        thing.photo.stubs(:default_processor_type).returns(:test)
+        thing.photo.process(:test_event)
+        context.should be_a(Processor::Test)
+      ensure
+        Processor.send(:remove_const, :Test)
+      end
+    end
+
+    it "should use the configured processor if one was specified" do
+      Processor.const_set(:Test, Class.new(Processor::Base))
+      begin
+        context = nil
+        Thing.has_attachment :photo do
+          type :image
+          on :test_event, :with => :test do
+            context = self
+          end
+        end
+        thing = Thing.new(:photo => uploaded_file)
+        thing.photo.process(:test_event)
+        context.should be_a(Processor::Test)
+      ensure
+        Processor.send(:remove_const, :Test)
+      end
+    end
+
+    it "should not run any processors if no attachment is set" do
+      run = false
+      Thing.has_attachment :photo do
+        type :image
+        on :test_event do
+          run = true
+        end
+      end
+      thing = Thing.new(:photo => nil)
+      thing.photo.process(:test_event)
+      run.should be_false
+    end
+  end
+
   describe "#set_file_attributes" do
     set_up_model_class :Thing do |t|
       t.string :photo_file_name

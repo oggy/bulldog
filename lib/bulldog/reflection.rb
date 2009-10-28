@@ -24,15 +24,6 @@ module Bulldog
       @default_style
     end
 
-    def default_processor_class
-      name = type.to_s.camelize
-      if Processor.const_defined?(name)
-        Processor.const_get(name)
-      else
-        Processor::Base
-      end
-    end
-
     class Configuration
       def self.configure(reflection, &block)
         new(reflection).instance_eval(&block)
@@ -63,13 +54,8 @@ module Bulldog
       end
 
       def on(event, options={}, &block)
-        if options[:with]
-          const_name = options[:with].to_s.camelize
-          processor_class = Processor.const_get(const_name)
-        else
-          processor_class = @reflection.default_processor_class
-        end
-        @reflection.events[event] << [processor_class, block]
+        processor_type = options[:with]
+        @reflection.events[event] << [processor_type, block]
       end
 
       def before(event, options={}, &block)
