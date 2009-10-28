@@ -14,7 +14,7 @@ describe "Lifecycle hooks" do
     Thing.validates_presence_of :value
     Thing.has_attachment :photo do
       type :image
-      before :validation do
+      process :before => :validation do
         checks << record.errors.empty?
       end
     end
@@ -29,7 +29,7 @@ describe "Lifecycle hooks" do
     Thing.validates_presence_of :value
     Thing.has_attachment :photo do
       type :image
-      after :validation do
+      process :after => :validation do
         checks << record.errors.empty?
       end
     end
@@ -43,7 +43,7 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.has_attachment :photo do
       type :image
-      before :save do
+      process :before => :save do
         checks << record.new_record?
       end
     end
@@ -57,7 +57,7 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.has_attachment :photo do
       type :image
-      after :save do
+      process :after => :save do
         checks << record.new_record?
       end
     end
@@ -71,7 +71,7 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.has_attachment :photo do
       type :image
-      before :create do
+      process :before => :create do
         checks << record.new_record?
       end
     end
@@ -85,7 +85,7 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.has_attachment :photo do
       type :image
-      after :create do
+      process :after => :create do
         checks << record.new_record?
       end
     end
@@ -99,7 +99,7 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.has_attachment :photo do
       type :image
-      before :update do
+      process :before => :update do
         checks << Thing.count(:conditions => {:value => 2})
       end
     end
@@ -114,7 +114,7 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.has_attachment :photo do
       type :image
-      after :update do
+      process :after => :update do
         checks << Thing.count(:conditions => {:value => 2})
       end
     end
@@ -129,11 +129,11 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.has_attachment :photo do
       type :image
-      before :update do
+      process :before => :update do
         checks << [:fail]
       end
 
-      after :update do |thing|
+      process :after => :update do |thing|
         checks << [:fail]
       end
     end
@@ -145,11 +145,11 @@ describe "Lifecycle hooks" do
     checks = []
     Thing.has_attachment :photo do
       type :image
-      before :create do
+      process :before => :create do
         checks << [:fail]
       end
 
-      after :create do
+      process :after => :create do
         checks << [:fail]
       end
     end
@@ -159,12 +159,47 @@ describe "Lifecycle hooks" do
     checks.should == []
   end
 
+  it "should run callbacks for the given attachment types if given" do
+    runs = 0
+    Thing.has_attachment :photo do
+      type :image
+      process(:image, :on => :test_event){runs += 1}
+    end
+    thing = Thing.new(:photo => uploaded_file('test.jpg', "\xff\xd8"))
+    thing.process_attachment(:photo, :test_event)
+    runs.should == 1
+  end
+
+  it "should not run callbacks if the attachment is of the wrong type" do
+    runs = 0
+    Thing.has_attachment :photo do
+      type :image
+      process(:video, :on => :test_event){runs += 1}
+    end
+    thing = Thing.new(:photo => uploaded_file('test.jpg', "\xff\xd8"))
+    thing.process_attachment(:photo, :test_event)
+    runs.should == 0
+  end
+
+  it "should allow specifying more than one type" do
+    runs = 0
+    Thing.has_attachment :attachment do
+      type :image
+      process(:image, :video, :on => :test_event){runs += 1}
+    end
+    thing = Thing.new(:attachment => uploaded_file('test.jpg', "\xff\xd8"))
+    thing.process_attachment(:attachment, :test_event)
+    thing.attachment = uploaded_file('test.avi', "RIFF    AVI ")
+    thing.process_attachment(:attachment, :test_event)
+    runs.should == 2
+  end
+
   it "should run multiple callbacks if given" do
     checks = []
     Thing.has_attachment :photo do
       type :image
-      on(:test_event){checks << 1}
-      on(:test_event){checks << 2}
+      process(:on => :test_event){checks << 1}
+      process(:on => :test_event){checks << 2}
     end
     thing = Thing.new(:photo => @file)
     thing.process_attachment(:photo, :test_event)

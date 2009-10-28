@@ -53,18 +53,30 @@ module Bulldog
         @reflection.default_style = name
       end
 
-      def on(event, options={}, &callback)
-        processor_type = options[:with]
-        @reflection.events[event] << Event.new(:processor_type => processor_type,
-                                               :callback => callback)
-      end
-
-      def before(event, options={}, &block)
-        on("before_#{event}".to_sym, options, &block)
-      end
-
-      def after(event, options={}, &block)
-        on("after_#{event}".to_sym, options, &block)
+      #
+      # Register the callback to fire for the given types of
+      # attachments.
+      #
+      # +types+ is a single attribute type, or a list of them.  e.g.,
+      # process(:image) means to run the processor for images only.
+      # If +types+ is omitted, the processor is run for all attachment
+      # types.
+      #
+      # Options:
+      #
+      #   * :on - The name of the event to run the processor on.
+      #   * :after - Same as prepending 'after_' to the given event.
+      #   * :before - Same as prepending 'before_' to the given event.
+      #   * :with - Use the given processor type.  If nil (the
+      #     default), use the default type for the attachment.
+      #
+      def process(*types, &callback)
+        options = types.extract_options!
+        types = [:base] if types.empty?
+        event_name = event_name(options)
+        @reflection.events[event_name] << Event.new(:processor_type => options[:with],
+                                                    :attachment_types => Array(types),
+                                                    :callback => callback)
       end
 
       def store_file_attributes(*args)
@@ -73,6 +85,18 @@ module Bulldog
           hash[name.to_sym] = @reflection.send(:default_file_attribute_name_for, name)
         end
         @reflection.file_attributes = hash
+      end
+
+      private  # -----------------------------------------------------
+
+      def event_name(options)
+        name = options[:on] and
+          return name
+        name = options[:after] and
+          return :"after_#{name}"
+        name = options[:before] and
+          return :"before_#{name}"
+        nil
       end
     end
 
@@ -83,12 +107,7 @@ module Bulldog
         end
       end
 
-      #
-      # The configured type of the event, or nil if not configured.
-      #
-      # The type of an event 
-      #
-      attr_accessor :processor_type, :callback
+      attr_accessor :processor_type, :attachment_types, :callback
     end
 
     private  # -------------------------------------------------------

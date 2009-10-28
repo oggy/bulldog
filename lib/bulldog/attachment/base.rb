@@ -24,6 +24,9 @@ module Bulldog
       #
       def process(event_name, *args)
         reflection.events[event_name].each do |event|
+          next unless event.attachment_types.any? do |type|
+            self.is_a?( Attachment.class_from_type(type) )
+          end
           with_input_file_name do |file_name|
             processor_type = event.processor_type || default_processor_type
             processor_class = Processor.const_get(processor_type.to_s.camelize)

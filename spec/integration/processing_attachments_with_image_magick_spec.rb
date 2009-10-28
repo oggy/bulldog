@@ -18,13 +18,13 @@ describe "Processing image attachments" do
       style :small, {:size => '10x10!'}
       style :large, {:size => '1000x1000!'}
 
-      before :save, :with => :image do
+      process :before => :save, :with => :image do
         width, height = dimensions
         record.width = width
         record.height = height
       end
 
-      on :resize, :with => :image do
+      process :on => :resize, :with => :image do
         resize
       end
     end

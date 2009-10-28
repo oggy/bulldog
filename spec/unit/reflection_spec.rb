@@ -98,7 +98,7 @@ describe Reflection do
     it "should return the map of configured events" do
       Thing.has_attachment :photo do
         type :base
-        on(:test_event){}
+        process(:on => :test_event){}
       end
       events = reflection.events[:test_event]
       events.should have(1).event
@@ -108,7 +108,7 @@ describe Reflection do
     it "should provide access to the processor type of each event" do
       Thing.has_attachment :photo do
         type :base
-        on(:test_event, :with => :test){}
+        process(:on => :test_event, :with => :test){}
       end
       event = reflection.events[:test_event].first
       event.processor_type.should == :test
@@ -117,7 +117,7 @@ describe Reflection do
     it "should have nil as the processor type if the default processor type is to be used" do
       Thing.has_attachment :photo do
         type :base
-        on(:test_event){}
+        process(:on => :test_event){}
       end
       event = reflection.events[:test_event].first
       event.processor_type.should be_nil
@@ -126,7 +126,7 @@ describe Reflection do
     it "should provide access to the callback of each event" do
       Thing.has_attachment :photo do
         type :base
-        on(:test_event){}
+        process(:on => :test_event){}
       end
       event = reflection.events[:test_event].first
       event.callback.should be_a(Proc)

@@ -187,7 +187,7 @@ describe Attachment::Base do
         context = nil
         Thing.has_attachment :photo do
           type :image
-          on :test_event do
+          process :on => :test_event do
             context = self
           end
         end
@@ -206,7 +206,7 @@ describe Attachment::Base do
         context = nil
         Thing.has_attachment :photo do
           type :image
-          on :test_event, :with => :test do
+          process :on => :test_event, :with => :test do
             context = self
           end
         end
@@ -222,7 +222,7 @@ describe Attachment::Base do
       run = false
       Thing.has_attachment :photo do
         type :image
-        on :test_event do
+        process :on => :test_event do
           run = true
         end
       end

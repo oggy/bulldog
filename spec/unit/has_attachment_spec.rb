@@ -44,7 +44,7 @@ describe HasAttachment do
         args = nil
         Thing.has_attachment :photo do
           type :base
-          on(:my_event){|*args|}
+          process(:on => :my_event){|*args|}
         end
         thing = Thing.new(:photo => uploaded_file)
         thing.process_attachment(:photo, :my_event, 1, 2)
@@ -57,7 +57,7 @@ describe HasAttachment do
         args = nil
         Thing.has_attachment :photo do
           type :base
-          on(:my_event){|*args|}
+          process(:on => :my_event){|*args|}
         end
         thing = Thing.new(:photo => nil)
         thing.process_attachment(:photo, :my_event, 1, 2)
@@ -69,7 +69,7 @@ describe HasAttachment do
       args = nil
       Thing.has_attachment :photo do
         type :base
-        on(:my_event){|*args|}
+        process(:on => :my_event){|*args|}
       end
       thing = Thing.new
       lambda do
@@ -82,7 +82,7 @@ describe HasAttachment do
         context = nil
         Thing.has_attachment :photo do
           type :base
-          on(:my_event, :with => :test){context = self}
+          process(:on => :my_event, :with => :test){context = self}
         end
         thing = Thing.new(:photo => uploaded_file)
         thing.process_attachment(:photo, :my_event)
@@ -94,7 +94,7 @@ describe HasAttachment do
       context = nil
       Thing.has_attachment :photo do
         type :base
-        on(:my_event){context = self}
+        process(:on => :my_event){context = self}
       end
       thing = Thing.new(:photo => uploaded_file)
       thing.process_attachment(:photo, :my_event)

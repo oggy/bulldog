@@ -26,5 +26,12 @@ module Bulldog
         end
       attachment = klass.new(record, name, stream)
     end
+
+    #
+    # Return the class corresponding to the given type.
+    #
+    def self.class_from_type(type)
+      const_get(type.to_s.camelize)
+    end
   end
 end
