@@ -7,7 +7,7 @@ module Bulldog
       # Return the default processor class to use for this attachment.
       #
       def default_processor_type
-        :image
+        :image_magick
       end
     end
   end

@@ -7,7 +7,7 @@ describe "Processing image attachments" do
   end
 
   def identify
-    Bulldog::Processor::Image.identify_command
+    Bulldog::Processor::ImageMagick.identify_command
   end
 
   before do
@@ -17,13 +17,13 @@ describe "Processing image attachments" do
       style :small, {:size => '10x10!'}
       style :large, {:size => '1000x1000!'}
 
-      process :before => :save, :with => :image do
+      process :before => :save do
         width, height = dimensions
         record.width = width
         record.height = height
       end
 
-      process :on => :resize, :with => :image do
+      process :on => :resize do
         resize
       end
     end

@@ -2,7 +2,7 @@ require 'stringio'
 
 module Bulldog
   module Processor
-    class Image < Base
+    class ImageMagick < Base
       class << self
         attr_accessor :convert_command
         attr_accessor :identify_command

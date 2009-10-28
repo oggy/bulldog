@@ -17,7 +17,7 @@ describe "Saving an attachment" do
     Thing.has_attachment :photo do
       path "#{tmp}/:style.png"
       style :small, :size => '10x10'
-      process :after => :save, :with => :image do
+      process :after => :save do
         resize(styles)
       end
     end
