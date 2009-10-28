@@ -18,8 +18,17 @@ describe Processor::Ffmpeg do
     @styles << Style.new(name, attributes)
   end
 
+  def fake_attachment
+    attachment = Object.new
+    styles = @styles
+    (class << attachment; self; end).class_eval do
+      define_method(:path){|style_name| styles[style_name][:path]}
+    end
+    attachment
+  end
+
   def process(&block)
-    Processor::Ffmpeg.new('INPUT.avi', @styles).process(nil, nil, &block)
+    Processor::Ffmpeg.new(fake_attachment, @styles).process('INPUT.avi', &block)
   end
 
   describe "when a simple conversion is performed" do

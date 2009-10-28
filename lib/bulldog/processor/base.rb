@@ -1,11 +1,29 @@
 module Bulldog
   module Processor
     class Base
-      def initialize(input_file, styles)
-        @input_file = input_file
+      def initialize(attachment, styles)
+        @attachment = attachment
         @styles = styles
-        @record = nil
-        @name = nil
+        @input_file = nil
+      end
+
+      #
+      # The attachment object being processed.
+      #
+      attr_reader :attachment
+
+      #
+      # The record being processed.
+      #
+      def record
+        attachment.record
+      end
+
+      #
+      # The name of the attachment being processed.
+      #
+      def name
+        attachment.name
       end
 
       #
@@ -13,25 +31,12 @@ module Bulldog
       #
       attr_reader :input_file
 
+      #
+      # The name of the output file for the given style.
+      #
       def output_file(style_name)
-        # TODO: Make Processor take an Attachment.  This then just
-        # becomes attachment.path(style_name).
-        path = @styles[style_name][:path] and
-          return path
-        attachment = record.send(:attachment_for, name)
-        template = attachment.reflection.path_template
-        Interpolation.interpolate(template, record, name, @styles[style_name])
+        attachment.path(style_name)
       end
-
-      #
-      # The record being processed.
-      #
-      attr_reader :record
-
-      #
-      # The name of the attachment being processed.
-      #
-      attr_reader :name
 
       #
       # Return the value of the attachment.
@@ -58,11 +63,10 @@ module Bulldog
       # Run the given block in the context of this processor.
       #
       # Subclasses may override this to do any additional pre- or
-      # post- processing.  e.g., see photo.rb.
+      # post- processing.  e.g., see image_magick.rb.
       #
-      def process(record, name, *args, &block)
-        @record = record
-        @name = name
+      def process(input_file, *args, &block)
+        @input_file = input_file
         instance_exec(*args, &block) if block
       end
 

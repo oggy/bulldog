@@ -21,8 +21,17 @@ describe Processor::ImageMagick do
     @styles << Style.new(name, attributes)
   end
 
+  def fake_attachment
+    attachment = Object.new
+    styles = @styles
+    (class << attachment; self; end).class_eval do
+      define_method(:path){|style_name| styles[style_name][:path]}
+    end
+    attachment
+  end
+
   def process(input_path='INPUT.jpg', &block)
-    Processor::ImageMagick.new(input_path, @styles).process(nil, nil, &block)
+    Processor::ImageMagick.new(fake_attachment, @styles).process(input_path, &block)
   end
 
   describe "#dimensions" do
