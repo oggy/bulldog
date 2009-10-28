@@ -99,6 +99,10 @@ module Bulldog
         Tempfile.open('bulldog') do |file|
           write_to_io(file)
           @path = file.path
+
+          # Don't let the tempfile be GC'd until the stream is, as the
+          # tempfile's finalizer deletes the file.
+          @tempfile = file
         end
         @path
       end
