@@ -407,4 +407,75 @@ describe HasAttachment do
       end
     end
   end
+
+  describe "AR::Dirty" do
+    set_up_model_class :Thing do |t|
+      t.string :name
+    end
+    before do
+      spec = self
+      Thing.has_attachment :photo do
+        type :photo
+        path "#{spec.temporary_directory}/:id.jpg"
+      end
+      thing = Thing.create(:name => 'old', :photo => uploaded_file)
+      @thing = Thing.find(thing.id)
+    end
+
+    def original_path
+      "#{temporary_directory}/#{@thing.id}.jpg"
+    end
+
+    describe "#ATTACHMENT_was" do
+      it "should return the original value before assignment" do
+        original_photo = @thing.photo
+        @thing.photo_was.should equal(original_photo)
+      end
+
+      it "should return a clone of the original value after assignment" do
+        original_photo = @thing.photo
+        @thing.photo = uploaded_file
+        @thing.photo_was.should_not equal(original_photo)
+        @thing.photo_was.should == original_photo
+      end
+    end
+
+    describe "#changes" do
+      it "should return attachment changes along with other attribute changes" do
+        old_photo = @thing.photo
+        @thing.name = 'new'
+        @thing.photo = uploaded_file
+        @thing.changes.should == {
+          'name' => ['old', 'new'],
+          'photo' => [old_photo, @thing.photo],
+        }
+      end
+    end
+
+    describe "when the record is saved and only attachments have been modified" do
+      before do
+        @thing.photo = uploaded_file
+      end
+
+      it "should not hit the database"
+
+      it "should still save the attachment files" do
+        lambda do
+          @thing.save
+        end.should modify_file(original_path)
+      end
+    end
+
+    describe "#save" do
+      before do
+        @thing.name = 'new'
+        @thing.photo = uploaded_file
+      end
+
+      it "should clear all changes" do
+        @thing.save
+        @thing.changes.should == {}
+      end
+    end
+  end
 end

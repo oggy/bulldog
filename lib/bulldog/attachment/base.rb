@@ -102,6 +102,17 @@ module Bulldog
         `file --brief --mime #{path}`
       end
 
+      #
+      # Return true if this object wraps the same IO, and is in the
+      # same state as the given Attachment.
+      #
+      def ==(other)
+        record == other.record &&
+          name == other.name &&
+          value == other.value &&
+          saved? == other.saved?
+      end
+
       protected  # ---------------------------------------------------
 
       #
