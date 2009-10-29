@@ -81,6 +81,16 @@ describe Stream do
       file = File.open(path)
       autoclose_stream(file)
     end
+
+    it "should not do anything if we try to write to the original file" do
+      path = "#{temporary_directory}/file"
+      open(path, 'w'){|f| f.print 'content'}
+      open(path) do |file|
+        stream = Stream.new(file)
+        lambda{stream.write_to(path)}.should_not raise_error
+        File.read(path).should == 'content'
+      end
+    end
   end
 
   describe 'for a File opened for writing' do

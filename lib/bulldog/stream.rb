@@ -60,7 +60,8 @@ module Bulldog
       #
       def write_to(path)
         FileUtils.mkdir_p File.dirname(path)
-        FileUtils.cp self.path, path
+        src, dst = self.path, path
+        FileUtils.cp src, dst unless src == dst
       end
     end
 
