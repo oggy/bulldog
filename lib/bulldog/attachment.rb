@@ -1,3 +1,4 @@
+require 'bulldog/attachment/maybe'
 require 'bulldog/attachment/base'
 require 'bulldog/attachment/none'
 require 'bulldog/attachment/image'
