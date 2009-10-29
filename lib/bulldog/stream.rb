@@ -60,7 +60,7 @@ module Bulldog
       #
       def write_to(path)
         FileUtils.mkdir_p File.dirname(path)
-        FileUtils.cp self.path, path unless @path == path
+        FileUtils.cp self.path, path
       end
     end
 
