@@ -383,14 +383,107 @@ describe Validations do
         end
 
         it "should pass if the content type matches the given pattern" do
-          @thing.photo = uploaded_file('test.jpg', "\xff\xd8")
+          @thing.photo.stubs(:content_type).returns('image/jpeg')
           @thing.should be_valid
         end
 
         it "should fail if the content type does not match the given pattern" do
-          @thing.photo = uploaded_file('test.jpg', "RIFF    AVI ")
+          @thing.photo.stubs(:content_type).returns('video/x-msvideo')
           @thing.should_not be_valid
           @thing.errors.on(:photo).should_not be_blank
+        end
+      end
+
+      describe "when :is is given" do
+        describe "when the value is a symbol" do
+          before do
+            Thing.validates_attachment_type :photo, :is => :image
+            @thing = Thing.new(:photo => uploaded_file)
+          end
+
+          it "should pass if the symbol matches the Attachment type" do
+            @thing.photo = uploaded_file('test.jpg', "\xff\xd8")
+            @thing.should be_valid
+          end
+
+          it "should fail if the symbol does not match the Attachment type" do
+            @thing.photo = uploaded_file('test.avi', "RIFF    AVI ")
+            @thing.should_not be_valid
+            @thing.errors.on(:photo).should_not be_blank
+          end
+        end
+
+        describe "when a mime-type string is given" do
+          before do
+            @thing = Thing.new(:photo => uploaded_file)
+          end
+
+          describe "when the string contains optional parameters" do
+            before do
+              Thing.validates_attachment_type :photo, :is => 'image/jpeg; a=1, b=2'
+            end
+
+            it "should fail if the type is different" do
+              @thing.photo.stubs(:content_type).returns('other/jpeg; a=1, b=2')
+              @thing.should_not be_valid
+              @thing.errors.on(:photo).should_not be_blank
+            end
+
+            it "should fail if the subtype is different" do
+              @thing.photo.stubs(:content_type).returns('image/png; a=1, b=2')
+              @thing.should_not be_valid
+              @thing.errors.on(:photo).should_not be_blank
+            end
+
+            it "should fail if a parameter is missing from the attachment" do
+              @thing.photo.stubs(:content_type).returns('image/jpeg; a=1')
+              @thing.should_not be_valid
+              @thing.errors.on(:photo).should_not be_blank
+            end
+
+            it "should pass if the type, subtype, and parameters are the same" do
+              @thing.photo.stubs(:content_type).returns('image/jpeg; a=1, b=2')
+              @thing.should be_valid
+            end
+
+            it "should pass if the attachment has additional parameters" do
+              @thing.photo.stubs(:content_type).returns('image/jpeg; a=1, b=2, c=3')
+              @thing.should be_valid
+            end
+
+            it "should pass if the attachment has the same parameters in a different order" do
+              @thing.photo.stubs(:content_type).returns('image/jpeg; b=2, a=1')
+              @thing.should be_valid
+            end
+          end
+
+          describe "when the string does not contain optional parameters" do
+            before do
+              Thing.validates_attachment_type :photo, :is => 'image/jpeg'
+            end
+
+            it "should fail if the type is different" do
+              @thing.photo.stubs(:content_type).returns('other/jpeg')
+              @thing.should_not be_valid
+              @thing.errors.on(:photo).should_not be_blank
+            end
+
+            it "should fail if the subtype is different" do
+              @thing.photo.stubs(:content_type).returns('image/png')
+              @thing.should_not be_valid
+              @thing.errors.on(:photo).should_not be_blank
+            end
+
+            it "should pass if the type and subtype are the same" do
+              @thing.photo.stubs(:content_type).returns('image/jpeg')
+              @thing.should be_valid
+            end
+
+            it "should pass if the type and subtype are the same, and the attachment has optional parameters" do
+              @thing.photo.stubs(:content_type).returns('image/jpeg; a=1')
+              @thing.should be_valid
+            end
+          end
         end
       end
     end

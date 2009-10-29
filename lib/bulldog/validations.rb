@@ -38,6 +38,27 @@ module Bulldog
             if (pattern = options[:matches])
               attachment.content_type =~ pattern or
                 record.errors.add attribute, options[:message] || :wrong_type
+            elsif (specifier = options[:is])
+              if specifier.is_a?(Symbol)
+                attachment_class = Attachment.class_from_type(specifier)
+                attachment.is_a?(attachment_class) or
+                  record.errors.add attribute, options[:message] || :wrong_type
+              else
+                parse_mime_type = lambda do |string|
+                  mime_type, parameter_string = string.to_s.split(/;/)
+                  parameters = {}
+                  (parameter_string || '').split(/,/).each do |pair|
+                    name, value = pair.strip.split(/=/)
+                    parameters[name] = value
+                  end
+                  [mime_type, parameters]
+                end
+
+                expected_type, expected_parameters = parse_mime_type.call(specifier)
+                actual_type, actual_parameters = parse_mime_type.call(attachment.content_type)
+                expected_type == actual_type && expected_parameters.all?{|k,v| actual_parameters[k] == v} or
+                  record.errors.add attribute, options[:message] || :wrong_type
+              end
             end
           end
         end
