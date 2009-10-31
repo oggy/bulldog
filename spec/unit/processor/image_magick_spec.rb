@@ -35,15 +35,6 @@ describe Processor::ImageMagick do
   end
 
   describe "#dimensions" do
-    it "should return the dimensions of the input file" do
-      Kernel.expects(:'`').with("IDENTIFY -format \\%w\\ \\%h INPUT.jpg\\[0\\]").returns("40 30\n")
-      value = nil
-      process do
-        value = dimensions
-      end
-      value.should == [40, 30]
-    end
-
     it "should yield the dimensions of the input file at that point in the processing pipeline if a block is given" do
       input_path = create_image("#{temporary_directory}/input.jpg", :size => '40x30')
       Kernel.expects(:'`').once.with("CONVERT #{input_path} -format \\%w\\ \\%h -identify /tmp/x.jpg").returns("40 30\n")

@@ -19,18 +19,21 @@ module Bulldog
 
       # Input image attributes  --------------------------------------
 
+      #
+      # Yield the dimensions of the generated file at this point in
+      # the pipeline.
+      #
+      # The block is called when `convert' is run after the processor
+      # block is evaluated for all styles.  If you just need the
+      # dimensions of the input file, see Attribute::Photo#dimensions.
+      #
       def dimensions(options={}, &block)
-        if block
-          operate(options){['-format', '%w %h', '-identify']}
-          after_convert(options) do |styles, output|
-            width, height = output.gets.split.map(&:to_i)
-            block.call(styles, width, height)
-          end
-          convert(options)
-        else
-          output = run_identify('-format', '%w %h', "#{input_file}[0]")
-          output.split.map(&:to_i)
+        operate(options){['-format', '%w %h', '-identify']}
+        after_convert(options) do |styles, output|
+          width, height = output.gets.split.map(&:to_i)
+          block.call(styles, width, height)
         end
+        convert(options)
       end
 
       private  # -----------------------------------------------------
