@@ -29,8 +29,8 @@ module Bulldog
           end
           processor_type = event.processor_type || default_processor_type
           processor_class = Processor.const_get(processor_type.to_s.camelize)
-          processor = processor_class.new(self, styles_for_event(event))
-          processor.process(stream.path, *args, &event.callback)
+          processor = processor_class.new(self, styles_for_event(event), stream.path)
+          processor.process(*args, &event.callback)
         end
       end
 

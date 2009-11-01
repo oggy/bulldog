@@ -23,7 +23,7 @@ describe Processor::ImageMagick do
   end
 
   def process(input_path='INPUT.jpg', &block)
-    Processor::ImageMagick.new(fake_attachment, @styles).process(input_path, &block)
+    Processor::ImageMagick.new(fake_attachment, @styles, input_path).process(&block)
   end
 
   describe "#dimensions" do

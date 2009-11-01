@@ -1,10 +1,10 @@
 module Bulldog
   module Processor
     class Base
-      def initialize(attachment, styles)
+      def initialize(attachment, styles, input_file)
         @attachment = attachment
         @styles = styles
-        @input_file = nil
+        @input_file = input_file
       end
 
       #
@@ -65,8 +65,7 @@ module Bulldog
       # Subclasses may override this to do any additional pre- or
       # post- processing.  e.g., see image_magick.rb.
       #
-      def process(input_file, *args, &block)
-        @input_file = input_file
+      def process(*args, &block)
         make_directories
         instance_exec(*args, &block) if block
       end

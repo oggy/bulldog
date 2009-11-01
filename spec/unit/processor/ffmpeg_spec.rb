@@ -22,7 +22,7 @@ describe Processor::Ffmpeg do
   end
 
   def process(&block)
-    Processor::Ffmpeg.new(fake_attachment, @styles).process('INPUT.avi', &block)
+    Processor::Ffmpeg.new(fake_attachment, @styles, 'INPUT.avi').process(&block)
   end
 
   describe "when a simple conversion is performed" do
