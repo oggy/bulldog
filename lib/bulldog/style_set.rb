@@ -11,5 +11,10 @@ module Bulldog
         super
       end
     end
+
+    def slice(*names)
+      styles = names.map{|name| self[name]}
+      StyleSet[*styles]
+    end
   end
 end

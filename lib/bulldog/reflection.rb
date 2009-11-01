@@ -70,6 +70,7 @@ module Bulldog
         event_name = event_name(options)
         @reflection.events[event_name] << Event.new(:processor_type => options[:with],
                                                     :attachment_types => Array(types),
+                                                    :styles => options[:styles],
                                                     :callback => callback)
       end
 
@@ -101,7 +102,7 @@ module Bulldog
         end
       end
 
-      attr_accessor :processor_type, :attachment_types, :callback
+      attr_accessor :processor_type, :attachment_types, :styles, :callback
     end
 
     private  # -------------------------------------------------------

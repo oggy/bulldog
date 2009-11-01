@@ -29,7 +29,7 @@ module Bulldog
           end
           processor_type = event.processor_type || default_processor_type
           processor_class = Processor.const_get(processor_type.to_s.camelize)
-          processor = processor_class.new(self, reflection.styles)
+          processor = processor_class.new(self, styles_for_event(event))
           processor.process(stream.path, *args, &event.callback)
         end
       end
@@ -133,6 +133,14 @@ module Bulldog
         end
         style = reflection.styles[style_name]
         Interpolation.interpolate(template, record, name, style)
+      end
+
+      def styles_for_event(event)
+        if event.styles
+          styles = reflection.styles.slice(*event.styles)
+        else
+          styles = reflection.styles
+        end
       end
 
       def delete_files_and_empty_parent_directories

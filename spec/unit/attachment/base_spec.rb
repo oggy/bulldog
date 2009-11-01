@@ -180,51 +180,60 @@ describe Attachment::Base do
       t.string
     end
 
+    use_temporary_constant_value Processor, :Test do
+      Class.new(Processor::Base)
+    end
+
     it "should use the default processor if no processor was specified" do
-      Processor.const_set(:Test, Class.new(Processor::Base))
-      begin
-        context = nil
-        Thing.has_attachment :photo do
-          process :on => :test_event do
-            context = self
-          end
+      context = nil
+      Thing.has_attachment :photo do
+        process :on => :test_event do
+          context = self
         end
-        thing = Thing.new(:photo => uploaded_file)
-        thing.photo.stubs(:default_processor_type).returns(:test)
-        thing.photo.process(:test_event)
-        context.should be_a(Processor::Test)
-      ensure
-        Processor.send(:remove_const, :Test)
       end
+      thing = Thing.new(:photo => uploaded_file)
+      thing.photo.stubs(:default_processor_type).returns(:test)
+      thing.photo.process(:test_event)
+      context.should be_a(Processor::Test)
     end
 
     it "should use the configured processor if one was specified" do
-      Processor.const_set(:Test, Class.new(Processor::Base))
-      begin
-        context = nil
-        Thing.has_attachment :photo do
-          process :on => :test_event, :with => :test do
-            context = self
-          end
+      context = nil
+      Thing.has_attachment :photo do
+        process :on => :test_event, :with => :test do
+          context = self
         end
-        thing = Thing.new(:photo => uploaded_file)
-        thing.photo.process(:test_event)
-        context.should be_a(Processor::Test)
-      ensure
-        Processor.send(:remove_const, :Test)
       end
+      thing = Thing.new(:photo => uploaded_file)
+      thing.photo.process(:test_event)
+      context.should be_a(Processor::Test)
     end
 
     it "should not run any processors if no attachment is set" do
       run = false
       Thing.has_attachment :photo do
-        process :on => :test_event do
+        process :on => :test_event, :with => :test do
           run = true
         end
       end
       thing = Thing.new(:photo => nil)
       thing.photo.process(:test_event)
       run.should be_false
+    end
+
+    it "should run the processors only for the specified styles" do
+      styles = nil
+      Thing.has_attachment :photo do
+        style :small, :size => '10x10'
+        style :large, :size => '1000x1000'
+        process :on => :test_event, :styles => [:small], :with => :test do
+          styles = self.styles
+        end
+      end
+      thing = Thing.new(:photo => uploaded_file)
+      thing.photo.process(:test_event)
+      styles.should be_a(StyleSet)
+      styles.map(&:name).should == [:small]
     end
   end
 
@@ -239,11 +248,11 @@ describe Attachment::Base do
     before do
       Thing.has_attachment :photo
       Thing.attachment_reflections[:photo].stubs(:file_attributes).returns(
-        :file_name => :photo_file_name,
-        :content_type => :photo_content_type,
-        :file_size => :photo_file_size,
-        :updated_at => :photo_updated_at
-      )
+                                                                           :file_name => :photo_file_name,
+                                                                           :content_type => :photo_content_type,
+                                                                           :file_size => :photo_file_size,
+                                                                           :updated_at => :photo_updated_at
+                                                                           )
     end
 
     describe "when the value is a small uploaded file (StringIO)" do

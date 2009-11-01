@@ -102,6 +102,16 @@ describe Reflection do
       event.processor_type.should be_nil
     end
 
+    it "should have the configured styles" do
+      Thing.has_attachment :photo do
+        style :small, :size => '10x10'
+        style :large, :size => '1000x1000'
+        process(:on => :test_event, :styles => [:small]){}
+      end
+      event = reflection.events[:test_event].first
+      event.styles.should == [:small]
+    end
+
     it "should provide access to the callback of each event" do
       Thing.has_attachment :photo do
         process(:on => :test_event){}
