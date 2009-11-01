@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe Processor::ArgumentTree do
   Tree = Processor::ArgumentTree
+  Node = Processor::ArgumentTree::Node
 
   before do
     @a = Style.new(:a)
@@ -12,7 +13,7 @@ describe Processor::ArgumentTree do
 
   describe "initially" do
     before do
-      @tree = Tree.new([@a, @b])
+      @tree = Tree.new(StyleSet[@a, @b])
     end
 
     it "should have only the root node" do
@@ -27,88 +28,74 @@ describe Processor::ArgumentTree do
   end
 
   describe "#add" do
-    before do
-      @tree = Tree.new([@a, @b, @c, @d])
-    end
-
-    describe "when the operations apply to all of the styles of a head node" do
+    describe "when the tree is empty" do
       before do
-        @tree.add(@a => ['a', 'b'], @b => ['a', 'b'], @c => ['a', 'b'], @d => ['a', 'b'])
+        @tree = Tree.new(StyleSet[@a, @b])
       end
 
-      it "should add the given arguments for the given styles to the affected head node" do
-        @tree.root.children.should be_empty
-        @tree.root.arguments.should == ['a', 'b']
-      end
-    end
-
-    describe "when the operations apply to a proper subset of the styles of a head node" do
-      before do
-        @tree.add(@b => ['a', 'b'], @c => ['a', 'b'])
-      end
-
-      it "should split the head in two" do
-        @tree.root.children.should have(2).nodes
-        first, second = *@tree.root.children
-        @tree.heads[@a].should == second
-        @tree.heads[@b].should == first
-        @tree.heads[@c].should == first
-        @tree.heads[@d].should == second
-      end
-
-      it "should add the operations only to the affected head" do
-        first, second = *@tree.root.children
-        @tree.heads[@b].arguments.should == ['a', 'b']
-      end
-
-      describe "when operations are now added for all of the styles in one of the heads" do
-        before do
-          @tree.add(@a => 'c', @d => 'c')
-        end
-
-        it "should not move any heads" do
-          first, second = *@tree.root.children
-          @tree.heads[@a].should == second
-          @tree.heads[@b].should == first
-          @tree.heads[@c].should == first
-          @tree.heads[@d].should == second
-        end
-
-        it "should add the operations to the affected head" do
-          first, second = *@tree.root.children
-          first.arguments.should == ['a', 'b']
-          second.arguments.should == ['c']
-        end
+      it "should create a new node for the given style and arguments" do
+        @tree.add(@a, ['a', 'b'])
+        @tree.root.children.should have(1).nodes
+        @tree.root.children.first.styles.should == [@a]
+        @tree.root.children.first.arguments.should == ['a', 'b']
       end
     end
 
-    describe "when the operations apply to some of styles of two head nodes" do
+    describe "when there is a node under the head for the given arguments" do
       before do
-        @first = Tree::Node.new([@a, @b], ['a'])
-        @second = Tree::Node.new([@c], ['b'])
-        @tree.root.add_child(@first)
-        @tree.root.add_child(@second)
-        @tree.heads[@a] = @first
-        @tree.heads[@b] = @first
-        @tree.heads[@c] = @second
-
-        @tree.add(@b => 'c')
+        #
+        #  root --- one --- two
+        #            ^       ^
+        #            a       b
+        #
+        @tree = Tree.new(StyleSet[@a])
+        @one = Node.new([@a, @b], ['one', '1'])
+        @two = Node.new([@a], ['two', '2'])
+        @tree.root.children << @one
+        @one.children << @two
+        @tree.heads[@a] = @two
+        @tree.heads[@b] = @one
       end
 
-      it "should split heads in two where necessary" do
-        @tree.root.children.should == [@first, @second]
-        @first.styles.should == [@a, @b]
-        @first.children.should have(2).node
-
-        child1, child2 = *@first.children
-        child1.styles.should == [@b]
-        child2.styles.should == [@a]
+      it "should advance the head to that node" do
+        @tree.add(@b, ['two', '2'])
+        @tree.heads[@b].should equal(@two)
       end
 
-      it "should add the operations only to the affected heads" do
-        child1, child2 = *@first.children
-        child1.arguments.should == ['c']
-        child2.arguments.should == []
+      it "should add the style to the new head node" do
+        @tree.add(@b, ['two', '2'])
+        @tree.heads[@b].should equal(@two)
+      end
+    end
+
+    describe "when there is no node under the head for the given arguments" do
+      before do
+        #
+        #  root --- one
+        #            ^
+        #           a,b
+        #
+        @tree = Tree.new(StyleSet[@a])
+        one = Node.new([@a, @b], ['one', '1'])
+        @tree.root.children << one
+        @tree.heads[@a] = one
+        @tree.heads[@b] = one
+      end
+
+      it "should create a new child node and advance the head to it" do
+        old_head = @tree.heads[@a]
+        @tree.add(@a, ['two', '2'])
+        @tree.heads[@a].should == old_head.children.first
+      end
+
+      it "should set the arguments of the new node to the given arguments" do
+        @tree.add(@a, ['two', '2'])
+        @tree.heads[@a].arguments.should == ['two', '2']
+      end
+
+      it "should add the style to the new head node" do
+        @tree.add(@a, ['two', '2'])
+        @tree.heads[@a].styles.should == [@a]
       end
     end
   end

@@ -79,15 +79,16 @@ module Bulldog
       end
 
       def operate(options={}, &block)
-        arguments = ActiveSupport::OrderedHash.new
         styles(options).each do |style|
-          arguments[style] = yield(style)
+          arguments = yield(style)
+          @tree.add(style, arguments)
         end
-        @tree.add(arguments)
       end
 
       def after_convert(options={}, &callback)
-        @tree.add_for_styles(styles(options), [callback])
+        styles(options).each do |style|
+          @tree.add(style, [callback])
+        end
       end
 
       def run_convert
@@ -98,22 +99,16 @@ module Bulldog
       end
 
       def add_output_arguments
-        arguments = ActiveSupport::OrderedHash.new
         styles.each do |style|
-          arguments[style] = ['-write', output_file(style.name)]
+          @tree.add(style, ['-write', output_file(style.name)])
         end
-        @tree.add(arguments)
       end
 
       def add_image_setting_arguments
-        arguments = ActiveSupport::OrderedHash.new
         styles.each do |style|
-          list = []
-          list << ['-quality', style[:quality].to_s] if style[:quality]
-          list << ['-colorspace', style[:colorspace]] if style[:colorspace]
-          arguments[style] = list
+          @tree.add(style, ['-quality', style[:quality].to_s]) if style[:quality]
+          @tree.add(style, ['-colorspace', style[:colorspace]]) if style[:colorspace]
         end
-        @tree.add(arguments)
       end
 
       def run_convert_command

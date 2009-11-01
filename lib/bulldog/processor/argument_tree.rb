@@ -10,21 +10,17 @@ module Bulldog
 
       attr_reader :styles, :root, :heads
 
-      # Note: arguments must be hashable (no procs!)
-      def add(styles_to_arguments)
-        arguments_to_styles = ActiveSupport::OrderedHash.new{|h,k| h[k] = []}
-        styles_to_arguments.each do |style, arguments|
-          arguments_to_styles[Array(arguments)] << style
+      def add(style, arguments)
+        child = heads[style].children.find do |node|
+          node.arguments == arguments
         end
-        arguments_to_styles.each do |arguments, styles|
-          add_for_styles(styles, arguments)
+        if child
+          child.styles << style
+        else
+          child = Node.new([style], arguments)
+          heads[style].children << child
         end
-      end
-
-      def add_for_styles(styles, arguments)
-        heads_for_styles(styles).each do |head|
-          head.arguments.concat(arguments)
-        end
+        heads[style] = child
       end
 
       def inspect
@@ -33,38 +29,13 @@ module Bulldog
         io.string
       end
 
+      private  # ---------------------------------------------------
+
       def inspect_node(io, node, margin='')
         puts "#{margin}* #{node.styles.map(&:name).join(', ')}: #{node.arguments.join(' ')}"
         node.children.each do |child|
           inspect_node(io, child, margin + '  ')
         end
-      end
-
-      private  # ---------------------------------------------------
-
-      def heads_for_styles(styles)
-        heads = []
-        remaining_styles = styles.uniq
-        until remaining_styles.empty?
-          head = @heads[remaining_styles.first]
-
-          # find all the styles we want in the head
-          wanted = remaining_styles & head.styles
-          remaining_styles -= wanted
-
-          # split head if we don't want all of them
-          if wanted.size < head.styles.size
-            wanted_child = Node.new(wanted)
-            unwanted_child = Node.new(head.styles - wanted)
-            head.add_child(wanted_child).add_child(unwanted_child)
-            wanted_child.styles.each{|c| @heads[c] = wanted_child}
-            unwanted_child.styles.each{|c| @heads[c] = unwanted_child}
-            heads << wanted_child
-          else
-            heads << head
-          end
-        end
-        heads
       end
 
       class Node
