@@ -97,7 +97,16 @@ module Bulldog
     class ForIO < Base
       def path
         return @path if @path
-        Tempfile.open('bulldog') do |file|
+        # Keep extension if it's available.  Some commands may use the
+        # file extension of the input file, for example.
+        #
+        # TODO: Support ruby 1.8.6, where Tempfile does not allow
+        # specifying the extension.
+        tempfile_name = 'bulldog'
+        if @target.respond_to?(:original_path)
+          tempfile_name = [tempfile_name, File.extname(@target.original_path)]
+        end
+        Tempfile.open(tempfile_name) do |file|
           write_to_io(file)
           @path = file.path
 

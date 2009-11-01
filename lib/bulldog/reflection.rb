@@ -39,7 +39,7 @@ module Bulldog
         @reflection.url_template = url_template
       end
 
-      def style(name, attributes)
+      def style(name, attributes={})
         @reflection.styles << Style.new(name, attributes)
       end
 

@@ -8,6 +8,9 @@ require 'action_controller'
 
 require 'init'
 
+# So we don't have to qualify all our classes.
+include Bulldog
+
 ROOT = File.dirname( File.dirname(__FILE__) )
 
 require 'helpers/time_travel'
@@ -33,8 +36,18 @@ end
 module SpecHelper
   def self.included(mod)
     mod.extend ClassMethods
-    mod.before{install_fresh_logger}
-    mod.before{set_default_attachment_path}
+
+    mod.use_temporary_attribute_value Bulldog, :default_path do
+      "#{temporary_directory}/attachments/:class/:id.:style"
+    end
+    mod.use_temporary_attribute_value Bulldog, :logger do
+      buffer = StringIO.new
+      logger = Logger.new(buffer)
+      (class << logger; self; end).send(:define_method, :content) do
+        buffer.string
+      end
+      logger
+    end
   end
 
   #
@@ -42,19 +55,6 @@ module SpecHelper
   #
   def stub_system_calls
     Kernel.stubs(:system).returns(true)
-  end
-
-  def install_fresh_logger
-    buffer = StringIO.new
-    logger = Logger.new(buffer)
-    (class << logger; self; end).send(:define_method, :content) do
-      buffer.string
-    end
-    Bulldog.logger = logger
-  end
-
-  def set_default_attachment_path
-    Bulldog.default_path = "#{temporary_directory}/attachments/:class/:id.:style"
   end
 
   module ClassMethods
@@ -81,16 +81,13 @@ end
 
 Spec::Runner.configure do |config|
   config.mock_with :mocha
-  config.include SpecHelper
   config.include TimeTravel
   config.include TemporaryValues
   config.include TemporaryDirectory
   config.include TestUploadFiles
   config.include ImageCreation
   config.include Matchers
+  config.include SpecHelper
 end
 
 ActiveRecord::Base.establish_connection(:adapter => "sqlite3", :database => ":memory:")
-
-# So we don't have to qualify all our classes.
-include Bulldog

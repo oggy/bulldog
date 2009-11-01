@@ -67,6 +67,7 @@ module Bulldog
       #
       def process(input_file, *args, &block)
         @input_file = input_file
+        make_directories
         instance_exec(*args, &block) if block
       end
 
@@ -84,6 +85,16 @@ module Bulldog
           end
         end
         nil
+      end
+
+      def make_directories
+        directories = styles.map do |style|
+          path = attachment.path(style.name)
+          File.dirname(path)
+        end
+        directories.uniq.each do |directory|
+          FileUtils.mkdir_p(directory)
+        end
       end
 
       def log(level, message)

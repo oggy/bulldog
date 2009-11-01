@@ -12,6 +12,7 @@ module Bulldog
       self.identify_command = find_in_path('identify')
 
       def process(*args)
+        return if styles.empty?
         reset
         super
         run_convert
@@ -33,7 +34,6 @@ module Bulldog
           width, height = output.gets.split.map(&:to_i)
           block.call(styles, width, height)
         end
-        convert(options)
       end
 
       private  # -----------------------------------------------------
@@ -71,24 +71,12 @@ module Bulldog
         operate(options){|style| [['-resize', "#{style[:size]}^"], ['-gravity', 'Center'], ['-crop', style[:size]]]}
       end
 
-      def convert(options={})
-        styles(options).each do |style|
-          @output_flags[style] = true
-        end
-      end
-
       private  # -----------------------------------------------------
 
       def reset
         @tree = ArgumentTree.new(styles)
-        @output_flags = {}
-        styles.each do |style|
-          @output_flags[style] = false
-        end
         @after_convert_callbacks = []
       end
-
-      attr_reader :output_flags
 
       def operate(options={}, &block)
         arguments = ActiveSupport::OrderedHash.new
@@ -96,36 +84,22 @@ module Bulldog
           arguments[style] = yield(style)
         end
         @tree.add(arguments)
-        convert(options)
       end
 
       def after_convert(options={}, &callback)
         @tree.add_for_styles(styles(options), [callback])
       end
 
-      def run_identify(*args)
-        command_output self.class.identify_command, *args
-      end
-
       def run_convert
-        @output_flags.any?{|style, flag| flag} or
-          return
-        remove_nodes_for_non_output_styles
         add_image_setting_arguments
         add_output_arguments
         output = run_convert_command
         run_after_convert_callbacks(output)
       end
 
-      def remove_nodes_for_non_output_styles
-        @output_flags.each do |style, flag|
-          @tree.remove_style(style) if !flag
-        end
-      end
-
       def add_output_arguments
         arguments = ActiveSupport::OrderedHash.new
-        @output_flags.each do |style, flag|
+        styles.each do |style|
           arguments[style] = ['-write', output_file(style.name)]
         end
         @tree.add(arguments)
@@ -134,8 +108,6 @@ module Bulldog
       def add_image_setting_arguments
         arguments = ActiveSupport::OrderedHash.new
         styles.each do |style|
-          @output_flags[style] or
-            next
           list = []
           list << ['-quality', style[:quality].to_s] if style[:quality]
           list << ['-colorspace', style[:colorspace]] if style[:colorspace]
