@@ -27,15 +27,6 @@ module Bulldog
         end
       end
 
-      def remove_style(style)
-        head = @heads.delete(style)
-        if head.styles == [style] && head != @root
-          head.parent.remove_child(head)
-        else
-          head.styles.delete(style)
-        end
-      end
-
       def inspect
         io = StringIO.new
         inspect_node(io, @root)
