@@ -38,7 +38,7 @@ module Bulldog
       record.send(record.class.primary_key)
     end
 
-    define_interpolation :id_partition do |record, name, style|
+    define_interpolation :partitioned_id do |record, name, style|
       id = record.send(record.class.primary_key)
       ("%09d" % id).scan(/\d{3}/).join("/")
     end
