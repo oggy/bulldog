@@ -228,9 +228,9 @@ describe Validations do
     it_should_use_i18n_key(:attachment_blank){@thing.photo = uploaded_file('', '')}
   end
 
-  describe ".validates_attachment_size" do
+  describe ".validates_attachment_file_size" do
     def validation
-      :validates_attachment_size
+      :validates_attachment_file_size
     end
 
     def validation_options
@@ -249,14 +249,14 @@ describe Validations do
 
     describe "validation" do
       it "should not fail if the attachment is blank" do
-        Thing.validates_attachment_size :photo, :greater_than => 5
+        Thing.validates_attachment_file_size :photo, :greater_than => 5
         thing = Thing.new
         thing.should be_valid
       end
 
       describe "when :greater_than is given" do
         before do
-          Thing.validates_attachment_size :photo, :greater_than => 5
+          Thing.validates_attachment_file_size :photo, :greater_than => 5
           @thing = Thing.new
         end
 
@@ -278,7 +278,7 @@ describe Validations do
 
       describe "when :less_than is given" do
         before do
-          Thing.validates_attachment_size :photo, :less_than => 5
+          Thing.validates_attachment_file_size :photo, :less_than => 5
           @thing = Thing.new
         end
 
@@ -300,7 +300,7 @@ describe Validations do
 
       describe "when :in is given" do
         before do
-          Thing.validates_attachment_size :photo, :in => 3..5
+          Thing.validates_attachment_file_size :photo, :in => 3..5
           @thing = Thing.new
         end
 
@@ -322,7 +322,7 @@ describe Validations do
 
       describe "when :in is given with an inclusive range" do
         before do
-          Thing.validates_attachment_size :photo, :in => 3..5
+          Thing.validates_attachment_file_size :photo, :in => 3..5
           @thing = Thing.new
         end
 
@@ -334,7 +334,7 @@ describe Validations do
 
       describe "when :in is given with an exclusive range" do
         before do
-          Thing.validates_attachment_size :photo, :in => 3...5
+          Thing.validates_attachment_file_size :photo, :in => 3...5
           @thing = Thing.new
         end
 

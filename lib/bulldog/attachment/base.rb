@@ -34,7 +34,9 @@ module Bulldog
       #
       # Return the size of the attached file.
       #
-      delegate :size, :to => 'stream'
+      def file_size
+        stream.size
+      end
 
       #
       # Return the original file name of the attached file.
@@ -67,18 +69,10 @@ module Bulldog
       #
       # Set any attributes that the attachment is configured to store.
       #
-      def set_stored_attributes
-        if value.is_a?(File)
-          set_stored_attribute(:file_name){File.basename(value.path)}
-          set_stored_attribute(:file_size){File.size(value)}
-        else
-          set_stored_attribute(:file_name){value.original_path}
-          set_stored_attribute(:file_size){value.size}
-        end
-
-        set_stored_attribute(:content_type){content_type}
-        set_stored_attribute(:updated_at){Time.now}
-      end
+      storable_attribute :file_name
+      storable_attribute :file_size
+      storable_attribute :content_type
+      storable_attribute(:updated_at){Time.now}
 
       protected  # ---------------------------------------------------
 

@@ -45,6 +45,29 @@ module Bulldog
           saved? == other.saved?
       end
 
+      #
+      # Set the stored attributes in the record.
+      #
+      def set_stored_attributes
+        storable_attributes.each do |name, callback|
+          if (column_name = reflection.stored_attributes[name])
+            value = callback.is_a?(Proc) ? instance_eval(&callback) : send(callback)
+            record.send("#{column_name}=", value)
+          end
+        end
+      end
+
+      #
+      # Clear the stored attributes in the record.
+      #
+      def clear_stored_attributes
+        storable_attributes.each do |name, callback|
+          if (column_name = reflection.stored_attributes[name])
+            record.send("#{column_name}=", nil)
+          end
+        end
+      end
+
       protected  # ---------------------------------------------------
 
       #
@@ -82,15 +105,18 @@ module Bulldog
       end
 
       #
-      # Set the named attribute in the record to the value yielded by
-      # the block.  The block is not called unless the attribute is to
-      # be stored.
+      # Declare the given attribute as storable via
+      # Bulldog::Reflection::Configuration#store_attributes.
       #
-      def set_stored_attribute(name)
-        if (column_name = reflection.stored_attributes[name])
-          record.send("#{column_name}=", yield)
-        end
+      def self.storable_attribute(name, &block)
+        storable_attributes[name] = block || name
       end
+
+      #
+      # The list of storable attributes for this class.
+      #
+      class_inheritable_accessor :storable_attributes
+      self.storable_attributes = {}
 
       #
       # Remove the files for this attachment, along with any parent

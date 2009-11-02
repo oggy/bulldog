@@ -33,12 +33,7 @@ module Bulldog
       def process(event, *args)
       end
 
-      def set_stored_attributes
-        set_stored_attribute(:file_name){nil}
-        set_stored_attribute(:content_type){nil}
-        set_stored_attribute(:file_size){nil}
-        set_stored_attribute(:updated_at){Time.now}
-      end
+      storable_attribute(:updated_at){Time.now}
     end
   end
 end

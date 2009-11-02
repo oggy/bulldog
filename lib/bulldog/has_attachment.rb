@@ -83,10 +83,12 @@ module Bulldog
     end
 
     def assign_attachment(name, value)
-      unless attachment_for(name).value == value
-        attachment = Attachment.new(self, name, value)
-        attachment.set_stored_attributes
-        write_attribute(name, attachment)
+      old_attachment = attachment_for(name)
+      unless old_attachment.value == value
+        old_attachment.clear_stored_attributes
+        new_attachment = Attachment.new(self, name, value)
+        new_attachment.set_stored_attributes
+        write_attribute(name, new_attachment)
       end
     end
 

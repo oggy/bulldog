@@ -116,7 +116,7 @@ describe Attachment::Base do
     end
   end
 
-  describe "#size" do
+  describe "#file_size" do
     set_up_model_class :Thing
 
     configure_attachment do |spec|
@@ -144,7 +144,7 @@ describe Attachment::Base do
     end
 
     it "should return the size of the file" do
-      @thing.photo.size.should == 3
+      @thing.photo.file_size.should == 3
     end
 
     describe "when the value is a saved file" do
@@ -152,7 +152,7 @@ describe Attachment::Base do
         @thing.save
         @thing = Thing.find(@thing.id)
         with_temporary_file(original_path, '...') do |path|
-          @thing.photo.size.should == 3
+          @thing.photo.file_size.should == 3
         end
       end
     end
@@ -264,49 +264,6 @@ describe Attachment::Base do
       thing.photo.process(:test_event)
       styles.should be_a(StyleSet)
       styles.map(&:name).should == [:small]
-    end
-  end
-
-  describe "#set_stored_attributes" do
-    set_up_model_class :Thing do |t|
-      t.string :photo_file_name
-      t.string :photo_content_type
-      t.integer :photo_file_size
-      t.datetime :photo_updated_at
-    end
-
-    before do
-      Thing.has_attachment :photo
-      Thing.attachment_reflections[:photo].stubs(:stored_attributes).returns(
-        :file_name => :photo_file_name,
-        :content_type => :photo_content_type,
-        :file_size => :photo_file_size,
-        :updated_at => :photo_updated_at
-      )
-    end
-
-    describe "when the value is a small uploaded file (StringIO)" do
-      it "should set the stored attributes" do
-        file = small_uploaded_file('test.jpg', "\xff\xd8")
-        file.should be_a(StringIO)  # sanity check
-        thing = Thing.new(:photo => file)
-        thing.photo_file_name.should == 'test.jpg'
-        thing.photo_content_type.split(/;/).first == 'image/jpeg'
-        thing.photo_file_size.should == 2
-        thing.photo_updated_at.should == Time.now
-      end
-    end
-
-    describe "when the value is a large uploaded file (Tempfile)" do
-      it "should set the stored attributes" do
-        file = large_uploaded_file('test.jpg', "\xff\xd8")
-        file.should be_a(Tempfile)  # sanity check
-        thing = Thing.new(:photo => file)
-        thing.photo_file_name.should == 'test.jpg'
-        thing.photo_content_type.split(/;/).first == 'image/jpeg'
-        thing.photo_file_size.should == 2
-        thing.photo_updated_at.should == Time.now
-      end
     end
   end
 end
