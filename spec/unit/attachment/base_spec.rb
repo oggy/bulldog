@@ -52,37 +52,7 @@ describe Attachment::Base do
   describe "#url" do
     set_up_model_class :Thing
 
-    describe "when not explicitly set, and the path is under the docroot" do
-      configure_attachment do
-        path ":rails_root/public/images/:id.:style.jpg"
-        style :small, {}
-      end
-
-      it "should return the #path relative to the docroot" do
-        with_temporary_constant_value Object, :RAILS_ROOT, 'RAILS_ROOT' do
-          @thing.photo = uploaded_file('test.jpg', '')
-          @thing.stubs(:id).returns(5)
-          @thing.photo.url(:original).should == "/images/5.original.jpg"
-          @thing.photo.url(:small).should == "/images/5.small.jpg"
-        end
-      end
-    end
-
-    describe "when not explicitly set, and the path is not under the docroot" do
-      configure_attachment do
-        path "/tmp/:id.:style.jpg"
-        style :small, {}
-      end
-
-      it "should raise an error" do
-        @thing.photo = uploaded_file('test.jpg', '')
-        @thing.stubs(:id).returns(5)
-        lambda{@thing.photo.url(:original)}.should raise_error
-        lambda{@thing.photo.url(:small)}.should raise_error
-      end
-    end
-
-    describe "when explicitly set" do
+    describe "when a style is given" do
       configure_attachment do
         path "/tmp/:id.:style.jpg"
         url "/assets/:id.:style.jpg"

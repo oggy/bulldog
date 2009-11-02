@@ -4,7 +4,8 @@ module Bulldog
       @model_class = model_class
       @name = name
 
-      @path_template = Bulldog.default_path
+      @default_path = nil
+      @default_url = nil
       @styles = StyleSet.new
       @default_style = :original
       @stored_attributes = {}
@@ -14,12 +15,20 @@ module Bulldog
     end
 
     attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes
-    attr_writer :default_style
+    attr_writer :default_style, :path_template, :url_template
 
     def default_style
       styles[@default_style] or
         raise Error, "invalid default_style: #{@default_style.inspect}"
       @default_style
+    end
+
+    def path_template
+      @path_template || File.join(':public_path', url_template)
+    end
+
+    def url_template
+      @url_template || Bulldog.default_url
     end
 
     #

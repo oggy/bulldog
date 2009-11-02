@@ -21,10 +21,11 @@ describe Reflection do
       reflection.path_template.should == "/path/to/somewhere"
     end
 
-    it "should default to the global setting" do
-      Bulldog.default_path = "/test.jpg"
-      Thing.has_attachment :photo
-      reflection.path_template.should == "/test.jpg"
+    it "should default to the URL under the public path" do
+      Thing.has_attachment :photo do
+        url "/path/to/somewhere"
+      end
+      reflection.path_template.should == ":public_path/path/to/somewhere"
     end
   end
 
@@ -34,6 +35,12 @@ describe Reflection do
         url "/path/to/somewhere"
       end
       reflection.url_template.should == "/path/to/somewhere"
+    end
+
+    it "should default to the global setting" do
+      Bulldog.default_url = "/test.jpg"
+      Thing.has_attachment :photo
+      reflection.url_template.should == "/test.jpg"
     end
   end
 

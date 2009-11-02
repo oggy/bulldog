@@ -8,7 +8,7 @@ describe "Lifecycle hooks" do
 
   before do
     @file = open("#{ROOT}/spec/integration/data/test.jpg")
-    Bulldog.default_path = "#{temporary_directory}/attachments/:class/:id.:style.:extension"
+    Bulldog.default_url = "/attachments/:class/:id.:style.:extension"
   end
 
   after do

@@ -18,9 +18,9 @@ module Bulldog
     attr_accessor :logger
 
     #
-    # The default path template to use.  See the #path configuration
+    # The default url template to use.  See the #url configuration
     # option for #has_attachment.
     #
-    attr_accessor :default_path
+    attr_accessor :default_url
   end
 end
