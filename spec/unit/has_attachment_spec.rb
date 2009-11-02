@@ -407,6 +407,7 @@ describe HasAttachment do
     set_up_model_class :Thing do |t|
       t.string :name
     end
+
     before do
       spec = self
       Thing.has_attachment :photo do
@@ -418,6 +419,22 @@ describe HasAttachment do
 
     def original_path
       "#{temporary_directory}/#{@thing.id}.jpg"
+    end
+
+    describe "#ATTACHMENT_changed?" do
+      it "should return false if nothing has been assigned to the attachment" do
+        @thing.photo_changed?.should be_false
+      end
+
+      it "should return false if the same value has been assigned to the attachment" do
+        @thing.photo = @thing.photo.value
+        @thing.photo_changed?.should be_false
+      end
+
+      it "should return true if a new value has been assigned to the attachment" do
+        @thing.photo = uploaded_file
+        @thing.photo_changed?.should be_true
+      end
     end
 
     describe "#ATTACHMENT_was" do

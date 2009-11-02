@@ -143,6 +143,7 @@ module Bulldog
         reflection = Reflection.new(self, name, &block)
         attachment_reflections[name] = reflection
         define_attachment_accessors(reflection.name)
+        define_attachment_attribute_methods(reflection.name)
       end
 
       def define_attachment_accessors(name)
@@ -159,6 +160,22 @@ module Bulldog
             !!_attachment_for(:#{name}).value
           end
         EOS
+      end
+
+      def define_attachment_attribute_methods(name)
+        # HACK: Without this, methods defined via
+        # #attribute_method_suffix (e.g., #ATTACHMENT_changed?) won't
+        # be defined unless the attachment is assigned first.
+        # ActiveRecord appears to give us no other way without
+        # defining an after_initialize, which is slow.
+        attribute_method_suffixes.each do |suffix|
+          next unless suffix[0] == ?_  # skip =, ?.
+          class_eval <<-EOS
+            def #{name}#{suffix}(*args, &block)
+              attribute#{suffix}('#{name}', *args, &block)
+            end
+          EOS
+        end
       end
     end
   end
