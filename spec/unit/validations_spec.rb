@@ -186,9 +186,9 @@ describe Validations do
     end
   end
 
-  describe ".validates_attachment_presence" do
+  describe ".validates_attachment_presence_of" do
     def validation
-      :validates_attachment_presence
+      :validates_attachment_presence_of
     end
 
     def validation_options
@@ -207,19 +207,19 @@ describe Validations do
 
     describe "validation" do
       it "should fail if the value is blank" do
-        Thing.validates_attachment_presence :photo
+        Thing.validates_attachment_presence_of :photo
         @thing = Thing.new(:photo => nil)
         @thing.should_not be_valid
       end
 
       it "should fail if the file is empty" do
-        Thing.validates_attachment_presence :photo
+        Thing.validates_attachment_presence_of :photo
         @thing = Thing.new(:photo => uploaded_file('test.jpg', ''))
         @thing.should_not be_valid
       end
 
       it "should pass if the file is not empty" do
-        Thing.validates_attachment_presence :photo
+        Thing.validates_attachment_presence_of :photo
         @thing = Thing.new(:photo => uploaded_file('test.jpg', '...'))
         @thing.should be_valid
       end
@@ -228,9 +228,9 @@ describe Validations do
     it_should_use_i18n_key(:attachment_blank){@thing.photo = uploaded_file('', '')}
   end
 
-  describe ".validates_attachment_file_size" do
+  describe ".validates_attachment_file_size_of" do
     def validation
-      :validates_attachment_file_size
+      :validates_attachment_file_size_of
     end
 
     def validation_options
@@ -249,14 +249,14 @@ describe Validations do
 
     describe "validation" do
       it "should not fail if the attachment is blank" do
-        Thing.validates_attachment_file_size :photo, :greater_than => 5
+        Thing.validates_attachment_file_size_of :photo, :greater_than => 5
         thing = Thing.new
         thing.should be_valid
       end
 
       describe "when :greater_than is given" do
         before do
-          Thing.validates_attachment_file_size :photo, :greater_than => 5
+          Thing.validates_attachment_file_size_of :photo, :greater_than => 5
           @thing = Thing.new
         end
 
@@ -278,7 +278,7 @@ describe Validations do
 
       describe "when :less_than is given" do
         before do
-          Thing.validates_attachment_file_size :photo, :less_than => 5
+          Thing.validates_attachment_file_size_of :photo, :less_than => 5
           @thing = Thing.new
         end
 
@@ -300,7 +300,7 @@ describe Validations do
 
       describe "when :in is given" do
         before do
-          Thing.validates_attachment_file_size :photo, :in => 3..5
+          Thing.validates_attachment_file_size_of :photo, :in => 3..5
           @thing = Thing.new
         end
 
@@ -322,7 +322,7 @@ describe Validations do
 
       describe "when :in is given with an inclusive range" do
         before do
-          Thing.validates_attachment_file_size :photo, :in => 3..5
+          Thing.validates_attachment_file_size_of :photo, :in => 3..5
           @thing = Thing.new
         end
 
@@ -334,7 +334,7 @@ describe Validations do
 
       describe "when :in is given with an exclusive range" do
         before do
-          Thing.validates_attachment_file_size :photo, :in => 3...5
+          Thing.validates_attachment_file_size_of :photo, :in => 3...5
           @thing = Thing.new
         end
 
@@ -351,9 +351,9 @@ describe Validations do
     it_should_use_i18n_key(:attachment_too_small, :greater_than => 5){@thing.photo = uploaded_file('test.jpg', '..')}
   end
 
-  describe ".validates_attachment_type" do
+  describe ".validates_attachment_type_of" do
     def validation
-      :validates_attachment_type
+      :validates_attachment_type_of
     end
 
     def validation_options
@@ -373,7 +373,7 @@ describe Validations do
     describe "validation" do
       describe "when :matches is given" do
         before do
-          Thing.validates_attachment_type :photo, :matches => /^image/
+          Thing.validates_attachment_type_of :photo, :matches => /^image/
           @thing = Thing.new(:photo => uploaded_file)
         end
 
@@ -397,7 +397,7 @@ describe Validations do
       describe "when :is is given" do
         describe "when the value is a symbol" do
           before do
-            Thing.validates_attachment_type :photo, :is => :image
+            Thing.validates_attachment_type_of :photo, :is => :image
             @thing = Thing.new(:photo => uploaded_file)
           end
 
@@ -420,7 +420,7 @@ describe Validations do
 
           describe "when the string contains optional parameters" do
             before do
-              Thing.validates_attachment_type :photo, :is => 'image/jpeg; a=1, b=2'
+              Thing.validates_attachment_type_of :photo, :is => 'image/jpeg; a=1, b=2'
             end
 
             it "should fail if the type is different" do
@@ -459,7 +459,7 @@ describe Validations do
 
           describe "when the string does not contain optional parameters" do
             before do
-              Thing.validates_attachment_type :photo, :is => 'image/jpeg'
+              Thing.validates_attachment_type_of :photo, :is => 'image/jpeg'
             end
 
             it "should fail if the type is different" do

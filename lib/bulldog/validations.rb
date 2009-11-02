@@ -5,14 +5,14 @@ module Bulldog
     end
 
     module ClassMethods
-      def validates_attachment_presence(name, options={})
+      def validates_attachment_presence_of(name, options={})
         validates_each(name, options) do |record, attribute, attachment|
           attachment.present? && attachment.file_size > 0 or
             record.errors.add attribute, options[:message] || :attachment_blank
         end
       end
 
-      def validates_attachment_file_size(name, options={})
+      def validates_attachment_file_size_of(name, options={})
         if (range = options.delete(:in))
           options[:greater_than] = range.min - 1
           options[:less_than   ] = range.max + 1
@@ -32,7 +32,7 @@ module Bulldog
         end
       end
 
-      def validates_attachment_type(name, options={})
+      def validates_attachment_type_of(name, options={})
         validates_each(name, options) do |record, attribute, attachment|
           if attachment.present?
             if (pattern = options[:matches])

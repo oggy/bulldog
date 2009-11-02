@@ -28,20 +28,20 @@ module Bulldog
         original_attachment = @original_attachments[name] or
           next
         original_attachment.destroy
-        attachment_for(name).save
+        _attachment_for(name).save
       end
     end
 
     def destroy_attachments
       attachment_reflections.each do |name, reflection|
-        attachment_for(name).destroy
+        _attachment_for(name).destroy
       end
     end
 
     def process_attachment(name, event, *args)
       reflection = attachment_reflections[name] or
         raise ArgumentError, "no such attachment: #{name}"
-      attachment_for(name).process(event, *args)
+      _attachment_for(name).process(event, *args)
     end
 
     def attachment_reflection_for(name)
@@ -50,7 +50,8 @@ module Bulldog
 
     private  # -------------------------------------------------------
 
-    def attachment_for(name)
+    # Prefixed with '_', as it would collide with paperclip otherwise.
+    def _attachment_for(name)
       read_attribute(name) or
         initialize_attachment(name)
     end
@@ -85,7 +86,7 @@ module Bulldog
     end
 
     def assign_attachment(name, value)
-      old_attachment = attachment_for(name)
+      old_attachment = _attachment_for(name)
       unless old_attachment.value == value
         old_attachment.clear_stored_attributes
         new_attachment = Attachment.new(self, name, value)
@@ -109,13 +110,13 @@ module Bulldog
 
     def process_attachments_for_event(event, *args)
       self.class.attachment_reflections.each do |name, reflection|
-        attachment_for(reflection.name).process(event, *args)
+        _attachment_for(reflection.name).process(event, *args)
       end
     end
 
     def initialize_remaining_attachments
       self.attachment_reflections.each do |name, reflection|
-        attachment_for(name)  # force initialization
+        _attachment_for(name)  # force initialization
       end
     end
 
@@ -147,7 +148,7 @@ module Bulldog
       def define_attachment_accessors(name)
         module_eval <<-EOS, __FILE__, __LINE__
           def #{name}
-            attachment_for(:#{name})
+            _attachment_for(:#{name})
           end
 
           def #{name}=(value)
@@ -155,7 +156,7 @@ module Bulldog
           end
 
           def #{name}?
-            !!attachment_for(:#{name}).value
+            !!_attachment_for(:#{name}).value
           end
         EOS
       end
