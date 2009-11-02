@@ -62,7 +62,7 @@ module Bulldog
         original_path = original_path(name)
         if File.exist?(original_path)
           reflection = attachment_reflection_for(name)
-          if (file_name_column = reflection.stored_attributes[:file_name])
+          if (file_name_column = reflection.column_name_for_stored_attribute(:file_name))
             file_name = send(file_name_column)
           end
           value = UnopenedFile.new(original_path, :file_name => file_name)
@@ -73,6 +73,8 @@ module Bulldog
       attachment = Attachment.new(self, name, value)
       # Take care here not to mark the attribute as dirty.
       write_attribute_without_dirty(name, attachment)
+      attachment.read_storable_attributes
+      attachment
     end
 
     def original_path(name)

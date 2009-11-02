@@ -49,9 +49,9 @@ module Bulldog
       # Set the stored attributes in the record.
       #
       def set_stored_attributes
-        storable_attributes.each do |name, callback|
+        storable_attributes.each do |name, storable_attribute|
           if (column_name = reflection.column_name_for_stored_attribute(name))
-            value = callback.is_a?(Proc) ? instance_eval(&callback) : send(callback)
+            value = storable_attribute.value_for(self)
             record.send("#{column_name}=", value)
           end
         end
@@ -64,6 +64,20 @@ module Bulldog
         storable_attributes.each do |name, callback|
           if (column_name = reflection.column_name_for_stored_attribute(name))
             record.send("#{column_name}=", nil)
+          end
+        end
+      end
+
+      #
+      # Set the stored attributes in the attachment from the values in
+      # the record.
+      #
+      def read_storable_attributes
+        storable_attributes.each do |name, storable_attribute|
+          if (column_name = reflection.column_name_for_stored_attribute(name))
+            value = record.send(column_name)
+            value = send("deserialize_#{name}", value) if storable_attribute.cast
+            instance_variable_set("@#{name}", value)
           end
         end
       end
@@ -108,8 +122,10 @@ module Bulldog
       # Declare the given attribute as storable via
       # Bulldog::Reflection::Configuration#store_attributes.
       #
-      def self.storable_attribute(name, &block)
-        storable_attributes[name] = block || name
+      def self.storable_attribute(name, options={}, &block)
+        storable_attributes[name] = StorableAttribute.new(:name => name,
+                                                          :callback => block || name,
+                                                          :cast => options[:cast])
       end
 
       #
@@ -137,6 +153,27 @@ module Bulldog
             # Can't delete any further.
           end
         end
+      end
+
+      class StorableAttribute
+        def initialize(attributes)
+          attributes.each do |name, value|
+            send("#{name}=", value)
+          end
+        end
+
+        def value_for(attachment)
+          value =
+            if callback.is_a?(Proc)
+              callback.call(attachment)
+            else
+              attachment.send(callback)
+            end
+          value = attachment.send("serialize_#{name}", value) if cast
+          value
+        end
+
+        attr_accessor :name, :cast, :callback
       end
     end
   end

@@ -5,6 +5,7 @@ describe Attachment::Image do
     t.integer :photo_width
     t.integer :photo_height
     t.float :photo_aspect_ratio
+    t.string :photo_dimensions
   end
 
   before do
@@ -46,16 +47,20 @@ describe Attachment::Image do
   end
 
   describe "storable attributes" do
-    it "should allow storing the width" do
+    it "should set the stored attributes on assignment" do
       @thing.photo_width.should == 40
-    end
-
-    it "should allow storing the height" do
       @thing.photo_height.should == 30
+      @thing.photo_aspect_ratio.should be_close(4.0/3, 1e-5)
+      @thing.photo_dimensions.should == '40x30'
     end
 
-    it "should allow storing the aspect ratio" do
-      @thing.photo_aspect_ratio.should == 4.0/3
+    it "should successfully roundtrip the stored attributes" do
+      @thing.save
+      @thing = Thing.find(@thing.id)
+      @thing.photo_width.should == 40
+      @thing.photo_height.should == 30
+      @thing.photo_aspect_ratio.should be_close(4.0/3, 1e-5)
+      @thing.photo_dimensions.should == '40x30'
     end
   end
 end
