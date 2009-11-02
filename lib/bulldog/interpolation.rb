@@ -19,11 +19,15 @@ module Bulldog
     @interpolations = {}
 
     define_interpolation :rails_root do
-      RAILS_ROOT
+      Rails.root
     end
 
     define_interpolation :rails_env do
-      RAILS_ENV
+      Rails.env
+    end
+
+    define_interpolation :public_path do
+      Rails.public_path
     end
 
     define_interpolation :class do |record, name, style|

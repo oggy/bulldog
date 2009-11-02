@@ -19,16 +19,21 @@ describe Interpolation do
       @style = Thing.attachment_reflections[:photo].styles[:small]
     end
 
-    it "should interpolate :rails_root as RAILS_ROOT" do
-      with_temporary_constant_value(Object, :RAILS_ROOT, 'RR') do
-        interpolate("a/:rails_root/b").should == "a/RR/b"
-      end
+    use_temporary_constant_value Object, :Rails, Object.new
+
+    it "should interpolate :rails_root as Rails.root" do
+      Rails.stubs(:root).returns('RAILS-ROOT')
+      interpolate("a/:rails_root/b").should == "a/RAILS-ROOT/b"
     end
 
-    it "should interpolate :rails_env as RAILS_ENV" do
-      with_temporary_constant_value(Object, :RAILS_ENV, 'RE') do
-        interpolate("a/:rails_env/b").should == "a/RE/b"
-      end
+    it "should interpolate :rails_env as Rails.env" do
+      Rails.stubs(:env).returns('RAILS-ENV')
+      interpolate("a/:rails_env/b").should == "a/RAILS-ENV/b"
+    end
+
+    it "should interpolate :public_path as Rails.public_path" do
+      Rails.stubs(:public_path).returns('PUBLIC-PATH')
+      interpolate("a/:public_path/b").should == "a/PUBLIC-PATH/b"
     end
 
     it "should interpolate :class as the plural class name" do
