@@ -1,6 +1,6 @@
 module Bulldog
   #
-  # Gives IO, Tempfile, and UnopenedFile a common interface.
+  # Gives IO, StringIO, Tempfile, and UnopenedFile a common interface.
   #
   # In particular, this takes care of writing it to a file so external
   # programs may be called on it, while keeping the number of file
@@ -39,6 +39,20 @@ module Bulldog
       #
       def path
         @target.path
+      end
+
+      #
+      # Return the original file name of the underlying object.  This
+      # is the basename of the file as the user uploaded it (for an
+      # uploaded file), or the file on the filesystem (for a File
+      # object).  For other IO objects, return nil.
+      #
+      def file_name
+        if @target.respond_to?(:original_path)
+          @target.original_path
+        else
+          nil
+        end
       end
 
       #
@@ -89,9 +103,16 @@ module Bulldog
         @target.flush unless @target.closed? rescue IOError  # not open for writing
         super
       end
+
+      def file_name
+        super || File.basename(@target.path)
+      end
     end
 
     class ForUnopenedFile < Base
+      def file_name
+        @target.file_name
+      end
     end
 
     class ForIO < Base
@@ -103,7 +124,7 @@ module Bulldog
         # TODO: Support ruby 1.8.6, where Tempfile does not allow
         # specifying the extension.
         tempfile_name = 'bulldog'
-        if @target.respond_to?(:original_path)
+        if @target.respond_to?(:original_path) && @target.original_path
           tempfile_name = [tempfile_name, File.extname(@target.original_path)]
         end
         Tempfile.open(tempfile_name) do |file|

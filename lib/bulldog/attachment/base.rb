@@ -37,6 +37,11 @@ module Bulldog
       delegate :size, :to => 'stream'
 
       #
+      # Return the original file name of the attached file.
+      #
+      delegate :file_name, :to => 'stream'
+
+      #
       # Return the content type of the data.
       #
       delegate :content_type, :to => 'stream'

@@ -139,37 +139,64 @@ describe Attachment::Base do
       end
     end
 
-    describe "when the value is a small uploaded file (StringIO)" do
-      it "should return the content length of the uploaded data" do
-        @thing.photo = small_uploaded_file('test.jpg', '...')
-        @thing.photo.size.should == 3
-      end
+    before do
+      @thing = Thing.new(:photo => small_uploaded_file('test.jpg', '...'))
     end
 
-    describe "when the value is a large uploaded file (Tempfile)" do
-      it "should return the content length of the uploaded data" do
-        @thing.photo = large_uploaded_file('test.jpg', '...')
-        @thing.photo.size.should == 3
-      end
+    it "should return the size of the file" do
+      @thing.photo.size.should == 3
     end
 
-    describe "when the value is a File object" do
-      it "should return the size of the file" do
-        with_temporary_file("#{temporary_directory}/test.jpg", '...') do |path|
-          open(path) do |file|
-            @thing.photo = file
-            @thing.photo.size.should == 3
-          end
-        end
-      end
-    end
-
-    describe "when the value is an existing file (UnopenedFile)" do
+    describe "when the value is a saved file" do
       it "should return the size of the file" do
         @thing.save
         @thing = Thing.find(@thing.id)
         with_temporary_file(original_path, '...') do |path|
           @thing.photo.size.should == 3
+        end
+      end
+    end
+  end
+
+  describe "#file_name" do
+    set_up_model_class :Thing do |t|
+      t.string :photo_file_name
+    end
+
+    configure_attachment do |spec|
+      path "#{spec.temporary_directory}/:id.:style.jpg"
+      style :small, {}
+      store_attributes :file_name
+    end
+
+    def original_path
+      "#{temporary_directory}/#{@thing.id}.original.jpg"
+    end
+
+    def with_temporary_file(path, content)
+      FileUtils.mkdir_p File.dirname(path)
+      open(path, 'w'){|f| f.print '...'}
+      begin
+        yield path
+      ensure
+        File.delete(path)
+      end
+    end
+
+    before do
+      @thing = Thing.new(:photo => small_uploaded_file('test.jpg', '...'))
+    end
+
+    it "should return the original base name of the file" do
+      @thing.photo.file_name.should == 'test.jpg'
+    end
+
+    describe "when the value is a saved file" do
+      it "should return the original base name of the file" do
+        @thing.save
+        @thing = Thing.find(@thing.id)
+        with_temporary_file(original_path, '...') do |path|
+          @thing.photo.file_name.should == 'test.jpg'
         end
       end
     end

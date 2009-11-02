@@ -14,13 +14,15 @@ describe Stream do
     stream
   end
 
-  describe 'all streams', :shared => :true do
-    def object(content)
-      raise 'example group must define #object'
-    end
+  def self.it_should_behave_like_all_streams(options={})
+    class_eval do
+      def object(content)
+        raise 'example group must define #object'
+      end
 
-    def stream(content)
-      Stream.new( object(content) )
+      def stream(content)
+        Stream.new( object(content) )
+      end
     end
 
     describe "#size" do
@@ -52,18 +54,75 @@ describe Stream do
         File.read(path).should == 'content'
       end
     end
+
+    describe "#file_name" do
+      case options[:file_name]
+      when :original_path
+        it "should return the original path" do
+          stream = stream('content')
+          stream.target.original_path = 'test.jpg'
+          stream.file_name.should == 'test.jpg'
+        end
+      when :file_name
+        it "should return the file name" do
+          stream = stream('content')
+          stream.target.file_name = 'test.jpg'
+          stream.file_name.should == 'test.jpg'
+        end
+      when :basename
+        it "should return the basename of the path" do
+          stream = stream('content')
+          basename = File.basename(stream.path)
+          stream.file_name.should == basename
+        end
+      else
+        it "should return nil" do
+          stream = stream('content')
+          stream.file_name.should be_nil
+        end
+      end
+    end
+  end
+
+  describe 'for a small uploaded file' do
+    it_should_behave_like_all_streams :file_name => :original_path
+
+    def object(content)
+      stringio = StringIO.new(content)
+      class << stringio
+        attr_accessor :original_path
+      end
+      stringio
+    end
+  end
+
+  describe 'for a large uploaded file' do
+    it_should_behave_like_all_streams :file_name => :original_path
+
+    def object(content)
+      stringio = StringIO.new(content)
+      class << stringio
+        attr_accessor :original_path
+      end
+      stringio
+    end
   end
 
   describe 'for a StringIO' do
-    it_should_behave_like 'all streams'
+    it_should_behave_like_all_streams
 
     def object(content)
-      StringIO.new(content)
+      tempfile = Tempfile.new('bulldog-spec')
+      tempfile.print(content)
+      class << tempfile
+        attr_accessor :original_path
+      end
+      tempfile
     end
   end
 
   describe 'for a Tempfile' do
-    it_should_behave_like 'all streams'
+    it_should_behave_like_all_streams
 
     def object(content)
       file = Tempfile.new('bulldog-spec')
@@ -73,7 +132,7 @@ describe Stream do
   end
 
   describe 'for a File opened for reading' do
-    it_should_behave_like 'all streams'
+    it_should_behave_like_all_streams :file_name => :basename
 
     def object(content)
       path = "#{temporary_directory}/file"
@@ -94,7 +153,7 @@ describe Stream do
   end
 
   describe 'for a File opened for writing' do
-    it_should_behave_like 'all streams'
+    it_should_behave_like_all_streams :file_name => :basename
 
     def object(content)
       file = File.open("#{temporary_directory}/file", 'w')
@@ -104,7 +163,7 @@ describe Stream do
   end
 
   describe 'for an UnopenedFile' do
-    it_should_behave_like 'all streams'
+    it_should_behave_like_all_streams :file_name => :file_name
 
     def object(content)
       path = "#{temporary_directory}/file"
@@ -114,7 +173,7 @@ describe Stream do
   end
 
   describe 'for an IO' do
-    it_should_behave_like 'all streams'
+    it_should_behave_like_all_streams
 
     def object(content)
       io = IO.popen("echo -n #{content}")
