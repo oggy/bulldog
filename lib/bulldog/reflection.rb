@@ -4,8 +4,8 @@ module Bulldog
       @model_class = model_class
       @name = name
 
-      @default_path = nil
-      @default_url = nil
+      @default_path_template = nil
+      @default_url_template = nil
       @styles = StyleSet.new
       @default_style = :original
       @stored_attributes = {}
@@ -24,11 +24,11 @@ module Bulldog
     end
 
     def path_template
-      @path_template || File.join(':public_path', url_template)
+      @path_template || Bulldog.default_path_template || File.join(':public_path', url_template)
     end
 
     def url_template
-      @url_template || Bulldog.default_url
+      @url_template || Bulldog.default_url_template
     end
 
     #

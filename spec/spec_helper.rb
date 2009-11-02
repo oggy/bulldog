@@ -38,7 +38,10 @@ module SpecHelper
   def self.included(mod)
     mod.extend ClassMethods
 
-    mod.use_temporary_attribute_value Bulldog, :default_url do
+    mod.use_temporary_attribute_value Bulldog, :default_url_template do
+      ":class/:id.:style"
+    end
+    mod.use_temporary_attribute_value Bulldog, :default_path_template do
       "#{temporary_directory}/attachments/:class/:id.:style"
     end
 
@@ -49,15 +52,6 @@ module SpecHelper
         buffer.string
       end
       logger
-    end
-
-    # Interpolations refer to the Rails constant.
-    mod.use_temporary_constant_value Object, :Rails do
-      rails = OpenStruct.new
-      rails.env = 'RAILS-ENV'
-      rails.root = 'RAILS-ROOT'
-      rails.public_path = "#{temporary_directory}/public"
-      rails
     end
   end
 

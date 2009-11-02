@@ -14,33 +14,68 @@ describe Reflection do
   end
 
   describe "#path_template" do
-    it "should return the configured path" do
-      Thing.has_attachment :photo do
-        path "/path/to/somewhere"
+    describe "when a path has been confired for the attachment" do
+      before do
+        Thing.has_attachment :photo do
+          path "/configured/path"
+        end
       end
-      reflection.path_template.should == "/path/to/somewhere"
+
+      it "should return the configured path" do
+        reflection.path_template.should == "/configured/path"
+      end
     end
 
-    it "should default to the URL under the public path" do
-      Thing.has_attachment :photo do
-        url "/path/to/somewhere"
+    describe "when no path has been configured for the attachment, and there is a default path template" do
+      use_temporary_attribute_value Bulldog, :default_path_template, "/default/path/template"
+
+      before do
+        Thing.has_attachment :photo
       end
-      reflection.path_template.should == ":public_path/path/to/somewhere"
+
+      it "should return the default path template" do
+        reflection.path_template.should == "/default/path/template"
+      end
+    end
+
+    describe "when no path has been configured, and there is no default path template" do
+      use_temporary_attribute_value Bulldog, :default_path_template, nil
+
+      before do
+        Thing.has_attachment :photo do
+          url "/configured/url"
+        end
+      end
+
+      it "should return the URL prefixed with the public path" do
+        reflection.path_template.should == ":public_path/configured/url"
+      end
     end
   end
 
   describe "#url_template" do
-    it "should return the configured URL template" do
-      Thing.has_attachment :photo do
-        url "/path/to/somewhere"
+    describe "when an URL has been configured for the attachment" do
+      before do
+        Thing.has_attachment :photo do
+          url "/path/to/somewhere"
+        end
       end
-      reflection.url_template.should == "/path/to/somewhere"
+
+      it "should return the configured URL template" do
+        reflection.url_template.should == "/path/to/somewhere"
+      end
     end
 
-    it "should default to the global setting" do
-      Bulldog.default_url = "/test.jpg"
-      Thing.has_attachment :photo
-      reflection.url_template.should == "/test.jpg"
+    describe "when no URL has been configured for the attachment" do
+      use_temporary_attribute_value Bulldog, :default_url_template, "/default/url/template"
+
+      before do
+        Thing.has_attachment :photo
+      end
+
+      it "should return the default URL template" do
+        reflection.url_template.should == "/default/url/template"
+      end
     end
   end
 
