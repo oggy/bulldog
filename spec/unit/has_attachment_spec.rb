@@ -11,7 +11,7 @@ describe HasAttachment do
     it "should provide accessors for the attachment" do
       thing = Thing.new
       thing.photo = uploaded_file
-      thing.photo.should be_a(Attachment::Base)
+      thing.photo.should be_a(Attachment::Maybe)
     end
 
     it "should provide a query method for the attachment" do
@@ -129,7 +129,7 @@ describe HasAttachment do
         end
 
         it "should have no attachment" do
-          @thing.photo.should be_a(Attachment::Base)
+          @thing.photo.should be_a(Attachment::Maybe)
           @thing.photo.should be_blank
         end
 
@@ -150,7 +150,7 @@ describe HasAttachment do
           end
 
           it "should have an attachment" do
-            @thing.photo.should be_a(Attachment::Base)
+            @thing.photo.should be_a(Attachment::Maybe)
             @thing.photo.should be_present
           end
 
@@ -169,7 +169,7 @@ describe HasAttachment do
           end
 
           it "should have no attachment" do
-            @thing.photo.should be_a(Attachment::Base)
+            @thing.photo.should be_a(Attachment::Maybe)
             @thing.photo.should be_blank
           end
 
@@ -209,7 +209,7 @@ describe HasAttachment do
 
           it "should have an attachment" do
             @thing.photo = @file
-            @thing.photo.should be_a(Attachment::Base)
+            @thing.photo.should be_a(Attachment::Maybe)
             @thing.photo.should be_present
           end
 
@@ -261,7 +261,7 @@ describe HasAttachment do
 
           it "should have an attachment" do
             @thing.photo = @new_file
-            @thing.photo.should be_a(Attachment::Base)
+            @thing.photo.should be_a(Attachment::Maybe)
             @thing.photo.should be_present
           end
 

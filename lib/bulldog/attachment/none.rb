@@ -1,6 +1,6 @@
 module Bulldog
   module Attachment
-    class None < Base
+    class None < Maybe
       #
       # Return true.  (Overrides ActiveSupport's Object#blank?)
       #
@@ -23,6 +23,7 @@ module Bulldog
       end
 
       def save
+        return if saved?
         delete_files_and_empty_parent_directories
       end
 
