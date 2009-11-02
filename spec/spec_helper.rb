@@ -7,7 +7,7 @@ require 'tempfile'
 require 'active_record'
 require 'action_controller'
 
-require 'init'
+require 'rails/init'
 
 # So we don't have to qualify all our classes.
 include Bulldog
