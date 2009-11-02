@@ -68,20 +68,19 @@ module Bulldog
       end
 
       #
-      # Set any file attributes that the attachment is configured to
-      # store.
+      # Set any attributes that the attachment is configured to store.
       #
-      def set_file_attributes
+      def set_stored_attributes
         if value.is_a?(File)
-          set_file_attribute(:file_name){File.basename(value.path)}
-          set_file_attribute(:file_size){File.size(value)}
+          set_stored_attribute(:file_name){File.basename(value.path)}
+          set_stored_attribute(:file_size){File.size(value)}
         else
-          set_file_attribute(:file_name){value.original_path}
-          set_file_attribute(:file_size){value.size}
+          set_stored_attribute(:file_name){value.original_path}
+          set_stored_attribute(:file_size){value.size}
         end
 
-        set_file_attribute(:content_type){content_type}
-        set_file_attribute(:updated_at){Time.now}
+        set_stored_attribute(:content_type){content_type}
+        set_stored_attribute(:updated_at){Time.now}
       end
 
       #
@@ -98,12 +97,12 @@ module Bulldog
       protected  # ---------------------------------------------------
 
       #
-      # Set the named file attribute to the value yielded by the
-      # block.  The block is not called unless the file attribute is
-      # to be set.
+      # Set the named attribute in the record to the value yielded by
+      # the block.  The block is not called unless the attribute is to
+      # be stored.
       #
-      def set_file_attribute(file_attribute)
-        if (column_name = reflection.file_attributes[file_attribute])
+      def set_stored_attribute(name)
+        if (column_name = reflection.stored_attributes[name])
           record.send("#{column_name}=", yield)
         end
       end

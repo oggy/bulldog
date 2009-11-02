@@ -81,7 +81,7 @@ module Bulldog
     def assign_attachment(name, value)
       unless attachment_for(name).value == value
         attachment = Attachment.new(self, name, value)
-        attachment.set_file_attributes
+        attachment.set_stored_attributes
         write_attribute(name, attachment)
       end
     end

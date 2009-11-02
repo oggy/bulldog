@@ -7,13 +7,13 @@ module Bulldog
       @path_template = Bulldog.default_path
       @styles = StyleSet.new
       @default_style = :original
-      @file_attributes = default_file_attributes
+      @stored_attributes = default_stored_attributes
       @events = Hash.new{|h,k| h[k] = []}
 
       Configuration.configure(self, &block) if block
     end
 
-    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :file_attributes
+    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes
     attr_writer :default_style
 
     def default_style
@@ -74,12 +74,12 @@ module Bulldog
                                                     :callback => callback)
       end
 
-      def store_file_attributes(*args)
+      def store_attributes(*args)
         hash = args.extract_options!.symbolize_keys
         args.each do |name|
-          hash[name.to_sym] = @reflection.send(:default_file_attribute_name_for, name)
+          hash[name.to_sym] = @reflection.send(:default_stored_attribute_name_for, name)
         end
-        @reflection.file_attributes = hash
+        @reflection.stored_attributes = hash
       end
 
       private  # -----------------------------------------------------
@@ -107,15 +107,15 @@ module Bulldog
 
     private  # -------------------------------------------------------
 
-    def default_file_attributes
-      file_attributes = {}
+    def default_stored_attributes
+      stored_attributes = {}
       [:file_name, :content_type, :file_size, :updated_at].each do |suffix|
-        file_attributes[suffix] = default_file_attribute_name_for(suffix)
+        stored_attributes[suffix] = default_stored_attribute_name_for(suffix)
       end
-      file_attributes
+      stored_attributes
     end
 
-    def default_file_attribute_name_for(suffix)
+    def default_stored_attribute_name_for(suffix)
       column_name = "#{name}_#{suffix}".to_sym
       model_class.columns_hash.key?(column_name.to_s) ? column_name : nil
     end

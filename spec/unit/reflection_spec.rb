@@ -121,17 +121,17 @@ describe Reflection do
     end
   end
 
-  describe "#file_attributes" do
-    it "should return the configured file attributes to store" do
+  describe "#stored_attributes" do
+    it "should return the configured stored attributes" do
       Thing.has_attachment :photo do
-        store_file_attributes(
+        store_attributes(
           :file_name => :custom_file_name,
           :content_type => :custom_content_type,
           :file_size => :custom_file_size,
           :updated_at => :custom_updated_at
         )
       end
-      reflection.file_attributes.should == {
+      reflection.stored_attributes.should == {
           :file_name => :custom_file_name,
           :content_type => :custom_content_type,
           :file_size => :custom_file_size,
@@ -141,9 +141,9 @@ describe Reflection do
 
     it "should allow a shortcut if the field names follow convention" do
       Thing.has_attachment :photo do
-        store_file_attributes :file_name, :content_type, :file_size, :updated_at
+        store_attributes :file_name, :content_type, :file_size, :updated_at
       end
-      reflection.file_attributes.should == {
+      reflection.stored_attributes.should == {
         :file_name => :photo_file_name,
         :content_type => :photo_content_type,
         :file_size => :photo_file_size,

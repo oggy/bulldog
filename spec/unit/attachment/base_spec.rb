@@ -17,7 +17,7 @@ describe Attachment::Base do
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:id.:style.jpg"
       style :small, {}
-      store_file_attributes :file_name
+      store_attributes :file_name
     end
 
     def original_path
@@ -57,7 +57,7 @@ describe Attachment::Base do
       configure_attachment do
         path ":rails_root/public/images/:id.:style.jpg"
         style :small, {}
-        store_file_attributes :file_name
+        store_attributes :file_name
       end
 
       it "should return the #path relative to the docroot" do
@@ -74,7 +74,7 @@ describe Attachment::Base do
       configure_attachment do
         path "/tmp/:id.:style.jpg"
         style :small, {}
-        store_file_attributes :file_name
+        store_attributes :file_name
       end
 
       it "should raise an error" do
@@ -90,7 +90,7 @@ describe Attachment::Base do
         path "/tmp/:id.:style.jpg"
         url "/assets/:id.:style.jpg"
         style :small, {}
-        store_file_attributes :file_name
+        store_attributes :file_name
       end
 
       it "should return the url of the given style, interpolated from the url template" do
@@ -122,7 +122,7 @@ describe Attachment::Base do
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:id.:style.jpg"
       style :small, {}
-      store_file_attributes :file_name
+      store_attributes :file_name
     end
 
     def original_path
@@ -240,7 +240,7 @@ describe Attachment::Base do
     end
   end
 
-  describe "#set_file_attributes" do
+  describe "#set_stored_attributes" do
     set_up_model_class :Thing do |t|
       t.string :photo_file_name
       t.string :photo_content_type
@@ -250,16 +250,16 @@ describe Attachment::Base do
 
     before do
       Thing.has_attachment :photo
-      Thing.attachment_reflections[:photo].stubs(:file_attributes).returns(
-                                                                           :file_name => :photo_file_name,
-                                                                           :content_type => :photo_content_type,
-                                                                           :file_size => :photo_file_size,
-                                                                           :updated_at => :photo_updated_at
-                                                                           )
+      Thing.attachment_reflections[:photo].stubs(:stored_attributes).returns(
+        :file_name => :photo_file_name,
+        :content_type => :photo_content_type,
+        :file_size => :photo_file_size,
+        :updated_at => :photo_updated_at
+      )
     end
 
     describe "when the value is a small uploaded file (StringIO)" do
-      it "should set the file attributes" do
+      it "should set the stored attributes" do
         file = small_uploaded_file('test.jpg', "\xff\xd8")
         file.should be_a(StringIO)  # sanity check
         thing = Thing.new(:photo => file)
@@ -271,7 +271,7 @@ describe Attachment::Base do
     end
 
     describe "when the value is a large uploaded file (Tempfile)" do
-      it "should set the file attributes" do
+      it "should set the stored attributes" do
         file = large_uploaded_file('test.jpg', "\xff\xd8")
         file.should be_a(Tempfile)  # sanity check
         thing = Thing.new(:photo => file)

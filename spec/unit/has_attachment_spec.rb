@@ -133,7 +133,7 @@ describe HasAttachment do
           @thing.photo.should be_blank
         end
 
-        it "should have no file attributes set" do
+        it "should have no stored attributes set" do
           @thing.photo_file_name.should be_nil
           @thing.photo_content_type.should be_nil
           @thing.photo_file_size.should be_nil
@@ -154,7 +154,7 @@ describe HasAttachment do
             @thing.photo.should be_present
           end
 
-          it "should have file attributes set" do
+          it "should have stored attributes set" do
             @thing.photo_file_name.should == 'test.jpg'
             @thing.photo_content_type.split(/;/).first.should == "image/jpeg"
             @thing.photo_file_size.should == 2
@@ -173,7 +173,7 @@ describe HasAttachment do
             @thing.photo.should be_blank
           end
 
-          it "should have no file attributes set" do
+          it "should have no stored attributes set" do
             @thing.photo_file_name.should be_nil
             @thing.photo_content_type.should be_nil
             @thing.photo_file_size.should be_nil
@@ -213,7 +213,7 @@ describe HasAttachment do
             @thing.photo.should be_present
           end
 
-          it "should set the file attributes" do
+          it "should set the stored attributes" do
             @thing.photo = @file
             @thing.photo_file_name.should == 'test.jpg'
             @thing.photo_content_type.split(/;/).first.should == "image/jpeg"
@@ -265,7 +265,7 @@ describe HasAttachment do
             @thing.photo.should be_present
           end
 
-          it "should set the file attributes" do
+          it "should set the stored attributes" do
             @thing.photo = @new_file
             @thing.photo_file_name.should == 'new.jpg'
             @thing.photo_content_type.split(/;/).first.should == 'image/jpeg'
