@@ -13,6 +13,11 @@ module Bulldog
       attr_reader :attachment
 
       #
+      # The styles to run this processor for.
+      #
+      attr_reader :styles
+
+      #
       # The record being processed.
       #
       def record
@@ -46,29 +51,32 @@ module Bulldog
       end
 
       #
-      # Return the styles matching the given options.
+      # Run the given block in the context of this processor, once for
+      # each style.
       #
-      # If an :if option is present, don't include any styles not
-      # named.  If an :unless options is present, omit these styles.
+      # #style will be set to the current style each time the block is
+      # called.
       #
-      def styles(options={})
-        only = Array(options[:only])
-        except = Array(options[:except])
-        styles = @styles
-        styles = only.present? ? @styles.select{|s| only.include?(s.name)} : styles
-        except.present? ? styles.reject{|s| except.include?(s.name)} : styles
+      def process(*args, &block)
+        return if styles.empty?
+        if block_given?
+          styles.each do |style|
+            @style = style
+            begin
+              # Avoid #instance_exec if possible for ruby 1.8.
+              evaluator = args.empty? ? :instance_eval : :instance_exec
+              send(evaluator, *args, &block)
+            ensure
+              @style = nil
+            end
+          end
+        end
       end
 
       #
-      # Run the given block in the context of this processor.
+      # The current style being processed.
       #
-      # Subclasses may override this to do any additional pre- or
-      # post- processing.  e.g., see image_magick.rb.
-      #
-      def process(*args, &block)
-        make_directories
-        instance_exec(*args, &block) if block
-      end
+      attr_reader :style
 
       protected  # ---------------------------------------------------
 
@@ -84,16 +92,6 @@ module Bulldog
           end
         end
         nil
-      end
-
-      def make_directories
-        directories = styles.map do |style|
-          path = attachment.path(style.name)
-          File.dirname(path)
-        end
-        directories.uniq.each do |directory|
-          FileUtils.mkdir_p(directory)
-        end
       end
 
       def log(level, message)

@@ -187,6 +187,7 @@ describe Attachment::Base do
     it "should use the default processor if no processor was specified" do
       context = nil
       Thing.has_attachment :photo do
+        style :normal
         process :on => :test_event do
           context = self
         end
@@ -200,6 +201,7 @@ describe Attachment::Base do
     it "should use the configured processor if one was specified" do
       context = nil
       Thing.has_attachment :photo do
+        style :normal
         process :on => :test_event, :with => :test do
           context = self
         end
@@ -212,6 +214,7 @@ describe Attachment::Base do
     it "should not run any processors if no attachment is set" do
       run = false
       Thing.has_attachment :photo do
+        style :normal
         process :on => :test_event, :with => :test do
           run = true
         end

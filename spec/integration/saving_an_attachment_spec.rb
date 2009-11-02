@@ -18,7 +18,7 @@ describe "Saving an attachment" do
       path "#{tmp}/:style.png"
       style :small, :size => '10x10'
       process :after => :save do
-        resize(styles)
+        resize
       end
     end
 

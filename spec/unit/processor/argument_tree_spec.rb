@@ -7,8 +7,6 @@ describe Processor::ArgumentTree do
   before do
     @a = Style.new(:a)
     @b = Style.new(:b)
-    @c = Style.new(:c)
-    @d = Style.new(:d)
   end
 
   describe "initially" do
@@ -97,6 +95,65 @@ describe Processor::ArgumentTree do
         @tree.add(@a, ['two', '2'])
         @tree.heads[@a].styles.should == [@a]
       end
+    end
+  end
+
+  describe "#arguments" do
+    describe "for a nonbranching tree" do
+      it "should return just the output file if there are no operations to perform" do
+        tree = Tree.new(StyleSet[@a])
+        tree.output(@a, 'A.jpg')
+        tree.arguments.should == ['A.jpg']
+      end
+
+      it "should return the operator arguments strung together with the output file at the end" do
+        tree = Tree.new(StyleSet[@a])
+        tree.add(@a, ['-flip'])
+        tree.add(@a, ['-flop'])
+        tree.output(@a, 'A.jpg')
+        tree.arguments.should == ['-flip', '-flop', 'A.jpg']
+      end
+
+      it "should use a -write argument for all but the last output file" do
+        tree = Tree.new(StyleSet[@a, @b])
+        tree.add(@a, ['-flip'])
+        tree.add(@b, ['-flip'])
+        tree.output(@a, 'A.jpg')
+        tree.output(@b, 'B.jpg')
+        tree.arguments.should == ['-flip', '-write', 'A.jpg', 'B.jpg']
+      end
+    end
+
+    describe "for a branching tree" do
+      it "should clone all but the last level" do
+        tree = Tree.new(StyleSet[@a, @b])
+        tree.add(@a, ['-auto-orient'])
+        tree.add(@b, ['-auto-orient'])
+        tree.add(@a, ['-flip'])
+        tree.add(@b, ['-flop'])
+        tree.output(@a, 'A.jpg')
+        tree.output(@b, 'B.jpg')
+        tree.arguments.should == ['-auto-orient', '(', '+clone', '-flip', '-write', 'A.jpg', '+delete', ')', '-flop', 'B.jpg']
+      end
+    end
+  end
+
+  describe "#each_callback" do
+    it "should yield callbacks, along with the styles they apply to, in the order they appear in the tree" do
+      #
+      # * one (1)
+      #   * two (2)     [:a]
+      #   * three
+      #     * four (4)  [:b]
+      #
+      tokens = []
+      tree = Tree.new(StyleSet[@a, @b])
+      tree.add(@a, ['one']){tokens << 1}
+      tree.add(@a, ['two']){tokens << 2}
+
+      tree.add(@b, ['one']){tokens << 1}
+      tree.add(@b, ['three']){tokens << 2}
+      tree.add(@b, ['four']){tokens << 4}
     end
   end
 end

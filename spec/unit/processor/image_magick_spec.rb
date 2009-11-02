@@ -30,7 +30,7 @@ describe Processor::ImageMagick do
     it "should yield the dimensions of the input file at that point in the processing pipeline if a block is given" do
       input_path = create_image("#{temporary_directory}/input.jpg", :size => '40x30')
       Kernel.expects(:'`').once.with("CONVERT #{input_path} -format \\%w\\ \\%h -identify /tmp/x.jpg").returns("40 30\n")
-      style :x, :size => '12x12', :path => '/tmp/x.jpg'
+      style :x, :path => '/tmp/x.jpg'
       values = []
       process(input_path) do
         dimensions do |*args|
@@ -53,7 +53,7 @@ describe Processor::ImageMagick do
           values << args
         end
       end
-      values.should have(2).set_of_arguments
+      values.should have(2).sets_of_arguments
       values[0].should == [[@styles[0]], 10, 10]
       values[1].should == [[@styles[1]], 100, 100]
     end
@@ -175,36 +175,22 @@ describe Processor::ImageMagick do
     style :d, :path => "/tmp/d.jpg", :size => '30x40', :quality => 75
     process do
       auto_orient
-      resize(:only => [:a, :b])
-      flip(:except => :b)
-      flop(:only => [:b, :c])
+      resize if [:a, :b].include?(style.name)
+      flip unless style.name == :b
+      flop if [:b, :c].include?(style.name)
     end
   end
 
-  it "should allow specifying operations only for some styles with an :only option" do
-    Kernel.expects(:'`').once.with("CONVERT INPUT.jpg \\( \\+clone " +
-      "-auto-orient -write /tmp/auto_oriented.jpg \\+delete \\) \\( \\+clone " +
-      "-resize 40x40 -write /tmp/small.jpg \\+delete \\) -resize 100x100 /tmp/big.jpg").returns('')
-    style :auto_oriented, :path => '/tmp/auto_oriented.jpg'
-    style :small, :size => '40x40', :path => '/tmp/small.jpg'
-    style :big, :size => '100x100', :path => '/tmp/big.jpg'
+  it "should allow specifying operations for some styles only by checking #style" do
+    Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -auto-orient " +
+      "\\( \\+clone -flip -write /tmp/flipped.jpg \\+delete \\) " +
+      "-flop /tmp/flopped.jpg").returns('')
+    style :flipped, :path => '/tmp/flipped.jpg'
+    style :flopped, :path => '/tmp/flopped.jpg'
     process do
-      auto_orient(:only => :auto_oriented)
-      resize(:only => [:small, :big])
-    end
-  end
-
-  it "should allow protecting styles from an operation with an :except option" do
-    Kernel.expects(:'`').once.with("CONVERT INPUT.jpg " +
-      "\\( \\+clone -auto-orient \\( \\+clone -resize 40x40 -write /tmp/small.jpg \\+delete \\) " +
-                                    "-write /tmp/unresized.jpg \\+delete \\) " +
-      "/tmp/unaltered.jpg").returns('')
-    style :unaltered, :path => '/tmp/unaltered.jpg'
-    style :unresized, :path => '/tmp/unresized.jpg'
-    style :small, :size => '40x40', :path => '/tmp/small.jpg'
-    process do
-      auto_orient(:except => :unaltered)
-      resize(:except => [:unaltered, :unresized])
+      auto_orient
+      flip if style.name == :flipped
+      flop if style.name == :flopped
     end
   end
 end

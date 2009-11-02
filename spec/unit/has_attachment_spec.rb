@@ -39,6 +39,7 @@ describe HasAttachment do
       it "should trigger the configured callbacks" do
         args = nil
         Thing.has_attachment :photo do
+          style :normal
           process(:on => :my_event){|*args|}
         end
         thing = Thing.new(:photo => uploaded_file)
@@ -51,6 +52,7 @@ describe HasAttachment do
       it "should not trigger any callbacks" do
         args = nil
         Thing.has_attachment :photo do
+          style :normal
           process(:on => :my_event){|*args|}
         end
         thing = Thing.new(:photo => nil)
@@ -62,6 +64,7 @@ describe HasAttachment do
     it "should raise an ArgumentError if the attachment name is invalid" do
       args = nil
       Thing.has_attachment :photo do
+        style :normal
         process(:on => :my_event){|*args|}
       end
       thing = Thing.new
@@ -74,6 +77,7 @@ describe HasAttachment do
       with_temporary_constant_value Processor, :Test, Class.new(Processor::Base) do
         context = nil
         Thing.has_attachment :photo do
+          style :normal
           process(:on => :my_event, :with => :test){context = self}
         end
         thing = Thing.new(:photo => uploaded_file)
@@ -85,6 +89,7 @@ describe HasAttachment do
     it "should default to a base processor instance" do
       context = nil
       Thing.has_attachment :photo do
+        style :normal
         process(:on => :my_event){context = self}
       end
       thing = Thing.new(:photo => uploaded_file)
