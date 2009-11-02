@@ -49,17 +49,17 @@ module Bulldog
 
     define_interpolation :basename do |record, name, style|
       reflection = record.attachment_reflection_for(name)
-      attribute = reflection.stored_attributes[:file_name] or
+      column_name = reflection.column_name_for_stored_attribute(:file_name) or
         raise InterpolationError, ":basename interpolation requires storing the file name - add a column #{name}_file_name or use store_attributes"
-      record.send(attribute)
+      record.send(column_name)
     end
 
     define_interpolation :extension do |record, name, style|
       reflection = record.attachment_reflection_for(name)
-      attribute = reflection.stored_attributes[:file_name] or
+      column_name = reflection.column_name_for_stored_attribute(:file_name) or
         raise InterpolationError, ":extension interpolation requires storing the file name - add a column #{name}_file_name or use store_attributes"
-      basename = record.send(attribute)
-      File.extname(basename).sub(/^\./, '')
+      basename = record.send(column_name)
+      File.extname(basename).sub(/\A\./, '')
     end
   end
 end

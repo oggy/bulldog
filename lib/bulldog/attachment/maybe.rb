@@ -50,7 +50,7 @@ module Bulldog
       #
       def set_stored_attributes
         storable_attributes.each do |name, callback|
-          if (column_name = reflection.stored_attributes[name])
+          if (column_name = reflection.column_name_for_stored_attribute(name))
             value = callback.is_a?(Proc) ? instance_eval(&callback) : send(callback)
             record.send("#{column_name}=", value)
           end
@@ -62,7 +62,7 @@ module Bulldog
       #
       def clear_stored_attributes
         storable_attributes.each do |name, callback|
-          if (column_name = reflection.stored_attributes[name])
+          if (column_name = reflection.column_name_for_stored_attribute(name))
             record.send("#{column_name}=", nil)
           end
         end

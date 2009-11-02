@@ -4,13 +4,9 @@ describe Reflection do
   set_up_model_class :Thing do |t|
     t.string :photo_file_name
     t.string :photo_content_type
-    t.integer :photo_file_size
-    t.datetime :photo_updated_at
 
     t.string :custom_file_name
     t.string :custom_content_type
-    t.integer :custom_file_size
-    t.datetime :custom_updated_at
   end
 
   def reflection
@@ -126,39 +122,49 @@ describe Reflection do
       Thing.has_attachment :photo do
         store_attributes(
           :file_name => :custom_file_name,
-          :content_type => :custom_content_type,
-          :file_size => :custom_file_size,
-          :updated_at => :custom_updated_at
+          :content_type => :custom_content_type
         )
       end
       reflection.stored_attributes.should == {
           :file_name => :custom_file_name,
-          :content_type => :custom_content_type,
-          :file_size => :custom_file_size,
-          :updated_at => :custom_updated_at,
+          :content_type => :custom_content_type
       }
     end
 
     it "should allow a shortcut if the field names follow convention" do
       Thing.has_attachment :photo do
-        store_attributes :file_name, :content_type, :file_size, :updated_at
+        store_attributes :file_name, :content_type
       end
       reflection.stored_attributes.should == {
         :file_name => :photo_file_name,
         :content_type => :photo_content_type,
-        :file_size => :photo_file_size,
-        :updated_at => :photo_updated_at,
       }
     end
+  end
 
-    it "should store any existing columns that match the default names by default" do
+  describe "#column_name_for_stored_attribute" do
+    it "should return nil if the stored attribute has been explicitly mapped to nil" do
+      Thing.has_attachment :photo do
+        store_attributes :file_name => nil
+      end
+      reflection.column_name_for_stored_attribute(:file_name).should be_nil
+    end
+
+    it "should return the column specified if has been mapped to a column name" do
+      Thing.has_attachment :photo do
+        store_attributes :file_name => :photo_content_type
+      end
+      reflection.column_name_for_stored_attribute(:file_name).should == :photo_content_type
+    end
+
+    it "should return the default column name if the stored attribute is unspecified, and the column exists" do
       Thing.has_attachment :photo
-      file = uploaded_file('test.jpg', "\xff\xd8")  # jpeg magic number
-      thing = Thing.new(:photo => file)
-      thing.photo_file_name.should == 'test.jpg'
-      thing.photo_content_type.split(/;/).first.should == 'image/jpeg'
-      thing.photo_file_size.should == 2
-      thing.photo_updated_at.should == Time.now
+      reflection.column_name_for_stored_attribute(:file_name).should == :photo_file_name
+    end
+
+    it "should return nil if the stored attribute is unspecified, and the column does not exist" do
+      Thing.has_attachment :photo
+      reflection.column_name_for_stored_attribute(:file_size).should be_nil
     end
   end
 end

@@ -7,7 +7,7 @@ module Bulldog
       @path_template = Bulldog.default_path
       @styles = StyleSet.new
       @default_style = :original
-      @stored_attributes = default_stored_attributes
+      @stored_attributes = {}
       @events = Hash.new{|h,k| h[k] = []}
 
       Configuration.configure(self, &block) if block
@@ -20,6 +20,21 @@ module Bulldog
       styles[@default_style] or
         raise Error, "invalid default_style: #{@default_style.inspect}"
       @default_style
+    end
+
+    #
+    # Return the column name to use for the named storable attribute.
+    #
+    def column_name_for_stored_attribute(attribute)
+      if stored_attributes.fetch(attribute, :not_nil).nil?
+        nil
+      elsif (value = stored_attributes[attribute])
+        value
+      else
+        default_column = "#{name}_#{attribute}"
+        column_exists = model_class.columns_hash.key?(default_column)
+        column_exists ? default_column.to_sym : nil
+      end
     end
 
     class Configuration
@@ -75,11 +90,11 @@ module Bulldog
       end
 
       def store_attributes(*args)
-        hash = args.extract_options!.symbolize_keys
-        args.each do |name|
-          hash[name.to_sym] = @reflection.send(:default_stored_attribute_name_for, name)
+        stored_attributes = args.extract_options!.symbolize_keys
+        args.each do |attribute|
+          stored_attributes[attribute] = :"#{@reflection.name}_#{attribute}"
         end
-        @reflection.stored_attributes = hash
+        @reflection.stored_attributes = stored_attributes
       end
 
       private  # -----------------------------------------------------
@@ -103,21 +118,6 @@ module Bulldog
       end
 
       attr_accessor :processor_type, :attachment_types, :styles, :callback
-    end
-
-    private  # -------------------------------------------------------
-
-    def default_stored_attributes
-      stored_attributes = {}
-      [:file_name, :content_type, :file_size, :updated_at].each do |suffix|
-        stored_attributes[suffix] = default_stored_attribute_name_for(suffix)
-      end
-      stored_attributes
-    end
-
-    def default_stored_attribute_name_for(suffix)
-      column_name = "#{name}_#{suffix}".to_sym
-      model_class.columns_hash.key?(column_name.to_s) ? column_name : nil
     end
   end
 end

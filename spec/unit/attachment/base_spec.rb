@@ -17,7 +17,6 @@ describe Attachment::Base do
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:id.:style.jpg"
       style :small, {}
-      store_attributes :file_name
     end
 
     def original_path
@@ -57,7 +56,6 @@ describe Attachment::Base do
       configure_attachment do
         path ":rails_root/public/images/:id.:style.jpg"
         style :small, {}
-        store_attributes :file_name
       end
 
       it "should return the #path relative to the docroot" do
@@ -74,7 +72,6 @@ describe Attachment::Base do
       configure_attachment do
         path "/tmp/:id.:style.jpg"
         style :small, {}
-        store_attributes :file_name
       end
 
       it "should raise an error" do
@@ -90,7 +87,6 @@ describe Attachment::Base do
         path "/tmp/:id.:style.jpg"
         url "/assets/:id.:style.jpg"
         style :small, {}
-        store_attributes :file_name
       end
 
       it "should return the url of the given style, interpolated from the url template" do
@@ -122,7 +118,6 @@ describe Attachment::Base do
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:id.:style.jpg"
       style :small, {}
-      store_attributes :file_name
     end
 
     def original_path

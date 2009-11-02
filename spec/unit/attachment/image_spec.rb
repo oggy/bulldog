@@ -1,7 +1,11 @@
 require 'spec_helper'
 
 describe Attachment::Image do
-  set_up_model_class :Thing
+  set_up_model_class :Thing do |t|
+    t.integer :photo_width
+    t.integer :photo_height
+    t.float :photo_aspect_ratio
+  end
 
   before do
     Thing.has_attachment :photo
@@ -38,6 +42,20 @@ describe Attachment::Image do
   describe "#aspect_ratio" do
     it "should return the aspect ratio of the image" do
       @thing.photo.aspect_ratio.should be_close(1.33333, 0.00001)
+    end
+  end
+
+  describe "storable attributes" do
+    it "should allow storing the width" do
+      @thing.photo_width.should == 40
+    end
+
+    it "should allow storing the height" do
+      @thing.photo_height.should == 30
+    end
+
+    it "should allow storing the aspect ratio" do
+      @thing.photo_aspect_ratio.should == 4.0/3
     end
   end
 end

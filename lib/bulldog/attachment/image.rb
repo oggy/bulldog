@@ -2,6 +2,14 @@ module Bulldog
   module Attachment
     class Image < Base
       #
+      # Return the width and height of the image, as a 2-element
+      # array.
+      #
+      def dimensions
+        @dimensions ||= `identify -format "%w %h" #{stream.path}`.scan(/\d+/).map(&:to_i)
+      end
+
+      #
       # Return the width of the image.
       #
       def width
@@ -16,19 +24,16 @@ module Bulldog
       end
 
       #
-      # Return the width and height of the image, as a 2-element
-      # array.
-      #
-      def dimensions
-        @dimensions ||= `identify -format "%w %h" #{stream.path}`.scan(/\d+/).map(&:to_i)
-      end
-
-      #
       # Return the aspect ratio of the image.
       #
       def aspect_ratio
         width.to_f / height
       end
+
+      storable_attribute :width
+      storable_attribute :height
+      storable_attribute :dimensions
+      storable_attribute :aspect_ratio
 
       protected  # ---------------------------------------------------
 
