@@ -37,7 +37,7 @@ describe Processor::ImageMagick do
           values << args
         end
       end
-      values.should == [[@styles, 40, 30]]
+      values.should == [[@styles.to_a, 40, 30]]
     end
 
     it "should yield the dimensions once per branch if called with a block after a branch in the pipeline" do
