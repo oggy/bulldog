@@ -66,7 +66,7 @@ describe Stream do
       when :file_name
         it "should return the file name" do
           stream = stream('content')
-          stream.target.file_name = 'test.jpg'
+          stream.target.stubs(:file_name).returns('test.jpg')
           stream.file_name.should == 'test.jpg'
         end
       when :basename
@@ -169,6 +169,44 @@ describe Stream do
       path = "#{temporary_directory}/file"
       open(path, 'w'){|f| f.print content}
       SavedFile.new(path)
+    end
+  end
+
+  describe 'for a MissingFile' do
+    it_should_behave_like_all_streams :file_name => :file_name
+
+    def object(content)
+      path = "#{temporary_directory}/missing-file"
+      open(path, 'w'){|f| f.print content}
+      MissingFile.new(:path => path)
+    end
+
+    describe "for a default MissingFile" do
+      before do
+        @stream = Stream.new( MissingFile.new )
+      end
+
+      it "should have a size of 0" do
+        @stream.size.should == 0
+      end
+
+      it "should return a string for the path" do
+        @stream.path.should be_a(String)
+      end
+
+      it "should return a string for the content type" do
+        @stream.content_type.should be_a(String)
+      end
+
+      it "should default to a file_name that indicates it's a missing file" do
+        @stream.file_name.should == 'missing-file'
+      end
+
+      it "should write an empty file for #write_to" do
+        path = "#{temporary_directory}/missing_file"
+        @stream.write_to(path)
+        File.read(path).should == ''
+      end
     end
   end
 

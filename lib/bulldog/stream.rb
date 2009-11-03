@@ -16,6 +16,8 @@ module Bulldog
           ForFile
         when SavedFile
           ForSavedFile
+        when MissingFile
+          ForMissingFile
         when StringIO
           ForStringIO
         when IO
@@ -110,8 +112,14 @@ module Bulldog
     end
 
     class ForSavedFile < Base
-      def file_name
-        @target.file_name
+      delegate :file_name, :to => :target
+    end
+
+    class ForMissingFile < Base
+      delegate :file_name, :to => :target
+
+      def content_type
+        @target.content_type || super
       end
     end
 
@@ -162,9 +170,7 @@ module Bulldog
     end
 
     class ForStringIO < ForIO
-      def size
-        @target.size
-      end
+      delegate :size, :to => :target
     end
   end
 end

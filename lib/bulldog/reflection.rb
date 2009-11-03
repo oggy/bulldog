@@ -10,11 +10,12 @@ module Bulldog
       @default_style = :original
       @stored_attributes = {}
       @events = Hash.new{|h,k| h[k] = []}
+      @file_missing_callback = nil
 
       Configuration.configure(self, &block) if block
     end
 
-    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes
+    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes, :file_missing_callback
     attr_writer :default_style, :path_template, :url_template
 
     def default_style
@@ -106,6 +107,36 @@ module Bulldog
         @reflection.stored_attributes = stored_attributes
       end
 
+      #
+      # Specify a dummy file to use for the record when the record
+      # exists, but the file does not.
+      #
+      # The block receives the record, and should return either nil
+      # (if the attachment should be considered absent), or the result
+      # of a call to #missing_file to specify some dummy file
+      # attributes to use.
+      #
+      #   * #missing_file, to create a dummy file object to use
+      #   * #no_file if the attachment should be considered nil
+      #
+      # Example:
+      #
+      #     when_file_missing do |record|
+      #       case record
+      #       when Photo
+      #         attach :image
+      #       when Video
+      #         attach :video
+      #       end
+      #     end
+      #
+      # #missing_file takes a mandatory attachment type symbol, and a
+      # hash of the following options:
+      #
+      def when_file_missing(&callback)
+        @reflection.file_missing_callback = FileMissingCallback.new(callback)
+      end
+
       private  # -----------------------------------------------------
 
       def event_name(options)
@@ -127,6 +158,37 @@ module Bulldog
       end
 
       attr_accessor :processor_type, :attachment_types, :styles, :callback
+    end
+
+    class FileMissingCallback
+      def initialize(callback)
+        @callback = callback
+      end
+
+      def call(record, name)
+        context = Context.new(record, name)
+        catch :use_attachment do
+          context.instance_eval(&@callback)
+          nil
+        end
+      end
+
+      private  # -----------------------------------------------------
+
+      class Context
+        def initialize(record, name)
+          @record = record
+          @name = name
+        end
+
+        attr_reader :record, :name
+
+        def use_attachment(type, options={})
+          value = MissingFile.new(options)
+          attachment = Attachment.missing(type, record, name, value)
+          throw :use_attachment, attachment
+        end
+      end
     end
   end
 end

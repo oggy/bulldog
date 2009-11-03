@@ -184,6 +184,95 @@ describe Reflection do
     end
   end
 
+  describe "#file_missing_callback" do
+    it "should return a FileMissingCallback if a file-missing callback was provided" do
+      Thing.has_attachment :photo do
+        when_file_missing{}
+      end
+      reflection.file_missing_callback.should be_a(Reflection::FileMissingCallback)
+    end
+
+    it "should return nil if no file-missing callback was provided" do
+      Thing.has_attachment :photo
+      reflection.file_missing_callback.should be_nil
+    end
+  end
+
+  describe "FileMissingCallback" do
+    describe "#call" do
+      describe "context" do
+        describe "#record" do
+          it "should return the record given to #call" do
+            record = nil
+            Thing.has_attachment :photo do
+              when_file_missing{record = self.record}
+            end
+            dummy_record = Object.new
+            reflection.file_missing_callback.call(dummy_record, :name)
+            record.should equal(dummy_record)
+          end
+        end
+
+        describe "#name" do
+          it "should return the name given to #call" do
+            name = nil
+            Thing.has_attachment :photo do
+              when_file_missing{name = self.name}
+            end
+            reflection.file_missing_callback.call(Object.new, :name)
+            name.should == :name
+          end
+        end
+      end
+
+      describe "when the callback calls #use_attachment" do
+        it "should return an attachment of the corresponding type" do
+          Thing.has_attachment :photo do
+            when_file_missing do
+              use_attachment(:image)
+            end
+          end
+          result = reflection.file_missing_callback.call(Object.new, :name)
+          result.should be_a(Attachment::Image)
+        end
+
+        it "should return an attachment with a MissingFile value" do
+          Thing.has_attachment :photo do
+            when_file_missing do
+              use_attachment(:image)
+            end
+          end
+          result = reflection.file_missing_callback.call(Object.new, :name)
+          result.value.should be_a(MissingFile)
+        end
+
+        it "should stop evaluating the block" do
+          Thing.has_attachment :photo do
+            when_file_missing do
+              use_attachment(:image)
+              raise
+            end
+          end
+          lambda do
+            reflection.file_missing_callback.call(Object.new, :name)
+          end.should_not raise_error
+        end
+      end
+
+      describe "when the callback does not call #use_attachment" do
+        it "should return nil" do
+          Thing.has_attachment :photo do
+            when_file_missing do
+              :not_nil
+            end
+          end
+          result = reflection.file_missing_callback.call(Object.new, :name)
+          result.should be_nil
+        end
+      end
+    end
+  end
+
   describe "#column_name_for_stored_attribute" do
     it "should return nil if the stored attribute has been explicitly mapped to nil" do
       Thing.has_attachment :photo do

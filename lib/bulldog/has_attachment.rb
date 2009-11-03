@@ -72,17 +72,20 @@ module Bulldog
         value = nil
       else
         original_path = original_path(name)
+        reflection = attachment_reflection_for(name)
         if File.exist?(original_path)
-          reflection = attachment_reflection_for(name)
           if (file_name_column = reflection.column_name_for_stored_attribute(:file_name))
             file_name = send(file_name_column)
           end
           value = SavedFile.new(original_path, :file_name => file_name)
         else
           value = nil
+          if reflection.file_missing_callback
+            attachment = reflection.file_missing_callback.call(self, name)
+          end
         end
       end
-      attachment = Attachment.new(self, name, value)
+      attachment ||= Attachment.new(self, name, value)
       # Take care here not to mark the attribute as dirty.
       write_attribute_without_dirty(name, attachment)
       attachment.read_storable_attributes

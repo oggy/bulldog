@@ -110,6 +110,12 @@ describe HasAttachment do
       Thing.has_attachment :photo do
         path "#{spec.temporary_directory}/photos/:id-:style.jpg"
         style :small, :size => '10x10'
+
+        when_file_missing do
+          if spec.use_missing_file?
+            use_attachment(:image, :content_type => 'image/jpeg')
+          end
+        end
       end
     end
 
@@ -119,6 +125,14 @@ describe HasAttachment do
 
     def small_path
       "#{temporary_directory}/photos/#{@thing.id}-small.jpg"
+    end
+
+    def use_missing_file?
+      @use_missing_file
+    end
+
+    def use_missing_file
+      @use_missing_file = true
     end
 
     describe "instantiating the record" do
@@ -174,6 +188,26 @@ describe HasAttachment do
             @thing.photo_file_name.should be_nil
             @thing.photo_content_type.should be_nil
             @thing.photo_file_size.should be_nil
+          end
+        end
+
+        describe "when the file is missing" do
+          before do
+            use_missing_file
+            file = uploaded_file('test.jpg', "\xff\xd8")
+            @thing = Thing.create(:photo => file)
+            File.unlink(original_path)
+            @thing = Thing.find(@thing.id)
+          end
+
+          it "should have the attachment specified by the file-missing callback" do
+            @thing.photo.should be_a(Attachment::Image)
+          end
+
+          it "should have stored attributes set" do
+            @thing.photo_file_name.should == 'test.jpg'
+            @thing.photo_content_type == "image/jpeg"
+            @thing.photo_file_size.should == 2
           end
         end
       end

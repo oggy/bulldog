@@ -10,7 +10,7 @@ module Bulldog
     #
     # The original file name as it was uploaded, if any.
     #
-    attr_accessor :file_name
+    attr_reader :file_name
 
     def size
       File.size(path)

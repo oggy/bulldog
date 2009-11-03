@@ -7,6 +7,7 @@ require 'bulldog/style'
 require 'bulldog/style_set'
 require 'bulldog/interpolation'
 require 'bulldog/saved_file'
+require 'bulldog/missing_file'
 require 'bulldog/processor'
 require 'bulldog/stream'
 

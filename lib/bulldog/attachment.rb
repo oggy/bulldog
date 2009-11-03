@@ -28,6 +28,12 @@ module Bulldog
       attachment = klass.new(record, name, stream)
     end
 
+    def self.missing(type, record, name, value)
+      stream = Stream.new(value)
+      klass = class_from_type(type)
+      klass.new(record, name, stream)
+    end
+
     #
     # Return the class corresponding to the given type.
     #
