@@ -5,6 +5,13 @@ describe Style do
     it "should create a Style with the given name and attributes" do
       style = Style.new(:big, :size => '100x100')
       style.name.should == :big
+      style.attributes.should == {:size => '100x100'}
+    end
+  end
+
+  describe "#[]" do
+    it "should return the value of the named attribute" do
+      style = Style.new(:big, :size => '100x100')
       style[:size].should == '100x100'
     end
   end

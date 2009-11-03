@@ -1,22 +1,31 @@
 module Bulldog
   class Style < Hash
     def initialize(name, attributes={})
-      super()
-      merge!(attributes)
       @name = name
+      @attributes = attributes
     end
 
-    attr_reader :name
+    attr_reader :name, :attributes
 
-    # For specs.
+    #
+    # Return the value of the given style attribute.
+    #
+    def [](name)
+      attributes[name]
+    end
+
+    #
+    # Return true if the argument is a Style with the same name and
+    # attributes.
+    #
     def ==(other)
-      other.is_a?(Style) &&
+      other.is_a?(self.class) &&
         name == other.name &&
-        super
+        attributes == other.attributes
     end
 
     def inspect
-      "#<Style #{name.inspect} #{super}>"
+      "#<Style #{name.inspect} #{attributes.inspect}>"
     end
 
     delegate :hash, :eql?, :to => :name
