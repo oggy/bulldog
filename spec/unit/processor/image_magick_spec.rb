@@ -137,7 +137,7 @@ describe Processor::ImageMagick do
     it "should resize, and crop off the edges" do
       style :small, :size => '10x10', :path => '/tmp/small.jpg'
       Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -resize 10x10\\^ " +
-        "-gravity Center -crop 10x10 /tmp/small.jpg").returns('')
+        "-gravity Center -crop 10x10\\+0\\+0 /tmp/small.jpg").returns('')
       process do
         thumbnail
       end
