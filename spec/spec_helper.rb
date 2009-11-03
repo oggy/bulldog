@@ -7,9 +7,7 @@ require 'tempfile'
 require 'active_record'
 require 'action_controller'
 
-require 'rails/init'
-
-# So we don't have to qualify all our classes.
+require 'bulldog'
 include Bulldog
 
 ROOT = File.dirname( File.dirname(__FILE__) )

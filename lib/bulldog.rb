@@ -34,3 +34,6 @@ module Bulldog
   self.default_path_template = nil
   self.default_url_template = "/assets/:class/:id.:style.:extension"
 end
+
+ActiveRecord::Base.send :include, Bulldog::HasAttachment
+ActiveRecord::Base.send :include, Bulldog::Validations
