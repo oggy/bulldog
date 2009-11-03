@@ -29,4 +29,8 @@ module Bulldog
     #
     attr_accessor :default_url_template
   end
+
+  self.logger = nil
+  self.default_path_template = nil
+  self.default_url_template = "/assets/:class/:id.:style.:extension"
 end
