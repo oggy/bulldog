@@ -66,7 +66,7 @@ module Bulldog
           if (file_name_column = reflection.column_name_for_stored_attribute(:file_name))
             file_name = send(file_name_column)
           end
-          value = UnopenedFile.new(original_path, :file_name => file_name)
+          value = SavedFile.new(original_path, :file_name => file_name)
         else
           value = nil
         end

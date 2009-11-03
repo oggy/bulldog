@@ -1,5 +1,5 @@
 module Bulldog
-  class UnopenedFile
+  class SavedFile
     def initialize(path, options={})
       @path = path
       @file_name = options[:file_name]

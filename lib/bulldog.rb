@@ -6,7 +6,7 @@ require 'bulldog/attachment'
 require 'bulldog/style'
 require 'bulldog/style_set'
 require 'bulldog/interpolation'
-require 'bulldog/unopened_file'
+require 'bulldog/saved_file'
 require 'bulldog/processor'
 require 'bulldog/stream'
 

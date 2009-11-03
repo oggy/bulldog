@@ -162,13 +162,13 @@ describe Stream do
     end
   end
 
-  describe 'for an UnopenedFile' do
+  describe 'for an SavedFile' do
     it_should_behave_like_all_streams :file_name => :file_name
 
     def object(content)
       path = "#{temporary_directory}/file"
       open(path, 'w'){|f| f.print content}
-      UnopenedFile.new(path)
+      SavedFile.new(path)
     end
   end
 

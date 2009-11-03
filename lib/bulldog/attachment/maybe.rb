@@ -9,7 +9,7 @@ module Bulldog
         @name = name
         @stream = stream
         @value = stream && stream.target
-        @saved = value.is_a?(UnopenedFile)
+        @saved = value.is_a?(SavedFile)
       end
 
       attr_reader :record, :name, :stream, :value

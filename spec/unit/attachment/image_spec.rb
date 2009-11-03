@@ -16,7 +16,7 @@ describe Attachment::Image do
   def test_file
     image_path = "#{temporary_directory}/test.jpg"
     create_image(image_path, :size => "40x30")
-    UnopenedFile.new(image_path)
+    SavedFile.new(image_path)
   end
 
   describe "#dimensions" do

@@ -1,6 +1,6 @@
 module Bulldog
   #
-  # Gives IO, StringIO, Tempfile, and UnopenedFile a common interface.
+  # Gives IO, StringIO, Tempfile, and SavedFile a common interface.
   #
   # In particular, this takes care of writing it to a file so external
   # programs may be called on it, while keeping the number of file
@@ -14,8 +14,8 @@ module Bulldog
           ForTempfile
         when File
           ForFile
-        when UnopenedFile
-          ForUnopenedFile
+        when SavedFile
+          ForSavedFile
         when StringIO
           ForStringIO
         when IO
@@ -109,7 +109,7 @@ module Bulldog
       end
     end
 
-    class ForUnopenedFile < Base
+    class ForSavedFile < Base
       def file_name
         @target.file_name
       end
