@@ -32,8 +32,6 @@ module Bulldog
 
       def process(event, *args)
       end
-
-      storable_attribute(:updated_at){Time.now}
     end
   end
 end

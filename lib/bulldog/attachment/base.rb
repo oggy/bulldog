@@ -41,12 +41,16 @@ module Bulldog
       #
       # Return the original file name of the attached file.
       #
-      delegate :file_name, :to => 'stream'
+      def file_name
+        @file_name ||= stream.file_name
+      end
 
       #
       # Return the content type of the data.
       #
-      delegate :content_type, :to => 'stream'
+      def content_type
+        @content_type ||= stream.content_type
+      end
 
       #
       # Called when the attachment is saved.
@@ -72,7 +76,6 @@ module Bulldog
       storable_attribute :file_name
       storable_attribute :file_size
       storable_attribute :content_type
-      storable_attribute(:updated_at){Time.now}
 
       protected  # ---------------------------------------------------
 

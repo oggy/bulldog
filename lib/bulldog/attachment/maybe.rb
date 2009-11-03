@@ -134,27 +134,6 @@ module Bulldog
       class_inheritable_accessor :storable_attributes
       self.storable_attributes = {}
 
-      #
-      # Remove the files for this attachment, along with any parent
-      # directories.
-      #
-      def delete_files_and_empty_parent_directories
-        style_names = reflection.styles.map{|style| style.name} << :original
-        style_names.each do |style_name|
-          path = interpolate_path(style_name) or
-            next
-          FileUtils.rm_f(path)
-          begin
-            loop do
-              path = File.dirname(path)
-              FileUtils.rmdir(path)
-            end
-          rescue Errno::EEXIST, Errno::ENOTEMPTY, Errno::ENOENT, Errno::EINVAL, Errno::ENOTDIR
-            # Can't delete any further.
-          end
-        end
-      end
-
       class StorableAttribute
         def initialize(attributes)
           attributes.each do |name, value|
@@ -174,6 +153,29 @@ module Bulldog
         end
 
         attr_accessor :name, :cast, :callback
+      end
+
+      storable_attribute(:updated_at){Time.now}
+
+      #
+      # Remove the files for this attachment, along with any parent
+      # directories.
+      #
+      def delete_files_and_empty_parent_directories
+        style_names = reflection.styles.map{|style| style.name} << :original
+        style_names.each do |style_name|
+          path = interpolate_path(style_name) or
+            next
+          FileUtils.rm_f(path)
+          begin
+            loop do
+              path = File.dirname(path)
+              FileUtils.rmdir(path)
+            end
+          rescue Errno::EEXIST, Errno::ENOTEMPTY, Errno::ENOENT, Errno::EINVAL, Errno::ENOTDIR
+            # Can't delete any further.
+          end
+        end
       end
     end
   end

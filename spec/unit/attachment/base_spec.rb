@@ -231,4 +231,32 @@ describe Attachment::Base do
       styles.map(&:name).should == [:small]
     end
   end
+
+  describe "storable attributes" do
+    set_up_model_class :Thing do |t|
+      t.string :photo_file_name
+      t.integer :photo_file_size
+      t.string :photo_content_type
+    end
+
+    before do
+      Thing.has_attachment :photo
+      @thing = Thing.new(:photo => uploaded_file('test.jpg', "\xff\xd8"))
+    end
+
+    it "should set the stored attributes on assignment" do
+      @thing.photo_file_name.should == 'test.jpg'
+      @thing.photo_file_size.should == 2
+      @thing.photo_content_type.should =~ /image\/jpeg/
+    end
+
+    it "should successfully roundtrip the stored attributes" do
+      warp_ahead 1.minute
+      @thing.save
+      @thing = Thing.find(@thing.id)
+      @thing.photo_file_name.should == 'test.jpg'
+      @thing.photo_file_size.should == 2
+      @thing.photo_content_type.should =~ /image\/jpeg/
+    end
+  end
 end
