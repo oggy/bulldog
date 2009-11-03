@@ -11,6 +11,7 @@ module Bulldog
       base.after_save :save_attachments
       base.after_save :clear_original_attachments
 
+      base.before_save :update_attachment_timestamps
       base.after_destroy :destroy_attachments
 
       # Force initialization of attachments, as #destroy will freeze
@@ -35,6 +36,16 @@ module Bulldog
     def destroy_attachments
       attachment_reflections.each do |name, reflection|
         _attachment_for(name).destroy
+      end
+    end
+
+    def update_attachment_timestamps
+      attachment_reflections.each do |name, reflection|
+        next unless send("#{name}_changed?")
+        setter = "#{name}_updated_at="
+        if respond_to?(setter)
+          send(setter, Time.now)
+        end
       end
     end
 

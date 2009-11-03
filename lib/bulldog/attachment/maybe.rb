@@ -155,8 +155,6 @@ module Bulldog
         attr_accessor :name, :cast, :callback
       end
 
-      storable_attribute(:updated_at){Time.now}
-
       #
       # Remove the files for this attachment, along with any parent
       # directories.

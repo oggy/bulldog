@@ -103,7 +103,6 @@ describe HasAttachment do
       t.string :photo_file_name
       t.string :photo_content_type
       t.integer :photo_file_size
-      t.datetime :photo_updated_at
     end
 
     before do
@@ -122,7 +121,7 @@ describe HasAttachment do
       "#{temporary_directory}/photos/#{@thing.id}-small.jpg"
     end
 
-    describe "assigning to the attribute" do
+    describe "instantiating the record" do
       describe "when the record is new" do
         before do
           @thing = Thing.new
@@ -137,7 +136,6 @@ describe HasAttachment do
           @thing.photo_file_name.should be_nil
           @thing.photo_content_type.should be_nil
           @thing.photo_file_size.should be_nil
-          @thing.photo_updated_at.should be_nil
         end
       end
 
@@ -158,7 +156,6 @@ describe HasAttachment do
             @thing.photo_file_name.should == 'test.jpg'
             @thing.photo_content_type.split(/;/).first.should == "image/jpeg"
             @thing.photo_file_size.should == 2
-            @thing.photo_updated_at.should == Time.now.drop_subseconds
           end
         end
 
@@ -177,7 +174,6 @@ describe HasAttachment do
             @thing.photo_file_name.should be_nil
             @thing.photo_content_type.should be_nil
             @thing.photo_file_size.should be_nil
-            @thing.photo_updated_at.should be_nil
           end
         end
       end
@@ -218,7 +214,6 @@ describe HasAttachment do
             @thing.photo_file_name.should == 'test.jpg'
             @thing.photo_content_type.split(/;/).first.should == "image/jpeg"
             @thing.photo_file_size.should == 2
-            @thing.photo_updated_at.should == Time.now
           end
 
           it "should not create the original file" do
@@ -270,7 +265,6 @@ describe HasAttachment do
             @thing.photo_file_name.should == 'new.jpg'
             @thing.photo_content_type.split(/;/).first.should == 'image/jpeg'
             @thing.photo_file_size.should == 5
-            @thing.photo_updated_at.should == Time.now
           end
 
           it "should not update the original file yet" do
@@ -486,6 +480,72 @@ describe HasAttachment do
       it "should clear all changes" do
         @thing.save
         @thing.changes.should == {}
+      end
+    end
+  end
+
+  describe "automatic timestamps" do
+    describe "#save" do
+      set_up_model_class :Thing do |t|
+        t.datetime :photo_updated_at
+      end
+
+      before do
+        Thing.has_attachment :photo
+      end
+
+      describe "when the record is new" do
+        before do
+          @thing = Thing.new
+        end
+
+        describe "when the attachment was not assigned to" do
+          it "should not set ATTACHMENT_updated_at" do
+            @thing.save.should be_true
+            @thing.photo_updated_at.should be_nil
+          end
+        end
+
+        describe "when nil was assigned to the attachment" do
+          it "should not set ATTACHMENT_updated_at" do
+            @thing.photo = nil
+            @thing.save.should be_true
+            @thing.photo_updated_at.should be_nil
+          end
+        end
+
+        describe "when a file was assigned to the attachment" do
+          it "should update ATTACHMENT_updated_at" do
+            @thing.photo = uploaded_file
+            @thing.save.should be_true
+            @thing.photo_updated_at.should == Time.now
+          end
+        end
+      end
+
+      describe "when the record already exists" do
+        before do
+          thing = Thing.create(:photo => uploaded_file('test.jpg', "\xff\xd8"))
+          @thing = Thing.find(thing.id)
+        end
+
+        describe "when the attachment was not assigned to" do
+          it "should not update ATTACHMENT_updated_at" do
+            warp_ahead 1.minute
+            original_updated_at = @thing.photo_updated_at
+            @thing.save.should be_true
+            @thing.photo_updated_at.should == original_updated_at.drop_subseconds
+          end
+        end
+
+        describe "when a new file was assigned to the attachment" do
+          it "should update ATTACHMENT_updated_at" do
+            warp_ahead 1.minute
+            @thing.photo = uploaded_file('test.jpg', "\xff\xd8")
+            @thing.save.should be_true
+            @thing.photo_updated_at.should == Time.now
+          end
+        end
       end
     end
   end
