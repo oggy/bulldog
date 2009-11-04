@@ -102,7 +102,13 @@ module Bulldog
       def interpolate_path(style_name)
         template = reflection.path_template
         style = reflection.styles[style_name]
-        Interpolation.interpolate(template, record, name, style)
+        path = Interpolation.interpolate(template, record, name, style)
+
+        # if a style format is given, override the extension
+        if style[:format]
+          path.sub!(%r'\.[^/.]*$', ".#{style[:format]}")  #'
+        end
+        path
       end
 
       #

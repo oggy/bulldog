@@ -17,6 +17,7 @@ describe Attachment::Base do
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:id.:style.jpg"
       style :small, {}
+      style :png, :format => :png
     end
 
     def original_path
@@ -27,11 +28,21 @@ describe Attachment::Base do
       "#{temporary_directory}/#{@thing.id}.small.jpg"
     end
 
+    def png_path
+      "#{temporary_directory}/#{@thing.id}.png.png"
+    end
+
     it "should return the path of the given style, interpolated from the path template" do
       @thing.photo = uploaded_file('test.jpg', '')
       @thing.stubs(:id).returns(5)
       @thing.photo.path(:original).should == original_path
       @thing.photo.path(:small).should == small_path
+    end
+
+    it "should override the file extension for generated styles if a style format is set" do
+      @thing.photo = uploaded_file('test.jpg', '')
+      @thing.photo.path(:original).should == original_path
+      @thing.photo.path(:png).should == png_path
     end
 
     describe "when no style is given" do
