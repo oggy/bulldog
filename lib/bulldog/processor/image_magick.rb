@@ -65,9 +65,13 @@ module Bulldog
       end
 
       def thumbnail
-        operate '-resize', "#{style[:size]}^"
-        operate '-gravity', 'Center'
-        operate '-crop', "#{style[:size]}+0+0"
+        if style[:filled]
+          operate '-resize', "#{style[:size]}^"
+          operate '-gravity', 'Center'
+          operate '-crop', "#{style[:size]}+0+0"
+        else
+          operate '-resize', "#{style[:size]}"
+        end
       end
 
       private  # -----------------------------------------------------

@@ -134,12 +134,24 @@ describe Processor::ImageMagick do
   end
 
   describe "#thumbnail" do
-    it "should resize, and crop off the edges" do
-      style :small, :size => '10x10', :path => '/tmp/small.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -resize 10x10\\^ " +
-        "-gravity Center -crop 10x10\\+0\\+0 /tmp/small.jpg").returns('')
-      process do
-        thumbnail
+    describe "for filled styles" do
+      it "should resize the image to fill the rectangle of the specified size and crop off the edges" do
+        style :small, :size => '10x10', :path => '/tmp/small.jpg', :filled => true
+        Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -resize 10x10\\^ " +
+          "-gravity Center -crop 10x10\\+0\\+0 /tmp/small.jpg").returns('')
+        process do
+          thumbnail
+        end
+      end
+    end
+
+    describe "for unfilled styles" do
+      it "should resize the image to fit inside the specified box size" do
+        style :small, :size => '10x10', :path => '/tmp/small.jpg'
+        Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -resize 10x10 /tmp/small.jpg").returns('')
+        process do
+          thumbnail
+        end
       end
     end
   end
