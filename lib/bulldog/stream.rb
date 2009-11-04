@@ -44,6 +44,13 @@ module Bulldog
       end
 
       #
+      # Return true if this stream represents a missing file.
+      #
+      def missing?
+        false
+      end
+
+      #
       # Return the original file name of the underlying object.  This
       # is the basename of the file as the user uploaded it (for an
       # uploaded file), or the file on the filesystem (for a File
@@ -116,6 +123,10 @@ module Bulldog
     end
 
     class ForMissingFile < Base
+      def missing?
+        true
+      end
+
       delegate :file_name, :to => :target
 
       def content_type

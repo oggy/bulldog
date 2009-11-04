@@ -25,6 +25,18 @@ describe Attachment::Image do
   end
 
   describe "#dimensions" do
+    it "should return 1x1 if the style is missing" do
+      Thing.attachment_reflections[:photo].configure do
+        when_file_missing do
+          use_attachment(:image)
+        end
+      end
+      @thing.save.should be_true
+      File.unlink(@thing.photo.path(:original))
+      @thing = Thing.find(@thing.id)
+      @thing.photo.dimensions(:original).should == [1, 1]
+    end
+
     it "should return the width and height of the default style if no style name is given" do
       @thing.photo.dimensions.should == [80, 60]
     end

@@ -41,7 +41,11 @@ module Bulldog
       #
       def dimensions(style_name)
         if style_name.equal?(:original)
-          `identify -format "%w %h" #{stream.path} 2> /dev/null`.scan(/\d+/).map(&:to_i)
+          if stream.missing?
+            [1, 1]
+          else
+            `identify -format "%w %h" #{stream.path} 2> /dev/null`.scan(/\d+/).map(&:to_i)
+          end
         else
           style = reflection.styles[style_name]
           box_size = style[:size].split(/x/).map(&:to_i)
