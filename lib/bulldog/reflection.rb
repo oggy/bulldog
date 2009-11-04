@@ -12,11 +12,21 @@ module Bulldog
       @events = Hash.new{|h,k| h[k] = []}
       @file_missing_callback = nil
 
-      Configuration.configure(self, &block) if block
+      configure(&block)
     end
 
     attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes, :file_missing_callback
     attr_writer :default_style, :path_template, :url_template
+
+    #
+    # Append the given block to this attachment's configuration.
+    #
+    # Using this, you may specialize an attachment's configuration in
+    # a piecemeal fashion; for subclassing, for example.
+    #
+    def configure(&block)
+      Configuration.configure(self, &block) if block
+    end
 
     def default_style
       styles[@default_style] or

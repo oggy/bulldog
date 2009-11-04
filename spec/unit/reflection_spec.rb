@@ -13,6 +13,29 @@ describe Reflection do
     Thing.attachment_reflections[:photo]
   end
 
+  describe "#configure" do
+    it "should append the configuration to any existing configuration" do
+      Thing.has_attachment :photo do
+        path "/custom/path"
+      end
+      Thing.attachment_reflections[:photo].configure do
+        url "/custom/url"
+      end
+      reflection.path_template.should == "/custom/path"
+      reflection.url_template.should == "/custom/url"
+    end
+
+    it "should overwrite any configuration items specified in later blocks" do
+      Thing.has_attachment :photo do
+        path "/custom/path"
+      end
+      Thing.has_attachment :photo do
+        path "/new/custom/path"
+      end
+      reflection.path_template.should == "/new/custom/path"
+    end
+  end
+
   describe "#path_template" do
     describe "when a path has been confired for the attachment" do
       before do
