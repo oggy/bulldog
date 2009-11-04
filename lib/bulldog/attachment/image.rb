@@ -44,7 +44,8 @@ module Bulldog
           if stream.missing?
             [1, 1]
           else
-            `identify -format "%w %h" #{stream.path} 2> /dev/null`.scan(/\d+/).map(&:to_i)
+            identify
+            @dimensions[style_name]
           end
         else
           style = reflection.styles[style_name]
@@ -80,6 +81,8 @@ module Bulldog
         :image_magick
       end
 
+      private  # -----------------------------------------------------
+
       def serialize_dimensions(dimensions)
         return nil if dimensions.blank?
         dimensions.join('x')
@@ -88,6 +91,30 @@ module Bulldog
       def deserialize_dimensions(string)
         return nil if string.blank?
         string.scan(/\d+/).map(&:to_i)
+      end
+
+      #
+      # Read the original image metadata with ImageMagick's identify
+      # command.
+      #
+      def identify
+        return if identified?
+        @identified = true
+
+        output = `identify -format "%w %h %[exif:Orientation]" #{stream.path} 2> /dev/null`
+        if $?.success?
+          width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map(&:to_i)
+          rotated = (orientation & 0x4).nonzero?
+          dimensions ||= rotated ? [height, width] : [width, height]
+        else
+          Bulldog.logger.warn "command failed (#{$?.exitstatus})"
+          dimensions = [1, 1]
+        end
+        memoized_dimensions[:original] = dimensions
+      end
+
+      def identified?
+        @identified
       end
     end
   end

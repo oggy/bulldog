@@ -51,6 +51,16 @@ describe Attachment::Image do
       @thing.photo.dimensions(:unfilled).should == [120, 90]
     end
 
+    it "should honor the exif:Orientation header" do
+      path = create_image('test.jpg', :size => '40x30')
+      rotated_path = "#{temporary_directory}/rotated-test.jpg"
+      `exif --create-exif --ifd=EXIF --tag=Orientation --set-value=4 --output=#{rotated_path} #{path} 2>&1`
+      open(rotated_path) do |file|
+        @thing.photo = file
+        @thing.photo.dimensions(:original).should == [30, 40]
+      end
+    end
+
     it "should only invoke identify once"
     it "should log the result"
   end

@@ -160,14 +160,17 @@ module Bulldog
 
         if options[:memoize]
           if options[:per_style]
-            class_eval <<-EOS
+            class_eval <<-EOS, __FILE__, __LINE__+1
               def #{name}_with_memoization(style_name=nil)
                 style_name ||= reflection.default_style
-                (@#{name} ||= {})[style_name] ||= #{name}_without_memoization(style_name)
+                memoized_#{name}[style_name] ||= #{name}_without_memoization(style_name)
+              end
+              def memoized_#{name}
+                @#{name} ||= {}
               end
             EOS
           else
-            class_eval <<-EOS
+            class_eval <<-EOS, __FILE__, __LINE__+1
               def #{name}_with_memoization
                 @#{name} ||= #{name}_without_memoization
               end
