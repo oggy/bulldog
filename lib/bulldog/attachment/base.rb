@@ -23,10 +23,17 @@ module Bulldog
         end
       end
 
+      #
+      # Return the path on the file system where the given style's
+      # image is to be stored.
+      #
       def path(style_name = reflection.default_style)
         interpolate_path(style_name)
       end
 
+      #
+      # Return the URL where the given style's image is to be found.
+      #
       def url(style_name = reflection.default_style)
         interpolate_url(style_name)
       end

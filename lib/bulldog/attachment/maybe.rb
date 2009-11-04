@@ -51,7 +51,7 @@ module Bulldog
       def set_stored_attributes
         storable_attributes.each do |name, storable_attribute|
           if (column_name = reflection.column_name_for_stored_attribute(name))
-            value = storable_attribute.value_for(self)
+            value = storable_attribute.value_for(self, :original)
             record.send("#{column_name}=", value)
           end
         end
@@ -77,7 +77,14 @@ module Bulldog
           if (column_name = reflection.column_name_for_stored_attribute(name))
             value = record.send(column_name)
             value = send("deserialize_#{name}", value) if storable_attribute.cast
-            instance_variable_set("@#{name}", value)
+            ivar = :"@#{name}"
+            if storable_attribute.per_style?
+              instance_variable_get(ivar) or
+                instance_variable_set(ivar, {})
+              instance_variable_get(ivar)[name] = value
+            else
+              instance_variable_set(ivar, value)
+            end
           end
         end
       end
@@ -122,10 +129,46 @@ module Bulldog
       # Declare the given attribute as storable via
       # Bulldog::Reflection::Configuration#store_attributes.
       #
+      # Options:
+      #
+      #  * <tt>:per_style</tt> - the attribute has a different value
+      #    for each style.  The access method takes a style name as an
+      #    argument to select which one to return, and defaults to the
+      #    attribute's default_style.  Only :original is stored, and
+      #    loaded after reading.
+      #
+      #  * <tt>:memoize</tt> - memoize the value.
+      #
+      #  * <tt>:cast</tt> - run the value through a serialize method
+      #    before storing it in the database, and an unserialize
+      #    method before initializing the attribute from the raw
+      #    database value.  The methods must be called
+      #    #serialize_ATTRIBUTE and #unserialize_ATTRIBUTE.
+      #
       def self.storable_attribute(name, options={}, &block)
-        storable_attributes[name] = StorableAttribute.new(:name => name,
-                                                          :callback => block || name,
-                                                          :cast => options[:cast])
+        params = {
+          :name => name,
+          :callback => block || name,
+        }.merge(options)
+        storable_attributes[name] = StorableAttribute.new(params)
+
+        if options[:memoize]
+          if options[:per_style]
+            class_eval <<-EOS
+              def #{name}_with_memoization(style_name=nil)
+                style_name ||= reflection.default_style
+                (@#{name} ||= {})[style_name] ||= #{name}_without_memoization(style_name)
+              end
+            EOS
+          else
+            class_eval <<-EOS
+              def #{name}_with_memoization
+                @#{name} ||= #{name}_without_memoization
+              end
+            EOS
+          end
+          alias_method_chain name, :memoization
+        end
       end
 
       #
@@ -141,18 +184,26 @@ module Bulldog
           end
         end
 
-        def value_for(attachment)
+        def value_for(attachment, style_name)
           value =
             if callback.is_a?(Proc)
               callback.call(attachment)
             else
-              attachment.send(callback)
+              if per_style?
+                attachment.send(callback, style_name)
+              else
+                attachment.send(callback)
+              end
             end
           value = attachment.send("serialize_#{name}", value) if cast
           value
         end
 
-        attr_accessor :name, :cast, :callback
+        attr_accessor :name, :callback, :per_style, :memoize, :cast
+
+        alias cast? cast
+        alias per_style? per_style
+        alias memoize? memoize
       end
 
       #
