@@ -122,7 +122,7 @@ module Bulldog
           raise "cannot infer url from path - please set the #url for the :#{name} attachment"
         end
         style = reflection.styles[style_name]
-        Interpolation.interpolate(template, record, name, style)
+        Interpolation.interpolate(template, record, name, style, :extension => style[:format])
       end
 
       #

@@ -53,7 +53,7 @@ describe Attachment::Base do
       it "should use the extension of the original file for the original style" do
         @thing.photo.path(:original).should == "#{temporary_directory}/#{@thing.id}.original.jpg"
       end
-      it "should use the format of the output file for other files" do
+      it "should use the format of the output file for other styles" do
         @thing.photo.path(:png).should == "#{temporary_directory}/#{@thing.id}.png.png"
       end
     end
@@ -83,7 +83,7 @@ describe Attachment::Base do
         default_style :small
       end
 
-      it "should default to the default_style" do
+      it "should default to the attachment's default style" do
         @thing.stubs(:id).returns(5)
         @thing.photo = uploaded_file('test.jpg', '')
         @thing.photo.path.should == "/tmp/5.small.jpg"
@@ -92,20 +92,59 @@ describe Attachment::Base do
   end
 
   describe "#url" do
-    set_up_model_class :Thing
+    set_up_model_class :Thing do |t|
+      t.string :photo_file_name
+    end
 
-    describe "when a style is given" do
-      configure_attachment do
-        path "/tmp/:id.:style.jpg"
-        url "/assets/:id.:style.jpg"
-        style :small, {}
+    configure_attachment do
+      path "/tmp/:id.:style.jpg"
+      url "/assets/:id.:style.jpg"
+      style :small
+      style :png, :format => :png
+    end
+
+    it "should return the url of the given style, interpolated from the url template" do
+      @thing.photo = uploaded_file('test.jpg', '')
+      @thing.stubs(:id).returns(5)
+      @thing.photo.url(:original).should == "/assets/5.original.jpg"
+      @thing.photo.url(:small).should == "/assets/5.small.jpg"
+    end
+
+    describe "when the :extension interpolation key is used" do
+      before do
+        spec = self
+        Thing.attachment_reflections[:photo].configure do
+          path "/tmp/:id.:style.:extension"
+          url "/assets/:id.:style.:extension"
+        end
+        @thing.photo = uploaded_file('test.jpg', '')
       end
 
-      it "should return the url of the given style, interpolated from the url template" do
+      it "should use the extension of the original file for the original style" do
+        @thing.photo.url(:original).should == "/assets/#{@thing.id}.original.jpg"
+      end
+
+      it "should use the format of the output file for the other styles" do
+        @thing.photo.url(:png).should == "/assets/#{@thing.id}.png.png"
+      end
+    end
+
+    describe "when the :extension interpolation key is not used" do
+      before do
+        spec = self
+        Thing.attachment_reflections[:photo].configure do
+          path "/tmp/:id.:style.xyz"
+          url "/assets/:id.:style.xyz"
+        end
         @thing.photo = uploaded_file('test.jpg', '')
-        @thing.stubs(:id).returns(5)
-        @thing.photo.url(:original).should == "/assets/5.original.jpg"
-        @thing.photo.url(:small).should == "/assets/5.small.jpg"
+      end
+
+      it "should use the extension of the url template for the original style" do
+        @thing.photo.url(:original).should == "/assets/#{@thing.id}.original.xyz"
+      end
+
+      it "should use the extension of the url template for the other styles" do
+        @thing.photo.url(:png).should == "/assets/#{@thing.id}.png.xyz"
       end
     end
 
@@ -116,7 +155,7 @@ describe Attachment::Base do
         default_style :small
       end
 
-      it "should default to the default_style" do
+      it "should default to the attachment's default style" do
         @thing.stubs(:id).returns(5)
         @thing.photo = uploaded_file('test.jpg', '')
         @thing.photo.url.should == "/assets/5.small.jpg"
