@@ -156,6 +156,26 @@ describe Processor::ImageMagick do
     end
   end
 
+  describe "#rotate" do
+    it "should rotate the image by the given angle" do
+      style :rotated, :path => '/tmp/rotated.jpg'
+      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -rotate 90 /tmp/rotated.jpg").returns('')
+      process do
+        rotate(90)
+      end
+    end
+  end
+
+  describe "#crop" do
+    it "should crop the image by the given size and origin" do
+      style :cropped, :path => '/tmp/cropped.jpg'
+      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -crop 10x20\\+30-40 /tmp/cropped.jpg").returns('')
+      process do
+        crop(:size => '10x20', :origin => '30,-40')
+      end
+    end
+  end
+
   it "should extract a common prefix if there are multiple styles which start with the same operations" do
     Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -auto-orient " +
       "\\( \\+clone -resize 100x100 -write /tmp/big.jpg \\+delete \\) -resize 40x40 /tmp/small.jpg").returns('')

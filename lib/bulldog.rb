@@ -10,6 +10,7 @@ require 'bulldog/saved_file'
 require 'bulldog/missing_file'
 require 'bulldog/processor'
 require 'bulldog/stream'
+require 'bulldog/vector2'
 
 module Bulldog
   class << self

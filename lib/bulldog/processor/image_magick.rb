@@ -64,6 +64,14 @@ module Bulldog
         operate '-flop'
       end
 
+      def rotate(angle)
+        operate '-rotate', angle.to_s
+      end
+
+      def crop(params)
+        operate '-crop', geometry(params[:size], params[:origin])
+      end
+
       def thumbnail
         if style[:filled]
           operate '-resize', "#{style[:size]}^"
@@ -75,6 +83,16 @@ module Bulldog
       end
 
       private  # -----------------------------------------------------
+
+      def geometry(size, origin=nil)
+        size = Vector2.new(size)
+        geometry = '%dx%d' % [size.x, size.y]
+        if origin
+          origin = Vector2.new(origin)
+          geometry << ('%+d%+d' % [origin.x, origin.y])
+        end
+        geometry
+      end
 
       def operate(*arguments, &block)
         @tree.add(style, arguments, &block)
