@@ -159,9 +159,27 @@ describe Processor::ImageMagick do
   describe "#rotate" do
     it "should rotate the image by the given angle" do
       style :rotated, :path => '/tmp/rotated.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -rotate 90 /tmp/rotated.jpg").returns('')
+      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -rotate 90 -rotate 90 /tmp/rotated.jpg").returns('')
       process do
         rotate(90)
+        rotate('90')
+      end
+    end
+
+    it "should not perform any rotation if the given angle is zero" do
+      style :rotated, :path => '/tmp/rotated.jpg'
+      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg /tmp/rotated.jpg").returns('')
+      process do
+        rotate(0)
+        rotate('0')
+      end
+    end
+
+    it "should not perform any rotation if the given angle is blank" do
+      style :rotated, :path => '/tmp/rotated.jpg'
+      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg /tmp/rotated.jpg").returns('')
+      process do
+        rotate('')
       end
     end
   end

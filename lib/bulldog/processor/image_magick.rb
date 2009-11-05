@@ -65,7 +65,9 @@ module Bulldog
       end
 
       def rotate(angle)
-        operate '-rotate', angle.to_s
+        unless angle.to_i.zero?
+          operate '-rotate', angle.to_s
+        end
       end
 
       def crop(params)
