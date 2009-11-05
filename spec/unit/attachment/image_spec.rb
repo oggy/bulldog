@@ -58,7 +58,7 @@ describe Attachment::Image do
     end
 
     it "should honor the exif:Orientation header" do
-      path = create_image('test.jpg', :size => '40x30')
+      path = create_image("#{temporary_directory}/test.jpg", :size => '40x30')
       rotated_path = "#{temporary_directory}/rotated-test.jpg"
       run "exif --create-exif --ifd=EXIF --tag=Orientation --set-value=4 --output=#{rotated_path} #{path}"
       open(rotated_path) do |file|
