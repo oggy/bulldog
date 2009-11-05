@@ -72,6 +72,7 @@ module Bulldog
 
       def crop(params)
         operate '-crop', geometry(params[:size], params[:origin])
+        operate '+repage'
       end
 
       def thumbnail
@@ -79,6 +80,7 @@ module Bulldog
           operate '-resize', "#{style[:size]}^"
           operate '-gravity', 'Center'
           operate '-crop', "#{style[:size]}+0+0"
+          operate '+repage'
         else
           operate '-resize', "#{style[:size]}"
         end

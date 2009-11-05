@@ -138,7 +138,7 @@ describe Processor::ImageMagick do
       it "should resize the image to fill the rectangle of the specified size and crop off the edges" do
         style :small, :size => '10x10', :path => '/tmp/small.jpg', :filled => true
         Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -resize 10x10\\^ " +
-          "-gravity Center -crop 10x10\\+0\\+0 /tmp/small.jpg").returns('')
+          "-gravity Center -crop 10x10\\+0\\+0 \\+repage /tmp/small.jpg").returns('')
         process do
           thumbnail
         end
@@ -185,9 +185,9 @@ describe Processor::ImageMagick do
   end
 
   describe "#crop" do
-    it "should crop the image by the given size and origin" do
+    it "should crop the image by the given size and origin, and repage" do
       style :cropped, :path => '/tmp/cropped.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -crop 10x20\\+30-40 /tmp/cropped.jpg").returns('')
+      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -crop 10x20\\+30-40 \\+repage /tmp/cropped.jpg").returns('')
       process do
         crop(:size => '10x20', :origin => '30,-40')
       end
