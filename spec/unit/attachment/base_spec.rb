@@ -12,7 +12,9 @@ describe Attachment::Base do
   end
 
   describe "#path" do
-    set_up_model_class :Thing
+    set_up_model_class :Thing do |t|
+      t.string :photo_file_name
+    end
 
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:id.:style.jpg"
@@ -39,10 +41,39 @@ describe Attachment::Base do
       @thing.photo.path(:small).should == small_path
     end
 
-    it "should override the file extension for generated styles if a style format is set" do
-      @thing.photo = uploaded_file('test.jpg', '')
-      @thing.photo.path(:original).should == original_path
-      @thing.photo.path(:png).should == png_path
+    describe "when the :extension interpolation key is used" do
+      before do
+        spec = self
+        Thing.attachment_reflections[:photo].configure do
+          path "#{spec.temporary_directory}/:id.:style.:extension"
+        end
+        @thing.photo = uploaded_file('test.jpg', '')
+      end
+
+      it "should use the extension of the original file for the original style" do
+        @thing.photo.path(:original).should == "#{temporary_directory}/#{@thing.id}.original.jpg"
+      end
+      it "should use the format of the output file for other files" do
+        @thing.photo.path(:png).should == "#{temporary_directory}/#{@thing.id}.png.png"
+      end
+    end
+
+    describe "when the :extension interpolation key is not used" do
+      before do
+        spec = self
+        Thing.attachment_reflections[:photo].configure do
+          path "#{spec.temporary_directory}/:id.:style.xyz"
+        end
+        @thing.photo = uploaded_file('test.jpg', '')
+      end
+
+      it "should use the extension of the path template for the original style" do
+        @thing.photo.path(:original).should == "#{temporary_directory}/#{@thing.id}.original.xyz"
+      end
+
+      it "should use the extension of the path template for other styles" do
+        @thing.photo.path(:png).should == "#{temporary_directory}/#{@thing.id}.png.xyz"
+      end
     end
 
     describe "when no style is given" do

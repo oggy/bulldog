@@ -2,10 +2,12 @@ module Bulldog
   module Interpolation
     InterpolationError = Class.new(Error)
 
-    def self.interpolate(template, record, name, style)
+    def self.interpolate(template, record, name, style, overrides={})
       template.gsub(/:(?:(\w+)|\{(\w+?)\})/) do
-        key = $1 || $2
-        if @interpolations.key?(key)
+        key = ($1 || $2).to_sym
+        if (override = overrides[key])
+          override
+        elsif @interpolations.key?(key)
           @interpolations[key].call(record, name, style)
         else
           raise InterpolationError, "no such interpolation key: #{key}"
@@ -14,7 +16,7 @@ module Bulldog
     end
 
     def self.define_interpolation(key, &substitution)
-      @interpolations[key.to_s] = substitution
+      @interpolations[key] = substitution
     end
     @interpolations = {}
 

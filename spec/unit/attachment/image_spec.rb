@@ -24,6 +24,12 @@ describe Attachment::Image do
     SavedFile.new(image_path)
   end
 
+  def run(command)
+    `#{command}`
+    $?.success? or
+      raise "command failed: #{command}"
+  end
+
   describe "#dimensions" do
     it "should return 1x1 if the style is missing" do
       Thing.attachment_reflections[:photo].configure do
@@ -54,7 +60,7 @@ describe Attachment::Image do
     it "should honor the exif:Orientation header" do
       path = create_image('test.jpg', :size => '40x30')
       rotated_path = "#{temporary_directory}/rotated-test.jpg"
-      `exif --create-exif --ifd=EXIF --tag=Orientation --set-value=4 --output=#{rotated_path} #{path} 2>&1`
+      run "exif --create-exif --ifd=EXIF --tag=Orientation --set-value=4 --output=#{rotated_path} #{path}"
       open(rotated_path) do |file|
         @thing.photo = file
         @thing.photo.dimensions(:original).should == [30, 40]
