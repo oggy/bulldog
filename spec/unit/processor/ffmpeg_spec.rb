@@ -61,6 +61,18 @@ describe Processor::Ffmpeg do
         process
       end
 
+      it "should interpret 400x300 as the video size" do
+        style :one, :video => '400x300'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '400x300', 'OUTPUT.avi')
+        process
+      end
+
+      it "should interpret 400X300 as the video size" do
+        style :one, :video => '400X300'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '400x300', 'OUTPUT.avi')
+        process
+      end
+
       it "should interpret any other word as a video codec" do
         style :one, :video => 'libx264'
         Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vcodec', 'libx264', 'OUTPUT.avi')
@@ -70,6 +82,14 @@ describe Processor::Ffmpeg do
       it "should combine multiple attributes of the video stream as given" do
         style :one, :video => 'libx264 30fps 628kbps'
         Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vcodec', 'libx264', '-r', '30', '-b', '628k', 'OUTPUT.avi')
+        process
+      end
+    end
+
+    describe "size" do
+      it "should set the video size" do
+        style :one, :size => '400x300'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '400x300', 'OUTPUT.avi')
         process
       end
     end

@@ -37,6 +37,7 @@ module Bulldog
       def add_style_options
         add_video_options(style[:video])
         add_audio_options(style[:audio])
+        style_option '-s', style[:size]
         style_option '-ac', style[:num_channels]
         operate '-deinterlace' if style[:deinterlaced]
         style_option '-pix_fmt', style[:pixel_format]
@@ -52,6 +53,8 @@ module Bulldog
             operate '-r', $`
           when /bps\z/i
             operate '-b', $`
+          when /\A(\d+)x(\d+)\z/i
+            operate '-s', "#$1x#$2"
           else
             operate '-vcodec', word
           end
@@ -72,8 +75,8 @@ module Bulldog
         end
       end
 
-      def style_option(*args)
-        operate(*args) if args.all?
+      def style_option(option, *args)
+        operate(option, *args) if args.all?
       end
 
       def run_ffmpeg
