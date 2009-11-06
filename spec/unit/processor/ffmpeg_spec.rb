@@ -8,7 +8,7 @@ describe Processor::Ffmpeg do
 
   use_temporary_attribute_value Processor::Ffmpeg, :ffmpeg_command, 'FFMPEG'
 
-  def style(name, attributes)
+  def style(name, attributes={})
     @styles << Style.new(name, attributes)
   end
 
@@ -16,7 +16,7 @@ describe Processor::Ffmpeg do
     attachment = Object.new
     styles = @styles
     (class << attachment; self; end).class_eval do
-      define_method(:path){|style_name| styles[style_name][:path]}
+      define_method(:path){|style_name| 'OUTPUT.avi'}
     end
     attachment
   end
@@ -27,17 +27,131 @@ describe Processor::Ffmpeg do
 
   describe "when a simple conversion is performed" do
     before do
-      style :x, {:path => '/tmp/x.mp4'}
+      style :one
     end
 
     it "should run ffmpeg" do
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '/tmp/x.mp4')
+      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', 'OUTPUT.avi')
       process
     end
 
     it "should log the command run" do
-      Bulldog.logger.expects(:info).with('Running: "FFMPEG" "-i" "INPUT.avi" "/tmp/x.mp4"')
+      Bulldog.logger.expects(:info).with('Running: "FFMPEG" "-i" "INPUT.avi" "OUTPUT.avi"')
       process
+    end
+  end
+
+  describe "style attributes" do
+    describe "video" do
+      it "should interpret '30fps' as a frame rate of 30fps" do
+        style :one, :video => '30fps'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-r', '30', 'OUTPUT.avi')
+        process
+      end
+
+      it "should interpret '30FPS' as a frame rate of 30fps" do
+        style :one, :video => '30FPS'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-r', '30', 'OUTPUT.avi')
+        process
+      end
+
+      it "should interpret 628kbps as a video bit rate of 628kbps" do
+        style :one, :video => '628kbps'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-b', '628k', 'OUTPUT.avi')
+        process
+      end
+
+      it "should interpret any other word as a video codec" do
+        style :one, :video => 'libx264'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vcodec', 'libx264', 'OUTPUT.avi')
+        process
+      end
+
+      it "should combine multiple attributes of the video stream as given" do
+        style :one, :video => 'libx264 30fps 628kbps'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vcodec', 'libx264', '-r', '30', '-b', '628k', 'OUTPUT.avi')
+        process
+      end
+    end
+
+    describe "audio" do
+      it "should interpret '44100Hz' as a sampling frequency of 44100Hz" do
+        style :one, :audio => '44100Hz'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-ar', '44100', 'OUTPUT.avi')
+        process
+      end
+
+      it "should interpret '44100hz' as a sampling frequency of 44100Hz" do
+        style :one, :audio => '44100hz'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-ar', '44100', 'OUTPUT.avi')
+        process
+      end
+
+      it "should interpret '64kbps' as a sampling frequency of 64kbps" do
+        style :one, :audio => '64kbps'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-ab', '64k', 'OUTPUT.avi')
+        process
+      end
+
+      it "should interpret any other word as an audio codec" do
+        style :one, :audio => 'libfaac'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-acodec', 'libfaac', 'OUTPUT.avi')
+        process
+      end
+
+      it "should combine multiple attributes of the audio stream as given" do
+        style :one, :audio => 'libfaac 44100Hz 64kbps'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-acodec', 'libfaac', '-ar', '44100', '-ab', '64k', 'OUTPUT.avi')
+        process
+      end
+    end
+
+    describe "num_channels" do
+      it "should set the number of channels" do
+        style :one, :num_channels => 2
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-ac', '2', 'OUTPUT.avi')
+        process
+      end
+    end
+
+    describe "deinterlaced" do
+      it "should set the deinterlace flag" do
+        style :one, :deinterlaced => true
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-deinterlace', 'OUTPUT.avi')
+        process
+      end
+    end
+
+    describe "pixel_format" do
+      it "should set the pixel format" do
+        style :one, :pixel_format => 'yuv420p'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-pix_fmt', 'yuv420p', 'OUTPUT.avi')
+        process
+      end
+    end
+
+    describe "b_strategy" do
+      it "should set the b-strategy" do
+        style :one, :b_strategy => 1
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-b_strategy', '1', 'OUTPUT.avi')
+        process
+      end
+    end
+
+    describe "buffer_size" do
+      it "should set the video buffer verifier buffer size" do
+        style :one, :buffer_size => '2M'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-bufsize', '2M', 'OUTPUT.avi')
+        process
+      end
+    end
+  end
+
+  describe "#use_threads" do
+    it "should set the number of threads" do
+      style :one
+      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-threads', '2', 'OUTPUT.avi')
+      process{use_threads 2}
     end
   end
 end

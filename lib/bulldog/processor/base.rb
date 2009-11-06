@@ -59,16 +59,12 @@ module Bulldog
       #
       def process(*args, &block)
         return if styles.empty?
-        if block_given?
-          styles.each do |style|
-            @style = style
-            begin
-              # Avoid #instance_exec if possible for ruby 1.8.
-              evaluator = args.empty? ? :instance_eval : :instance_exec
-              send(evaluator, *args, &block)
-            ensure
-              @style = nil
-            end
+        styles.each do |style|
+          @style = style
+          begin
+            process_style(*args, &block)
+          ensure
+            @style = nil
           end
         end
       end
@@ -92,6 +88,18 @@ module Bulldog
           end
         end
         nil
+      end
+
+      #
+      # Run the given block with #style set to one of the styles to
+      # process.
+      #
+      # This is called by #process for each output style.
+      #
+      def process_style(*args, &block)
+        # Avoid #instance_exec if possible for ruby 1.8.
+        evaluator = args.empty? ? :instance_eval : :instance_exec
+        send(evaluator, *args, &block) if block
       end
 
       def log(level, message)

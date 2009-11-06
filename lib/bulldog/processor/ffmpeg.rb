@@ -7,33 +7,84 @@ module Bulldog
 
       self.ffmpeg_command = find_in_path('ffmpeg')
 
+      def initialize(*args)
+        super
+        @arguments = {}
+        styles.each{|s| @arguments[s] = []}
+      end
+
       def process(*args)
-        initialize_style_lists
+        return if styles.empty?
         super
         run_ffmpeg
       end
 
+      def process_style(*args)
+        super
+        add_style_options
+      end
+
+      def use_threads(num_threads)
+        operate '-threads', num_threads
+      end
+
       private  # -----------------------------------------------------
 
-      def initialize_style_lists
-        @style_lists = {}
-        styles.each do |style|
-          @style_lists[style.name] = StyleData.new([], [])
+      def operate(*args)
+        @arguments[style].concat args.map(&:to_s)
+      end
+
+      def add_style_options
+        add_video_options(style[:video])
+        add_audio_options(style[:audio])
+        style_option '-ac', style[:num_channels]
+        operate '-deinterlace' if style[:deinterlaced]
+        style_option '-pix_fmt', style[:pixel_format]
+        style_option '-b_strategy', style[:b_strategy]
+        style_option '-bufsize', style[:buffer_size]
+      end
+
+      def add_video_options(spec)
+        return if spec.blank?
+        spec.split.each do |word|
+          case word
+          when /fps\z/i
+            operate '-r', $`
+          when /bps\z/i
+            operate '-b', $`
+          else
+            operate '-vcodec', word
+          end
         end
       end
 
+      def add_audio_options(spec)
+        return if spec.blank?
+        spec.split.each do |word|
+          case word
+          when /hz\z/i
+            operate '-ar', $`
+          when /bps\z/i
+            operate '-ab', $`
+          else
+            operate '-acodec', word
+          end
+        end
+      end
+
+      def style_option(*args)
+        operate(*args) if args.all?
+      end
+
       def run_ffmpeg
-        @style_lists.each do |name, data|
+        @arguments.each do |style, arguments|
           command = [self.class.ffmpeg_command]
-          command.concat data.infile_options
           command << '-i' << input_file
-          command.concat data.outfile_options
-          command << output_file(name)
+          command.concat(arguments)
+          command << output_file(style.name)
           run_command(*command)
         end
       end
     end
   end
-
-  StyleData = Struct.new(:infile_options, :outfile_options)
 end
