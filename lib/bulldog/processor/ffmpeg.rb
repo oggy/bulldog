@@ -42,6 +42,15 @@ module Bulldog
         style_option '-bufsize', params[:buffer_size]
       end
 
+      def record_frame(params={})
+        params = style.attributes.merge(params)
+        @operation = :record_frame
+        operate '-vframes', 1
+        operate '-ss', params[:position] || record.duration.to_i / 2
+        operate '-f', 'image2'
+        operate '-vcodec', params[:codec] || default_frame_codec
+      end
+
       private  # -----------------------------------------------------
 
       def operate(*args)
@@ -88,6 +97,18 @@ module Bulldog
 
       def style_option(option, *args)
         operate(option, *args) if args.all?
+      end
+
+      def default_frame_codec
+        case style.attributes[:format].to_s
+        when /jpe?g/i
+          'mjpeg'
+        when /png/i
+          'png'
+        else
+          format = style.attributes[:format]
+          raise ProcessingError, "no default codec for '#{format}' - please use :codec to specify"
+        end
       end
 
       def run_ffmpeg
