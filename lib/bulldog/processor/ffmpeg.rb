@@ -9,6 +9,7 @@ module Bulldog
 
       def initialize(*args)
         super
+        @operation = nil
         @arguments = {}
         styles.each{|s| @arguments[s] = []}
       end
@@ -21,11 +22,24 @@ module Bulldog
 
       def process_style(*args)
         super
-        add_style_options
+        run_default_operation
       end
 
       def use_threads(num_threads)
         operate '-threads', num_threads
+      end
+
+      def encode(params={})
+        params = style.attributes.merge(params)
+        @operation = :encode
+        add_video_options(params[:video])
+        add_audio_options(params[:audio])
+        style_option '-s', params[:size]
+        style_option '-ac', params[:num_channels]
+        operate '-deinterlace' if params[:deinterlaced]
+        style_option '-pix_fmt', params[:pixel_format]
+        style_option '-b_strategy', params[:b_strategy]
+        style_option '-bufsize', params[:buffer_size]
       end
 
       private  # -----------------------------------------------------
@@ -34,15 +48,8 @@ module Bulldog
         @arguments[style].concat args.map(&:to_s)
       end
 
-      def add_style_options
-        add_video_options(style[:video])
-        add_audio_options(style[:audio])
-        style_option '-s', style[:size]
-        style_option '-ac', style[:num_channels]
-        operate '-deinterlace' if style[:deinterlaced]
-        style_option '-pix_fmt', style[:pixel_format]
-        style_option '-b_strategy', style[:b_strategy]
-        style_option '-bufsize', style[:buffer_size]
+      def run_default_operation
+        encode if @operation.nil?
       end
 
       def add_video_options(spec)

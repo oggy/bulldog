@@ -41,6 +41,20 @@ describe Processor::Ffmpeg do
     end
   end
 
+  describe "#encode" do
+    it "should force an encode" do
+      style :one
+      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-y', 'OUTPUT.avi')
+      process{encode}
+    end
+
+    it "should allow overriding style attributes from parameters" do
+      style :one, :size => '400x300'
+      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '600x450', '-y', 'OUTPUT.avi')
+      process{encode(:size => '600x450')}
+    end
+  end
+
   describe "style attributes" do
     describe "video" do
       it "should interpret '30fps' as a frame rate of 30fps" do
