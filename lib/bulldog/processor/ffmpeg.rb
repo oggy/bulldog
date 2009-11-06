@@ -69,6 +69,10 @@ module Bulldog
             operate '-ar', $`
           when /bps\z/i
             operate '-ab', $`
+          when 'mono'
+            operate '-ac', '1'
+          when 'stereo'
+            operate '-ac', '2'
           else
             operate '-acodec', word
           end

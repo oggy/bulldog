@@ -86,14 +86,6 @@ describe Processor::Ffmpeg do
       end
     end
 
-    describe "size" do
-      it "should set the video size" do
-        style :one, :size => '400x300'
-        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '400x300', 'OUTPUT.avi')
-        process
-      end
-    end
-
     describe "audio" do
       it "should interpret '44100Hz' as a sampling frequency of 44100Hz" do
         style :one, :audio => '44100Hz'
@@ -113,6 +105,18 @@ describe Processor::Ffmpeg do
         process
       end
 
+      it "should interpret 'mono' as 1 channel" do
+        style :one, :audio => 'mono'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-ac', '1', 'OUTPUT.avi')
+        process
+      end
+
+      it "should interpret 'stereo' as 2 channels" do
+        style :one, :audio => 'stereo'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-ac', '2', 'OUTPUT.avi')
+        process
+      end
+
       it "should interpret any other word as an audio codec" do
         style :one, :audio => 'libfaac'
         Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-acodec', 'libfaac', 'OUTPUT.avi')
@@ -122,6 +126,14 @@ describe Processor::Ffmpeg do
       it "should combine multiple attributes of the audio stream as given" do
         style :one, :audio => 'libfaac 44100Hz 64kbps'
         Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-acodec', 'libfaac', '-ar', '44100', '-ab', '64k', 'OUTPUT.avi')
+        process
+      end
+    end
+
+    describe "size" do
+      it "should set the video size" do
+        style :one, :size => '400x300'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '400x300', 'OUTPUT.avi')
         process
       end
     end
