@@ -88,7 +88,7 @@ module Bulldog
           command = [self.class.ffmpeg_command]
           command << '-i' << input_file
           command.concat(arguments)
-          command << output_file(style.name)
+          command << '-y' << output_file(style.name)
           run_command(*command)
         end
       end
