@@ -52,18 +52,84 @@ describe Processor::Ffmpeg do
 
   describe "#record_frame" do
     before do
-      style :one, :format => 'png'
       @record.stubs(:duration).returns(20)
     end
 
-    it "should force a frame record" do
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
-      process{record_frame}
+    describe "when no attachment to assign to is given" do
+      it "should force a frame record" do
+        style :frame, :format => 'png'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
+        process{record_frame}
+      end
+
+      it "should allow overriding style attributes from parameters" do
+        style :frame, :position => 5
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '15', '-f', 'image2', '-vcodec', 'mjpeg', '-y', 'OUTPUT.avi')
+        process{record_frame(:position => 15, :codec => 'mjpeg')}
+      end
+
+      it "should yield the path to the block if one is given" do
+        frame_path = "#{temporary_directory}/frame.jpg"
+        @attachment.stubs(:path).returns(frame_path)
+        Kernel.expects(:system).once.returns(true)
+        spec = self
+        block_run = false
+        style :frame, :format => 'jpg', :path => frame_path
+        process do
+          record_frame do |path|
+            block_run = true
+            spec.instance_eval do
+              path.should == frame_path
+            end
+          end
+        end
+        block_run.should be_true
+      end
     end
 
-    it "should allow overriding style attributes from parameters" do
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'mjpeg', '-y', 'OUTPUT.avi')
-      process{record_frame(:position => 10, :codec => 'mjpeg')}
+    describe "when an attachment to assign to is given" do
+      before do
+        class << @record
+          attr_accessor :frame
+        end
+        @record.frame = mock
+        @record.frame.stubs(:interpolate_path).with(:original).returns(frame_path)
+      end
+
+      def frame_path
+        "#{temporary_directory}/frame.jpg"
+      end
+
+      it "should output the file to the specified attachment's original path" do
+        style :original
+        Kernel.expects(:system).with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'mjpeg', '-y', frame_path)
+        process do
+          record_frame(:format => 'jpg', :assign_to => :frame)
+        end
+      end
+
+      it "should assign the file to the specified attachment" do
+        style :original
+        process do
+          record_frame(:format => 'jpg', :assign_to => :frame)
+        end
+        @record.frame.should be_a(SavedFile)
+        @record.frame.path.should == frame_path
+      end
+
+      it "should still yield the path to any block passed, in the context of the processor" do
+        context = nil
+        argument = nil
+        style :original
+        process do
+          record_frame(:format => 'jpg', :assign_to => :frame) do |path|
+            context = self
+            argument = path
+          end
+        end
+        context.should be_a(Processor::Ffmpeg)
+        argument.should == frame_path
+      end
     end
   end
 

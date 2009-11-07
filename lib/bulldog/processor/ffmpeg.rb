@@ -10,14 +10,15 @@ module Bulldog
       def initialize(*args)
         super
         @operation = nil
-        @arguments = {}
-        styles.each{|s| @arguments[s] = []}
+        @arguments = style_list_map
+        @still_frame_callbacks = style_list_map
       end
 
       def process(*args)
         return if styles.empty?
         super
         run_ffmpeg
+        run_still_frame_callbacks
       end
 
       def process_style(*args)
@@ -30,8 +31,8 @@ module Bulldog
       end
 
       def encode(params={})
-        params = style.attributes.merge(params)
         @operation = :encode
+        params = style.attributes.merge(params)
         add_video_options(params[:video])
         add_audio_options(params[:audio])
         style_option '-s', params[:size]
@@ -40,18 +41,41 @@ module Bulldog
         style_option '-pix_fmt', params[:pixel_format]
         style_option '-b_strategy', params[:b_strategy]
         style_option '-bufsize', params[:buffer_size]
+        style_option '-y', output_file(style.name)
       end
 
-      def record_frame(params={})
-        params = style.attributes.merge(params)
+      def record_frame(params={}, &block)
         @operation = :record_frame
+        params = style.attributes.merge(params)
         operate '-vframes', 1
         operate '-ss', params[:position] || record.duration.to_i / 2
         operate '-f', 'image2'
-        operate '-vcodec', params[:codec] || default_frame_codec
+        operate '-vcodec', params[:codec] || default_frame_codec(params)
+
+        if (attribute = params[:assign_to])
+          output_path = record.send(attribute).interpolate_path(:original)
+          callback = lambda do |path|
+            file = SavedFile.new(path, :file_name => File.basename(path))
+            record.send("#{attribute}=", file)
+          end
+          @still_frame_callbacks[style] << [output_path, callback]
+        else
+          output_path = output_file(style.name)
+        end
+
+        operate '-y', output_path
+        if block
+          @still_frame_callbacks[style] << [output_path, block]
+        end
       end
 
       private  # -----------------------------------------------------
+
+      def style_list_map
+        hash = {}
+        styles.each{|s| hash[s] = []}
+        hash
+      end
 
       def operate(*args)
         @arguments[style].concat args.map(&:to_s)
@@ -99,14 +123,14 @@ module Bulldog
         operate(option, *args) if args.all?
       end
 
-      def default_frame_codec
-        case style.attributes[:format].to_s
+      def default_frame_codec(params)
+        case params[:format].to_s
         when /jpe?g/i
           'mjpeg'
         when /png/i
           'png'
         else
-          format = style.attributes[:format]
+          format = params[:format]
           raise ProcessingError, "no default codec for '#{format}' - please use :codec to specify"
         end
       end
@@ -116,8 +140,15 @@ module Bulldog
           command = [self.class.ffmpeg_command]
           command << '-i' << input_file
           command.concat(arguments)
-          command << '-y' << output_file(style.name)
           run_command(*command)
+        end
+      end
+
+      def run_still_frame_callbacks
+        @still_frame_callbacks.each do |style, callbacks|
+          callbacks.each do |path, callback|
+            instance_exec(path, &callback)
+          end
         end
       end
     end
