@@ -82,9 +82,11 @@ module Bulldog
       # Write the content to the given path.
       #
       def write_to(path)
-        FileUtils.mkdir_p File.dirname(path)
         src, dst = self.path, path
-        FileUtils.cp src, dst unless src == dst
+        unless src == dst
+          FileUtils.mkdir_p File.dirname(path)
+          FileUtils.cp src, dst
+        end
       end
     end
 
