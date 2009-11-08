@@ -131,53 +131,49 @@ describe Processor::Ffmpeg do
         argument.should == frame_path
       end
     end
-  end
 
-  describe "frame recording style attributes" do
-    before do
-      @attachment.stubs(:duration).returns(20)
-    end
+    describe "using style attributes" do
+      it "should record a frame at the given position" do
+        style :one, :format => 'png'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '19', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
+        process{record_frame(:position => 19)}
+      end
 
-    it "should record a frame at the given position" do
-      style :one, :format => 'png'
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '19', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
-      process{record_frame(:position => 19)}
-    end
+      it "should default to recording a frame at the halfway point" do
+        style :one, :format => 'png'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
+        process{record_frame}
+      end
 
-    it "should default to recording a frame at the halfway point" do
-      style :one, :format => 'png'
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
-      process{record_frame}
-    end
+      it "should record a frame at the halfway point if the given position is out of bounds" do
+        style :one, :format => 'png'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '21', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
+        process{record_frame(:position => 21)}
+      end
 
-    it "should record a frame at the halfway point if the given position is out of bounds" do
-      style :one, :format => 'png'
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '21', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
-      process{record_frame(:position => 21)}
-    end
+      it "should use the specified codec if given" do
+        style :one, :format => 'png'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'mjpeg', '-y', 'OUTPUT.avi')
+        process{record_frame(:codec => 'mjpeg')}
+      end
 
-    it "should use the specified codec if given" do
-      style :one, :format => 'png'
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'mjpeg', '-y', 'OUTPUT.avi')
-      process{record_frame(:codec => 'mjpeg')}
-    end
+      it "should use the mjpeg codec by default for jpg images" do
+        style :one, :format => 'jpg'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'mjpeg', '-y', 'OUTPUT.avi')
+        process{record_frame}
+      end
 
-    it "should use the mjpeg codec by default for jpg images" do
-      style :one, :format => 'jpg'
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'mjpeg', '-y', 'OUTPUT.avi')
-      process{record_frame}
-    end
+      it "should use the mjpeg codec by default for jpeg images" do
+        style :one, :format => 'jpeg'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'mjpeg', '-y', 'OUTPUT.avi')
+        process{record_frame}
+      end
 
-    it "should use the mjpeg codec by default for jpeg images" do
-      style :one, :format => 'jpeg'
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'mjpeg', '-y', 'OUTPUT.avi')
-      process{record_frame}
-    end
-
-    it "should use the png codec by default for png images" do
-      style :one, :format => 'png'
-      Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
-      process{record_frame}
+      it "should use the png codec by default for png images" do
+        style :one, :format => 'png'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'png', '-y', 'OUTPUT.avi')
+        process{record_frame}
+      end
     end
   end
 
