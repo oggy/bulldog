@@ -48,7 +48,7 @@ module Bulldog
         @operation = :record_frame
         params = style.attributes.merge(params)
         operate '-vframes', 1
-        operate '-ss', params[:position] || record.duration.to_i / 2
+        operate '-ss', params[:position] || attachment.duration.to_i / 2
         operate '-f', 'image2'
         operate '-vcodec', params[:codec] || default_frame_codec(params)
 

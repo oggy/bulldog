@@ -52,7 +52,7 @@ describe Processor::Ffmpeg do
 
   describe "#record_frame" do
     before do
-      @record.stubs(:duration).returns(20)
+      @attachment.stubs(:duration).returns(20)
     end
 
     describe "when no attachment to assign to is given" do
@@ -135,7 +135,7 @@ describe Processor::Ffmpeg do
 
   describe "frame recording style attributes" do
     before do
-      @record.stubs(:duration).returns(20)
+      @attachment.stubs(:duration).returns(20)
     end
 
     it "should record a frame at the given position" do
