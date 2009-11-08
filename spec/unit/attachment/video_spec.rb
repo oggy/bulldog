@@ -110,6 +110,36 @@ describe Attachment::Video do
     it "should return the duration of the given style"
   end
 
+  describe "#video_tracks" do
+    it "should return the video tracks of the original style if no style name is given" do
+      @thing.video.video_tracks.should have(1).video_track
+      @thing.video.video_tracks.first.dimensions.should == [320, 240]
+    end
+
+    it "should return the video tracks of the target style if a style name is given" do
+      @thing.video.video_tracks(:original).should have(1).video_track
+      @thing.video.video_tracks(:original).first.dimensions.should == [640, 480]
+
+      @thing.video.video_tracks(:filled).should have(1).video_track
+      @thing.video.video_tracks(:filled).first.dimensions.should == [60, 60]
+    end
+  end
+
+  describe "#audio_tracks" do
+    it "should return the audio tracks of the original style if no style name is given" do
+      @thing.video.video_tracks.should have(1).video_track
+      @thing.video.video_tracks.first.dimensions.should == [320, 240]
+    end
+
+    it "should return the audio tracks of the target style if a style name is given" do
+      @thing.video.video_tracks(:original).should have(1).video_track
+      @thing.video.video_tracks(:original).first.dimensions.should == [640, 480]
+
+      @thing.video.video_tracks(:filled).should have(1).video_track
+      @thing.video.video_tracks(:filled).first.dimensions.should == [60, 60]
+    end
+  end
+
   describe "storable attributes" do
     it "should set the stored attributes on assignment" do
       @thing.video_width.should == 640

@@ -32,46 +32,22 @@ module Bulldog
       # Return the width and height of the named style, as a 2-element
       # array.
       #
-      # For :original, this is based on the output of ImageMagick's
-      # <tt>identify</tt> command.  Other styles are calculated from
-      # the original style's dimensions, plus the style's :size and
-      # :filled attributes.
+      # This runs ffmpeg for, and only for, the original style.
       #
       # +style_name+ defaults to the attribute's #default_style.
       #
       def dimensions(style_name)
-        if style_name == :original
-          if stream.missing?
-            [1, 1]
-          else
-            examine_file
-            if @original_video_tracks.empty?
-              [1, 1]
-            else
-              @original_video_tracks.first.dimensions
-            end
-          end
-        else
-          # TODO: perform video cropping if :filled is given.
-          style = reflection.styles[style_name]
-          box_size = style[:size].split(/x/).map(&:to_i)
-          if style[:filled]
-            box_size
-          else
-            original_aspect_ratio = aspect_ratio(:original)
-            box_aspect_ratio = box_size[0].to_f / box_size[1]
-            if original_aspect_ratio > box_aspect_ratio
-              width = box_size[0]
-              height = (width / original_aspect_ratio).round
-            else
-              height = box_size[1]
-              width = (height * original_aspect_ratio).round
-            end
-            [width, height]
-          end
-        end
+        video_tracks(style_name).first.dimensions
       end
 
+      #
+      # Return the duration of the named style, as an
+      # ActiveSupport::Duration.
+      #
+      # This runs ffmpeg for, and only for, the original style.
+      #
+      # +style_name+ defaults to the attribute's #default_style.
+      #
       def duration(style_name)
         # TODO: support styles with different durations
         if stream.missing?
@@ -80,6 +56,48 @@ module Bulldog
           examine_file
           @original_duration
         end
+      end
+
+      #
+      # Return the video tracks of the named style, as an array of
+      # VideoTrack objects.
+      #
+      # Each VideoTrack has:
+      #
+      #  * <tt>#dimension</tt> - the dimensions of the video track,
+      #    [width, height].
+      #
+      def video_tracks(style_name=nil)
+        style_name ||= reflection.default_style
+        if style_name == :original
+          if stream.missing?
+            [VideoTrack.new(:dimensions => [1, 1])]
+          else
+            examine_file
+            if @original_video_tracks.empty?
+              @original_video_tracks << VideoTrack.new(:dimensions => [1, 1])
+            end
+            @original_video_tracks
+          end
+        else
+          style = reflection.styles[style_name]
+          target_dimensions = style[:size].split(/x/).map(&:to_i)
+          video_tracks(:original).map do |video_track|
+            dimensions = resized_dimensions(dimensions(:original), target_dimensions, style[:filled])
+            VideoTrack.new(:dimensions => dimensions)
+          end
+        end
+      end
+
+      #
+      # Return the video tracks of the named style, as an array of
+      # AudioTrack objects.
+      #
+      # AudioTrack objects do not yet have any useful methods.
+      #
+      def audio_tracks(style_name)
+        examine_file
+        @original_audio_tracks
       end
 
       storable_attribute :width       , :per_style => true, :memoize => true

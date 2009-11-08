@@ -49,21 +49,8 @@ module Bulldog
           end
         else
           style = reflection.styles[style_name]
-          box_size = style[:size].split(/x/).map(&:to_i)
-          if style[:filled]
-            box_size
-          else
-            original_aspect_ratio = aspect_ratio(:original)
-            box_aspect_ratio = box_size[0].to_f / box_size[1]
-            if original_aspect_ratio > box_aspect_ratio
-              width = box_size[0]
-              height = (width / original_aspect_ratio).round
-            else
-              height = box_size[1]
-              width = (height * original_aspect_ratio).round
-            end
-            [width, height]
-          end
+          target_dimensions = style[:size].split(/x/).map(&:to_i)
+          resized_dimensions(dimensions(:original), target_dimensions, style[:filled])
         end
       end
 
