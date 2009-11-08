@@ -160,7 +160,7 @@ module Bulldog
                 memoized_#{name}[style_name] ||= #{name}_without_memoization(style_name)
               end
               def memoized_#{name}
-                @#{name} ||= {}
+                @memoized_#{name} ||= {}
               end
             EOS
           else

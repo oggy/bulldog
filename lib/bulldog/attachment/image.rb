@@ -45,7 +45,7 @@ module Bulldog
             [1, 1]
           else
             identify
-            @dimensions[style_name]
+            @original_dimensions
           end
         else
           style = reflection.styles[style_name]
@@ -105,12 +105,11 @@ module Bulldog
         if $?.success?
           width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map(&:to_i)
           rotated = (orientation & 0x4).nonzero?
-          dimensions ||= rotated ? [height, width] : [width, height]
+          @original_dimensions ||= rotated ? [height, width] : [width, height]
         else
           Bulldog.logger.warn "command failed (#{$?.exitstatus})"
-          dimensions = [1, 1]
+          @original_dimensions = [1, 1]
         end
-        memoized_dimensions[:original] = dimensions
       end
 
       def identified?

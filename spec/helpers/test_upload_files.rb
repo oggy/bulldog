@@ -21,6 +21,11 @@ module TestUploadFiles
     file
   end
 
+  def autoclose(file)
+    @files_to_close << file
+    file
+  end
+
   # For when it doesn't matter if it's small or large.
   alias uploaded_file small_uploaded_file
 
