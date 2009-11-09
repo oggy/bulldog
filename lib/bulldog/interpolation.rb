@@ -15,7 +15,7 @@ module Bulldog
         elsif @interpolations.key?(key)
           @interpolations[key].call(record, name, style)
         else
-          raise InterpolationError, "no such interpolation key: #{key}"
+          raise Error, "no such interpolation key: #{key}"
         end
       end
     end

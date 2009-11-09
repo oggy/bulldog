@@ -70,6 +70,10 @@ describe Interpolation do
       @thing.stubs(:id).returns(5)
       interpolate("a/x:{id}x/b").should == "a/x5x/b"
     end
+
+    it "should raise an error for an unrecognized interpolation key" do
+      lambda{interpolate(":invalid")}.should raise_error(Interpolation::Error)
+    end
   end
 
   describe "when the file name is being stored" do
