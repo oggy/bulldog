@@ -41,6 +41,9 @@ module Bulldog
         style_option '-pix_fmt', params[:pixel_format]
         style_option '-b_strategy', params[:b_strategy]
         style_option '-bufsize', params[:buffer_size]
+        preset_option '-vpre', params[:video_preset]
+        preset_option '-apre', params[:audio_preset]
+        preset_option '-spre', params[:subtitle_preset]
         style_option '-y', output_file(style.name)
       end
 
@@ -121,6 +124,12 @@ module Bulldog
 
       def style_option(option, *args)
         operate(option, *args) if args.all?
+      end
+
+      def preset_option(option, value)
+        Array(value).each do |preset|
+          operate option, preset
+        end
       end
 
       def default_frame_codec(params)

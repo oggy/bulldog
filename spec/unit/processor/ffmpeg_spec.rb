@@ -292,6 +292,48 @@ describe Processor::Ffmpeg do
       end
     end
 
+    describe "video_preset" do
+      it "should set a video preset" do
+        style :one, :video_preset => 'one'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vpre', 'one', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+
+      it "should allow setting more than one video preset" do
+        style :one, :video_preset => ['one', 'two']
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-vpre', 'one', '-vpre', 'two', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "audio_preset" do
+      it "should set a audio preset" do
+        style :one, :audio_preset => 'one'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-apre', 'one', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+
+      it "should allow setting more than one audio preset" do
+        style :one, :audio_preset => ['one', 'two']
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-apre', 'one', '-apre', 'two', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "subtitle_preset" do
+      it "should set a subtitle preset" do
+        style :one, :subtitle_preset => 'one'
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-spre', 'one', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+
+      it "should allow setting more than one subtitle preset" do
+        style :one, :subtitle_preset => ['one', 'two']
+        Kernel.expects(:system).once.with('FFMPEG', '-i', 'INPUT.avi', '-spre', 'one', '-spre', 'two', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
     describe "size" do
       it "should set the video size" do
         style :one, :size => '400x300'
