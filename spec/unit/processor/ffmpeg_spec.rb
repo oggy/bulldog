@@ -88,47 +88,73 @@ describe Processor::Ffmpeg do
     end
 
     describe "when an attachment to assign to is given" do
-      before do
-        class << @record
-          attr_accessor :frame
-        end
-        @record.frame = mock
-        @record.frame.stubs(:interpolate_path).with(:original).returns(frame_path)
+      set_up_model_class :Thing do |t|
+        t.string :video_file_name
+        t.string :frame_file_name
       end
 
-      def frame_path
-        "#{temporary_directory}/frame.jpg"
+      before do
+        spec = self
+        Thing.class_eval do
+          has_attachment :video do
+            path "#{spec.temporary_directory}/video.:style.:extension"
+          end
+
+          has_attachment :frame do
+            path "#{spec.temporary_directory}/frame.:style.:extension"
+          end
+        end
+
+        thing = Thing.create(:video => test_video_file('test.mov'))
+        @thing = Thing.find(thing.id)
+      end
+
+      def original_video_path
+        "#{temporary_directory}/video.original.mov"
+      end
+
+      def original_frame_path
+        "#{temporary_directory}/frame.original.jpg"
+      end
+
+      def configure(attachment_name, &block)
+        Thing.attachment_reflections[attachment_name].configure(&block)
       end
 
       it "should output the file to the specified attachment's original path" do
-        style :original
-        Kernel.expects(:system).with('FFMPEG', '-i', 'INPUT.avi', '-vframes', '1', '-ss', '10', '-f', 'image2', '-vcodec', 'mjpeg', '-y', frame_path)
-        process do
-          record_frame(:format => 'jpg', :assign_to => :frame)
+        configure :video do
+          process :on => :make_frame, :styles => [:original] do
+            record_frame(:format => 'jpg', :assign_to => :frame)
+          end
         end
+        Kernel.expects(:system).once.with('FFMPEG', '-i', original_video_path, '-vframes', '1', '-ss', '0', '-f', 'image2', '-vcodec', 'mjpeg', '-y', original_frame_path)
+        @thing.process_attachment(:video, :make_frame)
       end
 
       it "should assign the file to the specified attachment" do
-        style :original
-        process do
-          record_frame(:format => 'jpg', :assign_to => :frame)
-        end
-        @record.frame.should be_a(SavedFile)
-        @record.frame.path.should == frame_path
-      end
-
-      it "should still yield the path to any block passed, in the context of the processor" do
-        context = nil
-        argument = nil
-        style :original
-        process do
-          record_frame(:format => 'jpg', :assign_to => :frame) do |path|
-            context = self
-            argument = path
+        configure :video do
+          process :on => :make_frame, :styles => [:original] do
+            record_frame(:format => 'jpg', :assign_to => :frame)
           end
         end
+        @thing.process_attachment(:video, :make_frame)
+        @thing.frame.should_not be_blank
+      end
+
+      it "should yield the written path to any block passed, in the context of the processor" do
+        context = nil
+        argument = nil
+        configure :video do
+          process :on => :make_frame, :styles => [:original] do
+            record_frame(:format => 'jpg', :assign_to => :frame) do |path|
+              context = self
+              argument = path
+            end
+          end
+        end
+        @thing.process_attachment(:video, :make_frame)
         context.should be_a(Processor::Ffmpeg)
-        argument.should == frame_path
+        argument.should == original_frame_path
       end
     end
 

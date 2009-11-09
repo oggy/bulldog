@@ -53,19 +53,19 @@ module Bulldog
         operate '-vcodec', params[:codec] || default_frame_codec(params)
 
         if (attribute = params[:assign_to])
-          output_path = record.send(attribute).interpolate_path(:original)
-          callback = lambda do |path|
-            file = SavedFile.new(path, :file_name => File.basename(path))
+          basename = "recorded_frame.#{params[:format]}"
+          output_path = record.send(attribute).interpolate_path(:original, :basename => basename)
+          @still_frame_callbacks[style] << lambda do
+            file = SavedFile.new(output_path, :file_name => basename)
             record.send("#{attribute}=", file)
           end
-          @still_frame_callbacks[style] << [output_path, callback]
         else
           output_path = output_file(style.name)
         end
 
         operate '-y', output_path
         if block
-          @still_frame_callbacks[style] << [output_path, block]
+          @still_frame_callbacks[style] << lambda{instance_exec(output_path, &block)}
         end
       end
 
@@ -146,9 +146,7 @@ module Bulldog
 
       def run_still_frame_callbacks
         @still_frame_callbacks.each do |style, callbacks|
-          callbacks.each do |path, callback|
-            instance_exec(path, &callback)
-          end
+          callbacks.each{|c| c.call}
         end
       end
     end
