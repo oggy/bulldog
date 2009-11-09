@@ -9,14 +9,16 @@ module TestUploadFiles
     file
   end
 
-  def small_uploaded_file(path=unused_temp_path, content='')
+  def small_uploaded_file(path=unused_temp_path, test_file='test.jpg')
+    content = content_for_uploaded_file(test_file)
     io = ActionController::UploadedStringIO.new(content)
     io.original_path = path
     io.content_type = Rack::Mime::MIME_TYPES[File.extname(path)]
     io
   end
 
-  def large_uploaded_file(path=unused_temp_path, content='')
+  def large_uploaded_file(path=unused_temp_path, test_file='test.jpg')
+    content = content_for_uploaded_file(test_file)
     file = ActionController::UploadedTempfile.new(path)
     file.write(content)
     file.rewind
@@ -25,13 +27,44 @@ module TestUploadFiles
     autoclose(file)
   end
 
-  def test_video_file(base_name)
-    file = open("#{ROOT}/spec/data/#{base_name}")
-    autoclose(file)
+  def uploaded_file_with_content(basename, content)
+    io = ActionController::UploadedStringIO.new(content)
+    io.original_path = basename
+    io.content_type = Rack::Mime::MIME_TYPES[File.extname(basename)]
+    io
+  end
+
+  def test_path(basename)
+    "#{ROOT}/spec/data/#{basename}"
   end
 
   # For when it doesn't matter if it's small or large.
   alias uploaded_file small_uploaded_file
+
+  def test_image_file(basename='test.jpg')
+    path = test_image_path(basename)
+    file = open(path)
+    autoclose(file)
+  end
+
+  def test_image_path(basename='test.jpg')
+    test_path(basename)
+  end
+
+  def test_video_file(basename='test.mov')
+    path = test_video_path(basename)
+    file = open(path)
+    autoclose(file)
+  end
+
+  def test_video_path(basename='test.mov')
+    test_path(basename)
+  end
+
+  def test_empty_file
+    file = open(test_path('empty.txt'))
+    autoclose(file)
+  end
 
   private  # ---------------------------------------------------------
 
@@ -41,6 +74,11 @@ module TestUploadFiles
 
   def close_test_upload_files
     @files_to_close.each(&:close)
+  end
+
+  def content_for_uploaded_file(test_file)
+    path = test_path("test#{File.extname(test_file)}")
+    File.read(path)
   end
 
   def unused_temp_path

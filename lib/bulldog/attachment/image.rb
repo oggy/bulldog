@@ -41,12 +41,8 @@ module Bulldog
       #
       def dimensions(style_name)
         if style_name.equal?(:original)
-          if stream.missing?
-            [1, 1]
-          else
-            examine
-            @original_dimensions
-          end
+          examine
+          @original_dimensions
         else
           style = reflection.styles[style_name]
           target_dimensions = style[:size].split(/x/).map(&:to_i)
@@ -73,18 +69,21 @@ module Bulldog
       # command.
       #
       def run_examination
-        return false if stream.missing?
-
-        output = `identify -format "%w %h %[exif:Orientation]" #{stream.path} 2> /dev/null`
-        if $?.success?
-          width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map(&:to_i)
-          rotated = (orientation & 0x4).nonzero?
-          @original_dimensions ||= rotated ? [height, width] : [width, height]
-          true
-        else
-          Bulldog.logger.warn "command failed (#{$?.exitstatus})"
+        if stream.missing?
           @original_dimensions = [1, 1]
           false
+        else
+          output = `identify -format "%w %h %[exif:Orientation]" #{stream.path} 2> /dev/null`
+          if $?.success? && output.present?
+            width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map(&:to_i)
+            rotated = (orientation & 0x4).nonzero?
+            @original_dimensions ||= rotated ? [height, width] : [width, height]
+            true
+          else
+            Bulldog.logger.warn "command failed (#{$?.exitstatus})"
+            @original_dimensions = [1, 1]
+            false
+          end
         end
       end
 

@@ -15,18 +15,21 @@ describe Attachment do
     end
 
     it "should return an Image if the file is an image file" do
-      value = uploaded_file('test.jpg', "\xff\xd8")
-      Attachment.new(@record, @name, value).should be_a(Attachment::Image)
+      open("#{ROOT}/spec/data/test.jpg") do |file|
+        Attachment.new(@record, @name, file).should be_a(Attachment::Image)
+      end
     end
 
     it "should return a Video if the file is a video file" do
-      value = uploaded_file('test.avi', 'RIFF    AVI ')
-      Attachment.new(@record, @name, value).should be_a(Attachment::Video)
+      open("#{ROOT}/spec/data/test.mov") do |file|
+        Attachment.new(@record, @name, file).should be_a(Attachment::Video)
+      end
     end
 
     it "should return a Base otherwise" do
-      value = uploaded_file('test.txt', '')
-      Attachment.new(@record, @name, value).should be_a(Attachment::Base)
+      open("#{ROOT}/spec/data/empty.txt") do |file|
+        Attachment.new(@record, @name, file).should be_a(Attachment::Base)
+      end
     end
   end
 end

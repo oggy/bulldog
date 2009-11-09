@@ -1,6 +1,15 @@
 module Bulldog
   module Attachment
     class Base < Maybe
+      #
+      # Return an instance of the record if the stream is valid, nil
+      # otherwise.
+      #
+      def self.try(record, name, stream)
+        attachment = new(record, name, stream)
+        attachment.send(:examine) ? attachment : nil
+      end
+
       def initialize(record, name, stream)
         @record = record
         @name = name
@@ -104,6 +113,16 @@ module Bulldog
       #
       def default_processor_type
         :base
+      end
+
+      #
+      # Examine the stream.
+      #
+      # Return true if the stream looks like a valid instance of this
+      # attachment type, false otherwise.
+      #
+      def run_examination
+        true
       end
 
       #

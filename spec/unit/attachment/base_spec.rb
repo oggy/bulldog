@@ -35,7 +35,7 @@ describe Attachment::Base do
     end
 
     it "should return the path of the given style, interpolated from the path template" do
-      @thing.photo = uploaded_file('test.jpg', '')
+      @thing.photo = test_image_file
       @thing.stubs(:id).returns(5)
       @thing.photo.path(:original).should == original_path
       @thing.photo.path(:small).should == small_path
@@ -47,7 +47,7 @@ describe Attachment::Base do
         Thing.attachment_reflections[:photo].configure do
           path "#{spec.temporary_directory}/:style.:extension"
         end
-        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.photo = test_image_file
       end
 
       it "should use the extension of the original file for the original style" do
@@ -64,7 +64,7 @@ describe Attachment::Base do
         Thing.attachment_reflections[:photo].configure do
           path "#{spec.temporary_directory}/:style.xyz"
         end
-        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.photo = test_image_file
       end
 
       it "should use the extension of the path template for the original style" do
@@ -84,7 +84,7 @@ describe Attachment::Base do
       end
 
       it "should default to the attachment's default style" do
-        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.photo = test_image_file
         @thing.photo.path.should == "/tmp/small.jpg"
       end
     end
@@ -103,7 +103,7 @@ describe Attachment::Base do
     end
 
     it "should return the url of the given style, interpolated from the url template" do
-      @thing.photo = uploaded_file('test.jpg', '')
+      @thing.photo = test_image_file
       @thing.photo.url(:original).should == "/assets/original.jpg"
       @thing.photo.url(:small).should == "/assets/small.jpg"
     end
@@ -115,7 +115,7 @@ describe Attachment::Base do
           path "/tmp/:style.:extension"
           url "/assets/:style.:extension"
         end
-        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.photo = test_image_file
       end
 
       it "should use the extension of the original file for the original style" do
@@ -134,7 +134,7 @@ describe Attachment::Base do
           path "/tmp/:style.xyz"
           url "/assets/:style.xyz"
         end
-        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.photo = test_image_file
       end
 
       it "should use the extension of the url template for the original style" do
@@ -154,7 +154,7 @@ describe Attachment::Base do
       end
 
       it "should default to the attachment's default style" do
-        @thing.photo = uploaded_file('test.jpg', '')
+        @thing.photo = test_image_file
         @thing.photo.url.should == "/assets/small.jpg"
       end
     end
@@ -183,21 +183,11 @@ describe Attachment::Base do
     end
 
     before do
-      @thing = Thing.new(:photo => small_uploaded_file('test.jpg', '...'))
+      @thing = Thing.new(:photo => test_image_file)
     end
 
     it "should return the size of the file" do
-      @thing.photo.file_size.should == 3
-    end
-
-    describe "when the value is a saved file" do
-      it "should return the size of the file" do
-        @thing.save
-        @thing = Thing.find(@thing.id)
-        with_temporary_file(original_path, '...') do |path|
-          @thing.photo.file_size.should == 3
-        end
-      end
+      @thing.photo.file_size.should == File.size(test_image_path)
     end
   end
 
@@ -227,21 +217,11 @@ describe Attachment::Base do
     end
 
     before do
-      @thing = Thing.new(:photo => small_uploaded_file('test.jpg', '...'))
+      @thing = Thing.new(:photo => test_image_file)
     end
 
     it "should return the original base name of the file" do
-      @thing.photo.file_name.should == 'test.jpg'
-    end
-
-    describe "when the value is a saved file" do
-      it "should return the original base name of the file" do
-        @thing.save
-        @thing = Thing.find(@thing.id)
-        with_temporary_file(original_path, '...') do |path|
-          @thing.photo.file_name.should == 'test.jpg'
-        end
-      end
+      @thing.photo.file_name.should == File.basename(test_image_path)
     end
   end
 
@@ -262,7 +242,7 @@ describe Attachment::Base do
           context = self
         end
       end
-      thing = Thing.new(:photo => uploaded_file)
+      thing = Thing.new(:photo => test_image_file)
       thing.photo.stubs(:default_processor_type).returns(:test)
       thing.photo.process(:test_event)
       context.should be_a(Processor::Test)
@@ -276,7 +256,7 @@ describe Attachment::Base do
           context = self
         end
       end
-      thing = Thing.new(:photo => uploaded_file)
+      thing = Thing.new(:photo => test_image_file)
       thing.photo.process(:test_event)
       context.should be_a(Processor::Test)
     end
@@ -303,7 +283,7 @@ describe Attachment::Base do
           styles = self.styles
         end
       end
-      thing = Thing.new(:photo => uploaded_file)
+      thing = Thing.new(:photo => test_image_file)
       thing.photo.process(:test_event)
       styles.should be_a(StyleSet)
       styles.map(&:name).should == [:small]
@@ -319,7 +299,7 @@ describe Attachment::Base do
 
     before do
       Thing.has_attachment :photo
-      @thing = Thing.new(:photo => uploaded_file('test.jpg', "\xff\xd8"))
+      @thing = Thing.new(:photo => uploaded_file_with_content('test.jpg', "\xff\xd8"))
     end
 
     it "should set the stored attributes on assignment" do

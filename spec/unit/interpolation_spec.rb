@@ -15,7 +15,7 @@ describe Interpolation do
         style :small, {}
         store_attributes :file_name => nil
       end
-      @thing = Thing.new(:photo => uploaded_file('test.jpg', '...'))
+      @thing = Thing.new(:photo => test_image_file('test.jpg'))
       @style = Thing.attachment_reflections[:photo].styles[:small]
     end
 
@@ -83,7 +83,7 @@ describe Interpolation do
         store_attributes :file_name => :photo_file_name
       end
 
-      @thing = Thing.new(:photo => uploaded_file('test.jpg', '...'))
+      @thing = Thing.new(:photo => test_image_file('test.jpg'))
       @style = Thing.attachment_reflections[:photo].styles[:small]
     end
 

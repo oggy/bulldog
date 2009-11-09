@@ -10,7 +10,6 @@ describe HasAttachment do
 
     it "should provide accessors for the attachment" do
       thing = Thing.new
-      thing.photo = uploaded_file
       thing.photo.should be_a(Attachment::Maybe)
     end
 
@@ -103,7 +102,7 @@ describe HasAttachment do
       set_up_model_class :Thing
 
       before do
-        @file = uploaded_file('test.jpg', "\xff\xd8")
+        @file = uploaded_file('test.jpg', 'test.jpg')
       end
 
       describe "instantiating the record" do
@@ -241,7 +240,7 @@ describe HasAttachment do
 
           describe "when the original file exists" do
             before do
-              file = uploaded_file('test.jpg', "\xff\xd8")
+              file = uploaded_file('test.jpg', 'test.jpg')
               thing = Thing.create(:photo => file)
               @thing = Thing.find(thing.id)
             end
@@ -254,7 +253,7 @@ describe HasAttachment do
             it "should have stored attributes set" do
               @thing.photo_file_name.should == 'test.jpg'
               @thing.photo_content_type.split(/;/).first.should == "image/jpeg"
-              @thing.photo_file_size.should == 2
+              @thing.photo_file_size.should == File.size(test_path('test.jpg'))
             end
           end
 
@@ -279,7 +278,7 @@ describe HasAttachment do
           describe "when the file is missing" do
             before do
               use_missing_file
-              file = uploaded_file('test.jpg', "\xff\xd8")
+              file = uploaded_file('test.jpg', 'test.jpg')
               @thing = Thing.create(:photo => file)
               File.unlink(original_path)
               @thing = Thing.find(@thing.id)
@@ -292,7 +291,7 @@ describe HasAttachment do
             it "should have stored attributes set" do
               @thing.photo_file_name.should == 'test.jpg'
               @thing.photo_content_type == "image/jpeg"
-              @thing.photo_file_size.should == 2
+              @thing.photo_file_size.should == File.size(test_path('test.jpg'))
             end
           end
         end
@@ -313,7 +312,7 @@ describe HasAttachment do
 
           describe "when an attachment is assigned" do
             before do
-              @file = uploaded_file('test.jpg', "\xff\xd8")
+              @file = uploaded_file('test.jpg', 'test.jpg')
             end
 
             it "should update the attachment" do
@@ -332,7 +331,7 @@ describe HasAttachment do
               @thing.photo = @file
               @thing.photo_file_name.should == 'test.jpg'
               @thing.photo_content_type.split(/;/).first.should == "image/jpeg"
-              @thing.photo_file_size.should == 2
+              @thing.photo_file_size.should == File.size(test_path('test.jpg'))
             end
 
             it "should not create the original file" do
@@ -357,14 +356,14 @@ describe HasAttachment do
 
         describe "when the record exists and there is an attachment" do
           before do
-            @old_file = uploaded_file('old.jpg', "\xff\xd8old")
+            @old_file = uploaded_file('old.jpg', 'test.jpg')
             thing = Thing.create(:photo => @old_file)
             @thing = Thing.find(thing.id)
           end
 
           describe "when a new attachment is assigned" do
             before do
-              @new_file = uploaded_file('new.jpg', "\xff\xd8new")
+              @new_file = uploaded_file('new.jpg', 'test2.jpg')
             end
 
             it "should update the attachment" do
@@ -383,7 +382,7 @@ describe HasAttachment do
               @thing.photo = @new_file
               @thing.photo_file_name.should == 'new.jpg'
               @thing.photo_content_type.split(/;/).first.should == 'image/jpeg'
-              @thing.photo_file_size.should == 5
+              @thing.photo_file_size.should == File.size(test_image_path('test2.jpg'))
             end
 
             it "should not update the original file yet" do
@@ -457,7 +456,7 @@ describe HasAttachment do
       describe "#destroy" do
         describe "when the record is new" do
           before do
-            file = uploaded_file('test.jpg', "\xff\xd8")
+            file = uploaded_file('test.jpg', 'test.jpg')
             @thing = Thing.new(:photo => file)
           end
 
@@ -484,7 +483,7 @@ describe HasAttachment do
 
         describe "when the record existed and had an attachment" do
           before do
-            file = uploaded_file('test.jpg', "\xff\xd8")
+            file = uploaded_file('test.jpg', 'test.jpg')
             thing = Thing.create(:photo => file)
             @thing = Thing.find(thing.id)
           end
@@ -645,7 +644,7 @@ describe HasAttachment do
 
       describe "when the record already exists" do
         before do
-          thing = Thing.create(:photo => uploaded_file('test.jpg', "\xff\xd8"))
+          thing = Thing.create(:photo => uploaded_file('test.jpg', 'test.jpg'))
           @thing = Thing.find(thing.id)
         end
 
@@ -661,7 +660,7 @@ describe HasAttachment do
         describe "when a new file was assigned to the attachment" do
           it "should update ATTACHMENT_updated_at" do
             warp_ahead 1.minute
-            @thing.photo = uploaded_file('test.jpg', "\xff\xd8")
+            @thing.photo = uploaded_file('test.jpg', 'test.jpg')
             @thing.save.should be_true
             @thing.photo_updated_at.should == Time.now
           end
