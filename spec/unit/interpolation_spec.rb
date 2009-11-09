@@ -59,11 +59,11 @@ describe Interpolation do
     end
 
     it "should raise an error for :basename" do
-      lambda{interpolate("a/:basename/b")}.should raise_error(Interpolation::InterpolationError)
+      lambda{interpolate("a/:basename/b")}.should raise_error(Interpolation::Error)
     end
 
     it "should raise an error for :extension" do
-      lambda{interpolate("a/:extension/b")}.should raise_error(Interpolation::InterpolationError)
+      lambda{interpolate("a/:extension/b")}.should raise_error(Interpolation::Error)
     end
 
     it "should allow using braces for interpolating between symbol characters" do

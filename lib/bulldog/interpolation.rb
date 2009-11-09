@@ -1,6 +1,6 @@
 module Bulldog
   module Interpolation
-    InterpolationError = Class.new(Error)
+    Error = Class.new(Bulldog::Error)
 
     def self.interpolate(template, record, name, style, overrides={})
       # TODO: would be nice if this wasn't such a special case.
@@ -61,14 +61,14 @@ module Bulldog
     define_interpolation :basename do |record, name, style|
       reflection = record.attachment_reflection_for(name)
       column_name = reflection.column_name_for_stored_attribute(:file_name) or
-        raise InterpolationError, ":basename interpolation requires storing the file name - add a column #{name}_file_name or use store_attributes"
+        raise Error, ":basename interpolation requires storing the file name - add a column #{name}_file_name or use store_attributes"
       record.send(column_name)
     end
 
     define_interpolation :extension do |record, name, style|
       reflection = record.attachment_reflection_for(name)
       column_name = reflection.column_name_for_stored_attribute(:file_name) or
-        raise InterpolationError, ":extension interpolation requires storing the file name - add a column #{name}_file_name or use store_attributes"
+        raise Error, ":extension interpolation requires storing the file name - add a column #{name}_file_name or use store_attributes"
       basename = record.send(column_name)
       File.extname(basename).sub(/\A\./, '')
     end
