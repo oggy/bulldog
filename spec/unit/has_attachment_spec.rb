@@ -106,7 +106,27 @@ describe HasAttachment do
         @file = uploaded_file('test.jpg', "\xff\xd8")
       end
 
-      describe "when the record is saved with an attachment" do
+      describe "instantiating the record" do
+        before do
+          spec = self
+          Thing.has_attachment :photo do
+            path "#{spec.temporary_directory}/:style.jpg"
+          end
+        end
+
+        describe "when the attachment is blank" do
+          before do
+            thing = Thing.create
+            @thing = Thing.find(thing.id)
+          end
+
+          it "should set a blank attachment" do
+            @thing.photo.should be_blank
+          end
+        end
+      end
+
+      describe "saving the record" do
         it "should create the original file as long as :basename and :extension are not used" do
           spec = self
           Thing.has_attachment :photo do
@@ -162,7 +182,7 @@ describe HasAttachment do
       before do
         spec = self
         Thing.has_attachment :photo do
-          path "#{spec.temporary_directory}/photos/:id-:style.jpg"
+          path "#{spec.temporary_directory}/photos/:id-:style.:extension"
           style :small, :size => '10x10'
 
           when_file_missing do
@@ -208,6 +228,17 @@ describe HasAttachment do
         end
 
         describe "when the record already exists" do
+          describe "when the attachment is blank" do
+            before do
+              thing = Thing.create
+              @thing = Thing.find(thing.id)
+            end
+
+            it "should have a blank attachment" do
+              @thing.photo.should be_blank
+            end
+          end
+
           describe "when the original file exists" do
             before do
               file = uploaded_file('test.jpg', "\xff\xd8")
