@@ -1,11 +1,6 @@
 module Bulldog
   module Attachment
     class Video < Base
-      def initialize(*args)
-        super
-        @examined = false
-      end
-
       #
       # Return the width of the named style.
       #
@@ -135,16 +130,14 @@ module Bulldog
       #
       # Read the original image metadata with ffmpeg.
       #
-      def examine
-        return if @examined
-        @examined = true
-
+      def run_examination
+        return false if stream.missing?
         output = `ffmpeg -i #{stream.path} 2>&1`
         parse_output(output)
-        dimensions = @original_video_tracks.first
       end
 
       def parse_output(output)
+        result = false
         @original_duration = 0
         @original_video_tracks = []
         @original_audio_tracks = []
@@ -152,7 +145,7 @@ module Bulldog
         while (line = io.gets)
           case line
           when /^Input #0, (.*?), from '(?:.*)':$/
-            format = $1
+            result = true
           when /^  Duration: (\d+):(\d+):(\d+)\.(\d+)/
             @original_duration = $1.to_i.hours + $2.to_i.minutes + $3.to_i.seconds
           when /Stream #(?:.*?): Video: /
@@ -164,6 +157,7 @@ module Bulldog
             @original_audio_tracks << AudioTrack.new
           end
         end
+        result
       end
 
       class Track

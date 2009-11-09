@@ -6,6 +6,7 @@ module Bulldog
         @name = name
         @stream = stream
         @value = stream && stream.target
+        @examination_result = nil
       end
 
       #
@@ -83,6 +84,18 @@ module Bulldog
       storable_attribute :file_name
       storable_attribute :file_size
       storable_attribute :content_type
+
+      #
+      # Ensure the file examination has been run, and return the
+      # result.
+      #
+      def examine
+        if @examination_result.nil?
+          @examination_result = run_examination
+        else
+          @examination_result
+        end
+      end
 
       protected  # ---------------------------------------------------
 

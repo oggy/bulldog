@@ -1,11 +1,6 @@
 module Bulldog
   module Attachment
     class Image < Base
-      def initialize(*args)
-        super
-        @examined = false
-      end
-
       #
       # Return the width of the named style.
       #
@@ -77,18 +72,19 @@ module Bulldog
       # Read the original image metadata with ImageMagick's identify
       # command.
       #
-      def examine
-        return if @examined
-        @examined = true
+      def run_examination
+        return false if stream.missing?
 
         output = `identify -format "%w %h %[exif:Orientation]" #{stream.path} 2> /dev/null`
         if $?.success?
           width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map(&:to_i)
           rotated = (orientation & 0x4).nonzero?
           @original_dimensions ||= rotated ? [height, width] : [width, height]
+          true
         else
           Bulldog.logger.warn "command failed (#{$?.exitstatus})"
           @original_dimensions = [1, 1]
+          false
         end
       end
 
