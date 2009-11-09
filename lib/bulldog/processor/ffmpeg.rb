@@ -57,7 +57,7 @@ module Bulldog
           output_path = record.send(attribute).interpolate_path(:original, :basename => basename)
           @still_frame_callbacks[style] << lambda do
             file = SavedFile.new(output_path, :file_name => basename)
-            record.send("#{attribute}=", file)
+            record.update_attribute(attribute, file)
           end
         else
           output_path = output_file(style.name)
