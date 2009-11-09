@@ -3,6 +3,11 @@ module Bulldog
     InterpolationError = Class.new(Error)
 
     def self.interpolate(template, record, name, style, overrides={})
+      # TODO: would be nice if this wasn't such a special case.
+      if overrides[:basename]
+        extension = File.extname(overrides[:basename]).sub(/\A./, '')
+        overrides[:extension] ||= extension
+      end
       template.gsub(/:(?:(\w+)|\{(\w+?)\})/) do
         key = ($1 || $2).to_sym
         if (override = overrides[key])

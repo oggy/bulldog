@@ -89,8 +89,6 @@ module Bulldog
         end
       end
 
-      protected  # ---------------------------------------------------
-
       #
       # Return the path that the given style would be stored at.
       #
@@ -99,10 +97,11 @@ module Bulldog
       # however, as some interpolations may be derived from the value
       # assigned to the attachment (e.g., :extension).
       #
-      def interpolate_path(style_name)
+      def interpolate_path(style_name, params={})
         template = reflection.path_template
         style = reflection.styles[style_name]
-        Interpolation.interpolate(template, record, name, style, :extension => style[:format])
+        params[:extension] ||= style[:format]
+        Interpolation.interpolate(template, record, name, style, params)
       end
 
       #
@@ -113,7 +112,7 @@ module Bulldog
       # as some interpolations may be derived from the value assigned
       # to the attachment (e.g., :extension).
       #
-      def interpolate_url(style_name)
+      def interpolate_url(style_name, params={})
         if reflection.url_template
           template = reflection.url_template
         elsif reflection.path_template =~ /\A:rails_root\/public/
@@ -122,8 +121,11 @@ module Bulldog
           raise "cannot infer url from path - please set the #url for the :#{name} attachment"
         end
         style = reflection.styles[style_name]
-        Interpolation.interpolate(template, record, name, style, :extension => style[:format])
+        params[:extension] ||= style[:format]
+        Interpolation.interpolate(template, record, name, style, params)
       end
+
+      protected  # ---------------------------------------------------
 
       #
       # Declare the given attribute as storable via
