@@ -1,6 +1,11 @@
 module Bulldog
   module Attachment
     class Image < Base
+      def initialize(*args)
+        super
+        @examined = false
+      end
+
       #
       # Return the width of the named style.
       #
@@ -44,7 +49,7 @@ module Bulldog
           if stream.missing?
             [1, 1]
           else
-            identify
+            examine
             @original_dimensions
           end
         else
@@ -68,25 +73,13 @@ module Bulldog
         :image_magick
       end
 
-      private  # -----------------------------------------------------
-
-      def serialize_dimensions(dimensions)
-        return nil if dimensions.blank?
-        dimensions.join('x')
-      end
-
-      def deserialize_dimensions(string)
-        return nil if string.blank?
-        string.scan(/\d+/).map(&:to_i)
-      end
-
       #
       # Read the original image metadata with ImageMagick's identify
       # command.
       #
-      def identify
-        return if identified?
-        @identified = true
+      def examine
+        return if @examined
+        @examined = true
 
         output = `identify -format "%w %h %[exif:Orientation]" #{stream.path} 2> /dev/null`
         if $?.success?
@@ -99,8 +92,16 @@ module Bulldog
         end
       end
 
-      def identified?
-        @identified
+      private  # -----------------------------------------------------
+
+      def serialize_dimensions(dimensions)
+        return nil if dimensions.blank?
+        dimensions.join('x')
+      end
+
+      def deserialize_dimensions(string)
+        return nil if string.blank?
+        string.scan(/\d+/).map(&:to_i)
       end
     end
   end

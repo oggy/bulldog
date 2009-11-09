@@ -1,6 +1,11 @@
 module Bulldog
   module Attachment
     class Video < Base
+      def initialize(*args)
+        super
+        @examined = false
+      end
+
       #
       # Return the width of the named style.
       #
@@ -53,7 +58,7 @@ module Bulldog
         if stream.missing?
           0
         else
-          examine_file
+          examine
           @original_duration
         end
       end
@@ -73,7 +78,7 @@ module Bulldog
           if stream.missing?
             [VideoTrack.new(:dimensions => [1, 1])]
           else
-            examine_file
+            examine
             if @original_video_tracks.empty?
               @original_video_tracks << VideoTrack.new(:dimensions => [1, 1])
             end
@@ -96,7 +101,7 @@ module Bulldog
       # AudioTrack objects do not yet have any useful methods.
       #
       def audio_tracks(style_name)
-        examine_file
+        examine
         @original_audio_tracks
       end
 
@@ -130,8 +135,8 @@ module Bulldog
       #
       # Read the original image metadata with ffmpeg.
       #
-      def examine_file
-        return if examined?
+      def examine
+        return if @examined
         @examined = true
 
         output = `ffmpeg -i #{stream.path} 2>&1`
@@ -159,10 +164,6 @@ module Bulldog
             @original_audio_tracks << AudioTrack.new
           end
         end
-      end
-
-      def examined?
-        @examined
       end
 
       class Track
