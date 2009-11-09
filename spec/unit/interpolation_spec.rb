@@ -45,9 +45,9 @@ describe Interpolation do
       interpolate("a/:id/b").should == "a/123/b"
     end
 
-    it "should interpolate :partitioned_id as the record ID split into 3 3-digit partitions, 0-padded" do
+    it "should interpolate :id_partition as the record ID split into 3 3-digit partitions, 0-padded" do
       @thing.stubs(:id).returns(12345)
-      interpolate("a/:partitioned_id/b").should == "a/000/012/345/b"
+      interpolate("a/:id_partition/b").should == "a/000/012/345/b"
     end
 
     it "should interpolate :attachment as the attachment name" do
