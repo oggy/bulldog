@@ -227,18 +227,6 @@ describe Processor::Ffmpeg do
         process{encode}
       end
 
-      it "should interpret 400x300 as the video size" do
-        style :one, :video => '400x300'
-        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '400x300', '-y', 'OUTPUT.avi')
-        process{encode}
-      end
-
-      it "should interpret 400X300 as the video size" do
-        style :one, :video => '400X300'
-        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '400x300', '-y', 'OUTPUT.avi')
-        process{encode}
-      end
-
       it "should interpret any other word as a video codec" do
         style :one, :video => 'libx264'
         Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-vcodec', 'libx264', '-y', 'OUTPUT.avi')
@@ -296,6 +284,62 @@ describe Processor::Ffmpeg do
       end
     end
 
+    describe "video_codec" do
+      it "should set the video codec" do
+        style :one, :video_codec => 'libx264'
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-vcodec', 'libx264', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "frame_rate" do
+      it "should set the frame rate" do
+        style :one, :frame_rate => 30
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-r', '30', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "video_bit_rate" do
+      it "should set the video bit rate" do
+        style :one, :video_bit_rate => '64k'
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-b', '64k', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "audio_codec" do
+      it "should set the audio codec" do
+        style :one, :audio_codec => 'libfaac'
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-acodec', 'libfaac', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "sampling_rate" do
+      it "should set the sampling rate" do
+        style :one, :sampling_rate => 44100
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-ar', '44100', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "audio_bit_rate" do
+      it "should set the audio bit rate" do
+        style :one, :audio_bit_rate => '64k'
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-ab', '64k', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "channels" do
+      it "should set the number of channels" do
+        style :one, :channels => 2
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-ac', '2', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
     describe "video_preset" do
       it "should set a video preset" do
         style :one, :video_preset => 'one'
@@ -344,11 +388,17 @@ describe Processor::Ffmpeg do
         Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '400x300', '-y', 'OUTPUT.avi')
         process{encode}
       end
+
+      it "should maintain the original aspect ratio" do
+        style :one, :size => '400x300'
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-s', '400x300', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
     end
 
     describe "num_channels" do
       it "should set the number of channels" do
-        style :one, :num_channels => 2
+        style :one, :channels => 2
         Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-ac', '2', '-y', 'OUTPUT.avi')
         process{encode}
       end

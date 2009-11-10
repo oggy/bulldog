@@ -10,8 +10,8 @@ describe "Processing video attachments" do
     spec = self
     Thing.class_eval do
       has_attachment :video do
-        style :encoded, :format => 'ogg',
-                        :video => 'libtheora 640x360 24fps', :audio => 'libvorbis 44100Hz 128kbps',
+        style :encoded, :format => 'ogg', :size => '640x360',
+                        :video => 'libtheora 24fps', :audio => 'libvorbis 44100Hz 128kbps',
                         :pixel_format => 'yuv420p'
         style :frame,   :format => 'jpg'
         path "#{spec.temporary_directory}/:id.:style.:extension"

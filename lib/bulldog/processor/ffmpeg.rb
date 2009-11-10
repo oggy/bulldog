@@ -33,10 +33,16 @@ module Bulldog
       def encode(params={})
         @operation = :encode
         params = style.attributes.merge(params)
-        add_video_options(params[:video])
-        add_audio_options(params[:audio])
+        parse_video_option(params)
+        parse_audio_option(params)
         style_option '-s', params[:size]
-        style_option '-ac', params[:num_channels]
+        style_option '-vcodec', params[:video_codec]
+        style_option '-r', params[:frame_rate]
+        style_option '-b', params[:video_bit_rate]
+        style_option '-acodec', params[:audio_codec]
+        style_option '-ar', params[:sampling_rate]
+        style_option '-ab', params[:audio_bit_rate]
+        style_option '-ac', params[:channels]
         operate '-deinterlace' if params[:deinterlaced]
         style_option '-pix_fmt', params[:pixel_format]
         style_option '-b_strategy', params[:b_strategy]
@@ -91,36 +97,36 @@ module Bulldog
         encode if @operation.nil?
       end
 
-      def add_video_options(spec)
-        return if spec.blank?
-        spec.split.each do |word|
+      def parse_video_option(params)
+        value = params.delete(:video) or
+          return
+        value.split.each do |word|
           case word
           when /fps\z/i
-            operate '-r', $`
+            params[:frame_rate] = $`
           when /bps\z/i
-            operate '-b', $`
-          when /\A(\d+)x(\d+)\z/i
-            operate '-s', "#$1x#$2"
+            params[:video_bit_rate] = $`
           else
-            operate '-vcodec', word
+            params[:video_codec] = word
           end
         end
       end
 
-      def add_audio_options(spec)
-        return if spec.blank?
-        spec.split.each do |word|
+      def parse_audio_option(params)
+        value = params.delete(:audio) or
+          return
+        value.split.each do |word|
           case word
           when /hz\z/i
-            operate '-ar', $`
+            params[:sampling_rate] = $`
           when /bps\z/i
-            operate '-ab', $`
+            params[:audio_bit_rate] = $`
           when 'mono'
-            operate '-ac', '1'
+            params[:channels] = 1
           when 'stereo'
-            operate '-ac', '2'
+            params[:channels] = 2
           else
-            operate '-acodec', word
+            params[:audio_codec] = word
           end
         end
       end
