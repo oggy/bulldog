@@ -107,19 +107,6 @@ module Bulldog
         logger.send(level, message) unless logger.nil?
       end
 
-      def run_command(*command)
-        log :info, "Running: #{command.map(&:inspect).join(' ')}"
-        # Call #system on Kernel so mocha can detect it...
-        Kernel.system(*command)
-      end
-
-      def command_output(*command)
-        log :info, "Running: #{command.map(&:inspect).join(' ')}"
-        string = command.map{|arg| shell_escape(arg)}.join(' ')
-        # Call #` on Kernel so mocha can detect it...
-        Kernel.send(:'`', string)
-      end
-
       def shell_escape(str)
         if RUBY_VERSION >= '1.9'
           Shellwords.shellescape(str)
