@@ -22,7 +22,7 @@ module Bulldog
           when 'video'
             Video
           else
-            [Image, Video, Base].each do |klass|
+            [Video, Image, Base].each do |klass|
               attachment = klass.try(record, name, stream) and
                 return attachment
             end
