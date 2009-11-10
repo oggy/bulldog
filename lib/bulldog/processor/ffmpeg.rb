@@ -35,11 +35,13 @@ module Bulldog
         params = style.attributes.merge(params)
         parse_video_option(params)
         parse_audio_option(params)
-        style_option '-s', params[:size]
         style_option '-vcodec', params[:video_codec]
+        style_option '-acodec', params[:audio_codec]
+        preset_option '-vpre', params[:video_preset]
+        preset_option '-apre', params[:audio_preset]
+        style_option '-s', attachment.dimensions.join('x')
         style_option '-r', params[:frame_rate]
         style_option '-b', params[:video_bit_rate]
-        style_option '-acodec', params[:audio_codec]
         style_option '-ar', params[:sampling_rate]
         style_option '-ab', params[:audio_bit_rate]
         style_option '-ac', params[:channels]
@@ -50,8 +52,6 @@ module Bulldog
         style_option '-coder', params[:coder]
         style_option '-v', params[:verbosity]
         style_option '-flags', params[:flags]
-        preset_option '-vpre', params[:video_preset]
-        preset_option '-apre', params[:audio_preset]
         preset_option '-spre', params[:subtitle_preset]
         style_option '-y', output_file(style.name)
       end
