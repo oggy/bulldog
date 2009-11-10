@@ -8,8 +8,8 @@ module Bulldog
         attr_accessor :identify_command
       end
 
-      self.convert_command = find_in_path('convert')
-      self.identify_command = find_in_path('identify')
+      self.convert_command = Bulldog.find_in_path('convert')
+      self.identify_command = Bulldog.find_in_path('identify')
 
       def initialize(*args)
         super

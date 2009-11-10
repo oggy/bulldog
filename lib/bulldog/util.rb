@@ -1,5 +1,19 @@
 module Bulldog
-  module Run
+  module Util
+    #
+    # Return the path of the first occurrence of +basename+ in the
+    # current PATH, or nil if the file cannot be found.
+    #
+    def find_in_path(basename)
+      ENV['PATH'].split(/:+/).each do |dirname|
+        path = File.join(dirname, basename)
+        if File.file?(path) && File.executable?(path)
+          return path
+        end
+      end
+      nil
+    end
+
     #
     # Run the given command, logging everything obsessively.
     #
