@@ -10,11 +10,13 @@ module Bulldog
     def run(*command)
       options = command.last.is_a?(Hash) ? command.pop : {}
       command = Shellwords.shelljoin(command) + ' 2>&1'
-      Bulldog.logger.info("[Bulldog] Running: #{command}")
+      Bulldog.logger.info("[Bulldog] Running: #{command}") if Bulldog.logger
       output = `#{command}`
       status = $?.exitstatus
-      Bulldog.logger.info("[Bulldog] Output: #{output}")
-      Bulldog.logger.info("[Bulldog] Status: #{status}")
+      if Bulldog.logger
+        Bulldog.logger.info("[Bulldog] Output: #{output}")
+        Bulldog.logger.info("[Bulldog] Status: #{status}")
+      end
       expected_statuses = options[:expect_status] || [0]
       expected_statuses.include?(status) ? output : nil
     end
