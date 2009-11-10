@@ -23,6 +23,7 @@ module Bulldog
     #
     def run(*command)
       options = command.last.is_a?(Hash) ? command.pop : {}
+      command.map!{|x| x.to_s}
       command = Shellwords.shelljoin(command) + ' 2>&1'
       Bulldog.logger.info("[Bulldog] Running: #{command}") if Bulldog.logger
       output = `#{command}`
