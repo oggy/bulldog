@@ -11,6 +11,7 @@ require 'bulldog/missing_file'
 require 'bulldog/processor'
 require 'bulldog/stream'
 require 'bulldog/vector2'
+require 'bulldog/run'
 
 module Bulldog
   class << self
@@ -35,6 +36,8 @@ module Bulldog
   self.logger = nil
   self.default_path_template = nil
   self.default_url_template = "/assets/:class/:id.:style.:extension"
+
+  extend Run
 end
 
 ActiveRecord::Base.send :include, Bulldog::HasAttachment

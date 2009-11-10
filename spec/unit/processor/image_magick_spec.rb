@@ -29,7 +29,7 @@ describe Processor::ImageMagick do
   describe "#dimensions" do
     it "should yield the dimensions of the input file at that point in the processing pipeline if a block is given" do
       input_path = create_image("#{temporary_directory}/input.jpg", :size => '40x30')
-      Kernel.expects(:'`').once.with("CONVERT #{input_path} -format \\%w\\ \\%h -identify /tmp/x.jpg").returns("40 30\n")
+      Bulldog.expects(:run).once.with('CONVERT', input_path, '-format', '%w %h', '-identify', '/tmp/x.jpg').returns("40 30\n")
       style :x, :path => '/tmp/x.jpg'
       values = []
       process(input_path) do
@@ -42,8 +42,8 @@ describe Processor::ImageMagick do
 
     it "should yield the dimensions once per branch if called with a block after a branch in the pipeline" do
       input_path = create_image("#{temporary_directory}/input.jpg", :size => '40x30')
-      Kernel.expects(:'`').once.with("CONVERT #{input_path} \\( \\+clone -resize 10x10 -format \\%w\\ \\%h -identify -write /tmp/small.jpg \\+delete \\) " +
-                                     "-resize 100x100 -format \\%w\\ \\%h -identify /tmp/large.jpg").returns("10 10\n100 100\n")
+      Bulldog.expects(:run).once.with('CONVERT', input_path, '(', '+clone', '-resize', '10x10', '-format', '%w %h', '-identify', '-write', '/tmp/small.jpg', '+delete', ')',
+                                     '-resize', '100x100', '-format', '%w %h', '-identify', '/tmp/large.jpg').returns("10 10\n100 100\n")
       style :small, :size => '10x10', :path => '/tmp/small.jpg'
       style :large, :size => '100x100', :path => '/tmp/large.jpg'
       values = []
@@ -62,32 +62,35 @@ describe Processor::ImageMagick do
   describe "#process" do
     it "should run convert if no block is given" do
       style :x, :path => '/tmp/x.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg /tmp/x.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '/tmp/x.jpg').returns('')
       process
     end
 
     it "should use the given :quality image setting" do
       style :x, :path => '/tmp/x.jpg', :quality => 50
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -quality 50 /tmp/x.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-quality', '50', '/tmp/x.jpg').returns('')
       process{}
     end
 
     it "should use the :colorspace image setting" do
       style :x, :path => '/tmp/x.jpg', :colorspace => 'rgb'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -colorspace rgb /tmp/x.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-colorspace', 'rgb', '/tmp/x.jpg').returns('')
       process{}
     end
 
     it "should log the command run if a logger is set" do
       style :x, :path => '/tmp/x.jpg'
-      Kernel.stubs(:'`').returns('')
-      Bulldog.logger.expects(:info).with('Running: "CONVERT" "INPUT.jpg" "/tmp/x.jpg"')
-      process{}
+      log_path = "#{temporary_directory}/log"
+      open(log_path, 'w') do |file|
+        Bulldog.logger = Logger.new(file)
+        process{}
+      end
+      File.read(log_path).should include('[Bulldog] Running: CONVERT')
     end
 
     it "should not blow up if the logger is set to nil" do
       style :x, :path => '/tmp/x.jpg'
-      Kernel.stubs(:'`').returns('')
+      Bulldog.stubs(:run).returns('')
       Bulldog.logger = nil
       lambda{process{}}.should_not raise_error
     end
@@ -96,7 +99,7 @@ describe Processor::ImageMagick do
   describe "#resize" do
     it "should resize the images to the style's size" do
       style :small, :size => '10x10', :path => '/tmp/small.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -resize 10x10 /tmp/small.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-resize', '10x10', '/tmp/small.jpg').returns('')
       process{resize}
     end
   end
@@ -104,7 +107,7 @@ describe Processor::ImageMagick do
   describe "#auto_orient" do
     it "should auto-orient the images" do
       style :small, :path => '/tmp/small.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -auto-orient /tmp/small.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-auto-orient', '/tmp/small.jpg').returns('')
       process{auto_orient}
     end
   end
@@ -112,7 +115,7 @@ describe Processor::ImageMagick do
   describe "#strip" do
     it "should strip the images" do
       style :small, :size => '10x10', :path => '/tmp/small.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -strip /tmp/small.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-strip', '/tmp/small.jpg').returns('')
       process{strip}
     end
   end
@@ -120,7 +123,7 @@ describe Processor::ImageMagick do
   describe "#flip" do
     it "should flip the image vertically" do
       style :flipped, :path => '/tmp/flipped.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -flip /tmp/flipped.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-flip', '/tmp/flipped.jpg').returns('')
       process{flip}
     end
   end
@@ -128,7 +131,7 @@ describe Processor::ImageMagick do
   describe "#flop" do
     it "should flip the image horizontally" do
       style :flopped, :path => '/tmp/flopped.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -flop /tmp/flopped.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-flop', '/tmp/flopped.jpg').returns('')
       process{flop}
     end
   end
@@ -137,8 +140,8 @@ describe Processor::ImageMagick do
     describe "for filled styles" do
       it "should resize the image to fill the rectangle of the specified size and crop off the edges" do
         style :small, :size => '10x10', :path => '/tmp/small.jpg', :filled => true
-        Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -resize 10x10\\^ " +
-          "-gravity Center -crop 10x10\\+0\\+0 \\+repage /tmp/small.jpg").returns('')
+        Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-resize', '10x10^',
+          '-gravity', 'Center', '-crop', '10x10+0+0', '+repage', '/tmp/small.jpg').returns('')
         process do
           thumbnail
         end
@@ -148,7 +151,7 @@ describe Processor::ImageMagick do
     describe "for unfilled styles" do
       it "should resize the image to fit inside the specified box size" do
         style :small, :size => '10x10', :path => '/tmp/small.jpg'
-        Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -resize 10x10 /tmp/small.jpg").returns('')
+        Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-resize', '10x10', '/tmp/small.jpg').returns('')
         process do
           thumbnail
         end
@@ -159,7 +162,7 @@ describe Processor::ImageMagick do
   describe "#rotate" do
     it "should rotate the image by the given angle" do
       style :rotated, :path => '/tmp/rotated.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -rotate 90 -rotate 90 /tmp/rotated.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-rotate', '90', '-rotate', '90', '/tmp/rotated.jpg').returns('')
       process do
         rotate(90)
         rotate('90')
@@ -168,7 +171,7 @@ describe Processor::ImageMagick do
 
     it "should not perform any rotation if the given angle is zero" do
       style :rotated, :path => '/tmp/rotated.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg /tmp/rotated.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '/tmp/rotated.jpg').returns('')
       process do
         rotate(0)
         rotate('0')
@@ -177,7 +180,7 @@ describe Processor::ImageMagick do
 
     it "should not perform any rotation if the given angle is blank" do
       style :rotated, :path => '/tmp/rotated.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg /tmp/rotated.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '/tmp/rotated.jpg').returns('')
       process do
         rotate('')
       end
@@ -187,7 +190,7 @@ describe Processor::ImageMagick do
   describe "#crop" do
     it "should crop the image by the given size and origin, and repage" do
       style :cropped, :path => '/tmp/cropped.jpg'
-      Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -crop 10x20\\+30-40 \\+repage /tmp/cropped.jpg").returns('')
+      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-crop', '10x20+30-40', '+repage', '/tmp/cropped.jpg').returns('')
       process do
         crop(:size => '10x20', :origin => '30,-40')
       end
@@ -195,8 +198,8 @@ describe Processor::ImageMagick do
   end
 
   it "should extract a common prefix if there are multiple styles which start with the same operations" do
-    Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -auto-orient " +
-      "\\( \\+clone -resize 100x100 -write /tmp/big.jpg \\+delete \\) -resize 40x40 /tmp/small.jpg").returns('')
+    Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-auto-orient',
+      '(', '+clone', '-resize', '100x100', '-write', '/tmp/big.jpg', '+delete', ')', '-resize', '40x40', '/tmp/small.jpg').returns('')
     style :big, :size => '100x100', :path => '/tmp/big.jpg'
     style :small, :size => '40x40', :path => '/tmp/small.jpg'
     process do
@@ -214,11 +217,11 @@ describe Processor::ImageMagick do
     #     flip
     #       strip       [:c]
     #       quality 75  [:d]
-    Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -auto-orient " +
-      "\\( \\+clone -resize 10x20 \\( \\+clone -flip -write /tmp/a.jpg \\+delete \\) " +
-                                              "-flop -write /tmp/b.jpg \\+delete \\) " +
-      "-flip \\( \\+clone -flop -write /tmp/c.jpg \\+delete \\) " +
-                               "-quality 75 /tmp/d.jpg").returns('')
+    Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-auto-orient',
+      '(', '+clone', '-resize', '10x20', '(', '+clone', '-flip', '-write', '/tmp/a.jpg', '+delete', ')',
+                                              '-flop', '-write', '/tmp/b.jpg', '+delete', ')',
+      '-flip', '(', '+clone', '-flop', '-write', '/tmp/c.jpg', '+delete', ')',
+                               '-quality', '75', '/tmp/d.jpg').returns('')
     style :a, :path => "/tmp/a.jpg", :size => '10x20'
     style :b, :path => "/tmp/b.jpg", :size => '10x20'
     style :c, :path => "/tmp/c.jpg", :size => '30x40'
@@ -232,9 +235,9 @@ describe Processor::ImageMagick do
   end
 
   it "should allow specifying operations for some styles only by checking #style" do
-    Kernel.expects(:'`').once.with("CONVERT INPUT.jpg -auto-orient " +
-      "\\( \\+clone -flip -write /tmp/flipped.jpg \\+delete \\) " +
-      "-flop /tmp/flopped.jpg").returns('')
+    Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg', '-auto-orient',
+      '(', '+clone', '-flip', '-write', '/tmp/flipped.jpg', '+delete', ')',
+      '-flop', '/tmp/flopped.jpg').returns('')
     style :flipped, :path => '/tmp/flipped.jpg'
     style :flopped, :path => '/tmp/flopped.jpg'
     process do
