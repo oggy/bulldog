@@ -71,11 +71,11 @@ module Bulldog
         style_name ||= reflection.default_style
         if style_name == :original
           if stream.missing?
-            [VideoTrack.new(:dimensions => [1, 1])]
+            [VideoTrack.new(:dimensions => [2, 2])]
           else
             examine
             if @original_video_tracks.empty?
-              @original_video_tracks << VideoTrack.new(:dimensions => [1, 1])
+              @original_video_tracks << VideoTrack.new(:dimensions => [2, 2])
             end
             @original_video_tracks
           end
@@ -84,6 +84,7 @@ module Bulldog
           target_dimensions = style[:size].split(/x/).map(&:to_i)
           video_tracks(:original).map do |video_track|
             dimensions = resized_dimensions(dimensions(:original), target_dimensions, style[:filled])
+            dimensions.map!{|i| i &= -2}  # some codecs require multiples of 2
             VideoTrack.new(:dimensions => dimensions)
           end
         end

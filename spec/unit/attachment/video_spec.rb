@@ -33,7 +33,7 @@ describe Attachment::Video do
   end
 
   describe "#dimensions" do
-    it "should return 1x1 if the style is missing" do
+    it "should return 2x2 if the style is missing" do
       Thing.attachment_reflections[:video].configure do
         when_file_missing do
           use_attachment(:video)
@@ -42,7 +42,7 @@ describe Attachment::Video do
       @thing.save.should be_true
       File.unlink(@thing.video.path(:original))
       @thing = Thing.find(@thing.id)
-      @thing.video.dimensions(:original).should == [1, 1]
+      @thing.video.dimensions(:original).should == [2, 2]
     end
 
     it "should return the width and height of the default style if no style name is given" do
@@ -57,6 +57,12 @@ describe Attachment::Video do
     it "should return the calculated width according to style filledness" do
       @thing.video.dimensions(:filled).should == [60, 60]
       @thing.video.dimensions(:unfilled).should == [120, 90]
+    end
+
+    it "should round calculated dimensions down to the nearest multiple of 2" do
+      # TODO: ick!
+      Thing.attachment_reflections[:video].styles[:filled][:size] = '59x59'
+      @thing.video.dimensions(:filled).should == [58, 58]
     end
 
     it "should only invoke ffmpeg once"

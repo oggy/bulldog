@@ -10,9 +10,12 @@ module Bulldog
     #
     # Return the value of the given style attribute.
     #
-    def [](name)
-      attributes[name]
-    end
+    delegate :[], :to => :attributes
+
+    #
+    # Set the value of the given style attribute.
+    #
+    delegate :[]=, :to => :attributes
 
     #
     # Return true if the argument is a Style with the same name and
