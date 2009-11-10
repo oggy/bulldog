@@ -385,6 +385,30 @@ describe Processor::Ffmpeg do
         process{encode}
       end
     end
+
+    describe "coder" do
+      it "should set the coder" do
+        style :one, :coder => 'ac'
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-coder', 'ac', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "verbosity" do
+      it "should set the verbosity" do
+        style :one, :verbosity => 1
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-v', '1', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
+
+    describe "flags" do
+      it "should set the flags" do
+        style :one, :flags => '+loop'
+        Bulldog.expects(:run).once.with('FFMPEG', '-i', 'INPUT.avi', '-flags', '+loop', '-y', 'OUTPUT.avi')
+        process{encode}
+      end
+    end
   end
 
   describe "#use_threads" do
