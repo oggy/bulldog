@@ -488,6 +488,6 @@ describe Validations do
       end
     end
 
-    it_should_use_i18n_key(:wrong_type, :matches => /\Aimage/){@thing.photo = uploaded_file_with_content('test.avi', "RIFF    AVI ")}
+    it_should_use_i18n_key(:attachment_wrong_type, :matches => /\Aimage/){@thing.photo = uploaded_file_with_content('test.avi', "RIFF    AVI ")}
   end
 end

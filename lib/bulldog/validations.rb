@@ -37,12 +37,12 @@ module Bulldog
           if attachment.present?
             if (pattern = options[:matches])
               attachment.content_type =~ pattern or
-                record.errors.add attribute, options[:message] || :wrong_type
+                record.errors.add attribute, options[:message] || :attachment_wrong_type
             elsif (specifier = options[:is])
               if specifier.is_a?(Symbol)
                 attachment_class = Attachment.class_from_type(specifier)
                 attachment.is_a?(attachment_class) or
-                  record.errors.add attribute, options[:message] || :wrong_type
+                  record.errors.add attribute, options[:message] || :attachment_wrong_type
               else
                 parse_mime_type = lambda do |string|
                   mime_type, parameter_string = string.to_s.split(/;/)
