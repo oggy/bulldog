@@ -27,18 +27,6 @@ module Bulldog
     def self.reset
       @interpolations = {}
 
-      to_interpolate :rails_root do
-        Rails.root
-      end
-
-      to_interpolate :rails_env do
-        Rails.env
-      end
-
-      to_interpolate :public_path do
-        Rails.public_path
-      end
-
       to_interpolate :class do |record, name, style|
         record.class.name.underscore.pluralize
       end

@@ -113,13 +113,7 @@ module Bulldog
       # to the attachment (e.g., :extension).
       #
       def interpolate_url(style_name, params={})
-        if reflection.url_template
-          template = reflection.url_template
-        elsif reflection.path_template =~ /\A:rails_root\/public/
-          template = $'
-        else
-          raise "cannot infer url from path - please set the #url for the :#{name} attachment"
-        end
+        template = reflection.url_template
         style = reflection.styles[style_name]
         params[:extension] ||= style[:format]
         Interpolation.interpolate(template, record, name, style, params)
