@@ -39,7 +39,7 @@ module Bulldog
         style_option '-acodec', params[:audio_codec]
         preset_option '-vpre', params[:video_preset]
         preset_option '-apre', params[:audio_preset]
-        style_option '-s', attachment.dimensions.join('x')
+        operate '-s', attachment.dimensions(style.name).join('x') if params[:size]
         style_option '-r', params[:frame_rate]
         style_option '-b', params[:video_bit_rate]
         style_option '-ar', params[:sampling_rate]
