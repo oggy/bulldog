@@ -19,7 +19,7 @@ module Bulldog
         else
           prefix, suffix = basename, ''
         end
-        
+
         t = Time.now.strftime("%Y%m%d")
         path = "#{prefix}#{t}-#{$$}-#{rand(0x100000000).to_s(36)}-#{n}#{suffix}"
       end
