@@ -10,7 +10,7 @@ module Bulldog
     def self.new(object)
       klass =
         case object
-        when Tempfile
+        when ::Tempfile
           ForTempfile
         when File
           ForFile
@@ -141,9 +141,6 @@ module Bulldog
         return @path if @path
         # Keep extension if it's available.  Some commands may use the
         # file extension of the input file, for example.
-        #
-        # TODO: Support ruby 1.8.6, where Tempfile does not allow
-        # specifying the extension.
         tempfile_name = 'bulldog'
         if @target.respond_to?(:original_path) && @target.original_path
           tempfile_name = [tempfile_name, File.extname(@target.original_path)]

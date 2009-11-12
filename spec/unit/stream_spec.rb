@@ -217,5 +217,18 @@ describe Stream do
       io = IO.popen("echo -n #{content}")
       autoclose_stream(io)
     end
+
+    describe "#path" do
+      it "should preserve the file extension if an #original_path is available" do
+        io = object('content')
+        class << io
+          def original_path
+            'test.xyz'
+          end
+        end
+        stream = Stream.new(io)
+        File.extname(stream.path).should == '.xyz'
+      end
+    end
   end
 end

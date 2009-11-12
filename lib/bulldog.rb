@@ -14,6 +14,7 @@ require 'bulldog/interpolation'
 require 'bulldog/saved_file'
 require 'bulldog/missing_file'
 require 'bulldog/processor'
+require 'bulldog/tempfile'
 require 'bulldog/stream'
 require 'bulldog/vector2'
 
