@@ -125,29 +125,6 @@ module Bulldog
         true
       end
 
-      #
-      # Return the dimensions, as an array [width, height], that
-      # result from resizing +original_dimensions+ to
-      # +target_dimensions+.  If fill is true, assume the final image
-      # will fill the target box.
-      #
-      def resized_dimensions(original_dimensions, target_dimensions, fill)
-        if fill
-          target_dimensions
-        else
-          original_aspect_ratio = original_dimensions[0].to_f / original_dimensions[1]
-          target_aspect_ratio = target_dimensions[0].to_f / target_dimensions[1]
-          if original_aspect_ratio > target_aspect_ratio
-            width = target_dimensions[0]
-            height = (width / original_aspect_ratio).round
-          else
-            height = target_dimensions[1]
-            width = (height * original_aspect_ratio).round
-          end
-          [width, height]
-        end
-      end
-
       private  # -------------------------------------------------------
 
       def styles_for_event(event)

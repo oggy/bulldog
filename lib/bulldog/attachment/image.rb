@@ -2,33 +2,6 @@ module Bulldog
   module Attachment
     class Image < Base
       #
-      # Return the width of the named style.
-      #
-      # +style_name+ defaults to the attribute's #default_style.
-      #
-      def width(style_name)
-        dimensions(style_name)[0]
-      end
-
-      #
-      # Return the height of the named style.
-      #
-      # +style_name+ defaults to the attribute's #default_style.
-      #
-      def height(style_name)
-        dimensions(style_name)[1]
-      end
-
-      #
-      # Return the aspect ratio of the named style.
-      #
-      # +style_name+ defaults to the attribute's #default_style.
-      #
-      def aspect_ratio(style_name)
-        width(style_name).to_f / height(style_name)
-      end
-
-      #
       # Return the width and height of the named style, as a 2-element
       # array.
       #
@@ -50,10 +23,7 @@ module Bulldog
         end
       end
 
-      storable_attribute :width       , :per_style => true, :memoize => true
-      storable_attribute :height      , :per_style => true, :memoize => true
-      storable_attribute :aspect_ratio, :per_style => true, :memoize => true
-      storable_attribute :dimensions  , :per_style => true, :memoize => true, :cast => true
+      include HasDimensions
 
       protected  # ---------------------------------------------------
 

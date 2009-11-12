@@ -1,4 +1,5 @@
 require 'bulldog/attachment/maybe'
+require 'bulldog/attachment/has_dimensions'
 require 'bulldog/attachment/base'
 require 'bulldog/attachment/none'
 require 'bulldog/attachment/image'
