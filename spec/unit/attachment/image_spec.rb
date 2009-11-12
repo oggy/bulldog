@@ -19,9 +19,9 @@ describe Attachment::Image do
   end
 
   def test_file
-    image_path = "#{temporary_directory}/test.jpg"
-    create_image(image_path, :size => "40x30")
-    SavedFile.new(image_path)
+    path = "#{temporary_directory}/test.jpg"
+    create_image(path, :size => "40x30")
+    SavedFile.new(path)
   end
 
   def run(command)

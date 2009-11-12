@@ -21,9 +21,9 @@ describe Attachment::Video do
   end
 
   def test_file
-    video_path = "#{temporary_directory}/test.mov"
-    FileUtils.cp("#{ROOT}/spec/data/test.mov", video_path)
-    autoclose open(video_path)
+    path = "#{temporary_directory}/test.mov"
+    FileUtils.cp("#{ROOT}/spec/data/test.mov", path)
+    autoclose open(path)
   end
 
   def run(command)
