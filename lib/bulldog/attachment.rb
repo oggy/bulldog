@@ -4,6 +4,7 @@ require 'bulldog/attachment/base'
 require 'bulldog/attachment/none'
 require 'bulldog/attachment/image'
 require 'bulldog/attachment/video'
+require 'bulldog/attachment/pdf'
 
 module Bulldog
   module Attachment
@@ -17,11 +18,13 @@ module Bulldog
           None
         else
           stream = Stream.new(value)
-          case stream.content_type[/\w+/]
-          when 'image'
+          case stream.content_type
+          when %r'\Aimage/'
             Image
-          when 'video'
+          when %r'\Avideo/'
             Video
+          when %r'\Aapplication/pdf'
+            Pdf
           else
             [Video, Image, Base].each do |klass|
               attachment = klass.try(record, name, stream) and

@@ -61,6 +61,16 @@ module TestUploadFiles
     test_path(basename)
   end
 
+  def test_pdf_file(basename='test.pdf')
+    path = test_pdf_path(basename)
+    file = open(path)
+    autoclose(file)
+  end
+
+  def test_pdf_path(basename='test.pdf')
+    test_path(basename)
+  end
+
   def test_empty_file
     file = open(test_path('empty.txt'))
     autoclose(file)

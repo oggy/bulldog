@@ -26,6 +26,12 @@ describe Attachment do
       end
     end
 
+    it "should return a Pdf if the file is a PDF file" do
+      open("#{ROOT}/spec/data/test.pdf") do |file|
+        Attachment.new(@record, @name, file).should be_a(Attachment::Pdf)
+      end
+    end
+
     it "should return a Base otherwise" do
       open("#{ROOT}/spec/data/empty.txt") do |file|
         Attachment.new(@record, @name, file).should be_a(Attachment::Base)
