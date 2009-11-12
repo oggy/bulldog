@@ -119,7 +119,7 @@ module Bulldog
       end
 
       def run_convert_command
-        command = [self.class.convert_command, input_file, *@tree.arguments].flatten
+        command = [self.class.convert_command, "#{input_file}[0]", *@tree.arguments].flatten
         Bulldog.run(*command)
       end
 
