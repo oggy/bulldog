@@ -9,6 +9,35 @@ describe Interpolation do
     Interpolation.interpolate(template, @thing, :photo, @style)
   end
 
+  describe ".to_interpolate" do
+    it "should define a custom interpolation token" do
+      begin
+        Interpolation.to_interpolate(:custom){'VALUE'}
+        Thing.has_attachment :attachment do
+          style :output
+          path "dir/:custom.ext"
+        end
+        thing = Thing.new
+        thing.attachment.interpolate_path(:output).should == "dir/VALUE.ext"
+      ensure
+        Interpolation.reset
+      end
+    end
+  end
+
+  describe ".reset" do
+    it "should remove custom interpolations" do
+      Bulldog.to_interpolate(:custom){'VALUE'}
+      Bulldog::Interpolation.reset
+      Thing.has_attachment :attachment do
+        style :output
+        path "dir/:custom.ext"
+      end
+      thing = Thing.new
+      lambda{thing.attachment.interpolate_path(:output)}.should raise_error(Interpolation::Error)
+    end
+  end
+
   describe "when the file name is not being stored" do
     before do
       Thing.has_attachment :photo do

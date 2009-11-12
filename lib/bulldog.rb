@@ -36,6 +36,24 @@ module Bulldog
     # option for #has_attachment.
     #
     attr_accessor :default_url_template
+
+    #
+    # Define an interpolation token.
+    #
+    # If :<token> appears in a path or URL template, the block will be
+    # called to get the value to substitute in.  The block will be
+    # called with 3 arguments: the record, the attachment name, and
+    # the style.
+    #
+    # Example:
+    #
+    #     Bulldog.to_interpolate :datestamp do |record, name, style|
+    #       Date.today.strftime("%Y%m%d")
+    #     end
+    #
+    def to_interpolate(token, &block)
+      Interpolation.to_interpolate(token, &block)
+    end
   end
 
   self.logger = nil
