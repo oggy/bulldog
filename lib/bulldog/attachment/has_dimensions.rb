@@ -77,6 +77,18 @@ module Bulldog
           [width, height]
         end
       end
+
+      private  # -----------------------------------------------------
+
+      def serialize_dimensions(dimensions)
+        return nil if dimensions.blank?
+        dimensions.join('x')
+      end
+
+      def deserialize_dimensions(string)
+        return nil if string.blank?
+        string.scan(/\d+/).map(&:to_i)
+      end
     end
   end
 end
