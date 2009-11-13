@@ -36,6 +36,41 @@ describe Reflection do
     end
   end
 
+  describe "configuration" do
+    # TODO: Restructure the tests so we test by configuration method,
+    # not reflection method.
+    describe "#process_once" do
+      it "should add a process event with a one_shot processor" do
+        Thing.has_attachment :photo do
+          process_once(:on => :test_event){}
+        end
+        events = reflection.events[:test_event]
+        events.map(&:processor_type).should == [:one_shot]
+      end
+
+      it "should raise an ArgumentError if a processor is specified" do
+        block_run = false
+        spec = self
+        Thing.has_attachment :photo do
+          block_run = true
+          lambda{process_once(:with => :image_magick){}}.should spec.raise_error(ArgumentError)
+        end
+        block_run.should be_true
+      end
+
+      it "should raise an ArgumentError if styles are specified" do
+        block_run = false
+        spec = self
+        Thing.has_attachment :photo do
+          block_run = true
+          style :one
+          lambda{process_once(:styles => [:one]){}}.should spec.raise_error(ArgumentError)
+        end
+        block_run.should be_true
+      end
+    end
+  end
+
   describe "#path_template" do
     describe "when a path has been confired for the attachment" do
       before do
