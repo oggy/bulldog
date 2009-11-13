@@ -56,21 +56,17 @@ module Bulldog
     end
 
     #
-    # Register a custom type detection scheme.
+    # Register a custom type detector.
     #
     # When instantiating an attachment, Bulldog will use the
-    # configured type detection scheme to work out which type of
-    # attachment to use.  This method registers a custom type
-    # detection scheme which may be selected in your attachment
-    # configuration by name.
+    # configured type detector to work out which type of attachment to
+    # use.  This method registers a custom type detector which may be
+    # selected in your attachment configuration by just using the
+    # name.
     #
     # The given block is passed the record, the attribute name, and
-    # the value as a Stream object, which abstracts over the various
-    # file-ish objects that may be assigned to an attachment.  See
-    # Bulldog::Stream::Base for details.
-    #
-    # The block should return a symbol representing the attachment
-    # type.
+    # the value as a Bulldog::Stream.  The block should return a
+    # symbol representing the attachment type.
     #
     # Example:
     #
@@ -84,9 +80,6 @@ module Bulldog
     #         :pdf
     #       end
     #     end
-    #
-    # will pass the given block the record, attachment name, and value
-    # (as a Bulldog::Stream) to work out which attachment type to use.
     #
     def to_detect_type_by(name, &block)
       Reflection.to_detect_type_by(name, &block)

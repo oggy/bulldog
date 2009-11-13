@@ -10,12 +10,12 @@ module Bulldog
       @default_style = :original
       @stored_attributes = {}
       @events = Hash.new{|h,k| h[k] = []}
-      @type_detection_scheme = nil
+      @type_detector = nil
 
       configure(&block)
     end
 
-    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes, :type_detection_scheme
+    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes, :type_detector
     attr_writer :default_style, :path_template, :url_template
 
     #
@@ -57,16 +57,16 @@ module Bulldog
       end
     end
 
-    def self.named_type_detection_schemes
-      @named_type_detection_schemes ||= {}
+    def self.named_type_detectors
+      @named_type_detectors ||= {}
     end
 
     def self.to_detect_type_by(name, &block)
-      named_type_detection_schemes[name] = block
+      named_type_detectors[name] = block
     end
 
-    def self.reset_type_detection_schemes
-      named_type_detection_schemes.clear
+    def self.reset_type_detectors
+      named_type_detectors.clear
     end
 
     to_detect_type_by :default do |record, name, stream|
@@ -87,11 +87,11 @@ module Bulldog
     # stream.
     #
     def detect_attachment_type(record, stream)
-      scheme = type_detection_scheme || :default
-      if scheme.is_a?(Symbol)
-        scheme = self.class.named_type_detection_schemes[scheme]
+      detector = type_detector || :default
+      if detector.is_a?(Symbol)
+        detector = self.class.named_type_detectors[detector]
       end
-      scheme.call(record, name, stream)
+      detector.call(record, name, stream)
     end
 
     class Configuration
@@ -154,10 +154,10 @@ module Bulldog
         @reflection.stored_attributes = stored_attributes
       end
 
-      def detect_type_by(scheme=nil, &block)
-        scheme && block and
+      def detect_type_by(detector=nil, &block)
+        detector && block and
           raise ArgumentError, "cannot pass argument and a block"
-        @reflection.type_detection_scheme = scheme || block
+        @reflection.type_detector = detector || block
       end
 
       private  # -----------------------------------------------------

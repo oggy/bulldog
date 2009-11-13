@@ -186,11 +186,11 @@ describe Reflection do
     describe "when configured with a symbol" do
       it "should use the named registered type detection proc" do
         args = nil
-        Bulldog::Reflection.to_detect_type_by :a_custom_scheme do |*args|
+        Bulldog::Reflection.to_detect_type_by :test_detector do |*args|
           :type
         end
         Thing.has_attachment :photo do
-          detect_type_by :a_custom_scheme
+          detect_type_by :test_detector
         end
 
         thing = Thing.new

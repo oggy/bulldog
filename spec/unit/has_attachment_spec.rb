@@ -118,7 +118,7 @@ describe HasAttachment do
         end
 
         describe "when the attachment is blank" do
-          describe "when the type detection scheme returns nil" do
+          describe "when the type detector returns nil" do
             before do
               configure do
                 detect_type_by{nil}
@@ -132,7 +132,7 @@ describe HasAttachment do
             end
           end
 
-          describe "when the type detection scheme returns a type" do
+          describe "when the type detector returns a type" do
             before do
               configure do
                 detect_type_by{:image}
@@ -156,7 +156,7 @@ describe HasAttachment do
         end
 
         describe "when the attachment is not blank" do
-          describe "when the type detection scheme returns nil" do
+          describe "when the type detector returns nil" do
             before do
               configure do
                 detect_type_by{nil}
@@ -178,7 +178,7 @@ describe HasAttachment do
             end
           end
 
-          describe "when the type detection scheme returns a type" do
+          describe "when the type detector returns a type" do
             before do
               configure do
                 detect_type_by{:video}
@@ -319,7 +319,7 @@ describe HasAttachment do
               @thing.photo_file_size.should == File.size(test_path('test.jpg'))
             end
 
-            describe "when the type detection scheme returns nil" do
+            describe "when the type detector returns nil" do
               before do
                 configure do
                   detect_type_by{nil}
@@ -336,7 +336,7 @@ describe HasAttachment do
               end
             end
 
-            describe "when the type detection scheme returns a type" do
+            describe "when the type detector returns a type" do
               before do
                 configure do
                   detect_type_by{:video}
@@ -367,7 +367,7 @@ describe HasAttachment do
               @thing.photo_file_size.should be_nil
             end
 
-            describe "when the type detection scheme returns nil" do
+            describe "when the type detector returns nil" do
               before do
                 configure do
                   detect_type_by{nil}
@@ -381,7 +381,7 @@ describe HasAttachment do
               end
             end
 
-            describe "when the type detection scheme returns a type" do
+            describe "when the type detector returns a type" do
               before do
                 configure do
                   detect_type_by{nil}
@@ -411,7 +411,7 @@ describe HasAttachment do
               @thing.photo_file_size.should == File.size(test_path('test.jpg'))
             end
 
-            describe "when the type detection scheme returns nil" do
+            describe "when the type detector returns nil" do
               before do
                 configure do
                   detect_type_by{nil}
@@ -424,7 +424,7 @@ describe HasAttachment do
               end
             end
 
-            describe "when the type detection scheme returns a type" do
+            describe "when the type detector returns a type" do
               before do
                 configure do
                   detect_type_by{:pdf}
