@@ -10,6 +10,19 @@ module Bulldog
         attachment.send(:examine) ? attachment : nil
       end
 
+      #
+      # Set the attachment type for this class.
+      #
+      # This will register it as the type of attachment to use for the
+      # given attachment type.
+      #
+      def self.handle(type)
+        self.attachment_type = type
+        Attachment.types_to_classes[type] = self
+      end
+
+      class_inheritable_accessor :attachment_type
+
       def initialize(record, name, stream)
         @record = record
         @name = name
@@ -23,8 +36,8 @@ module Bulldog
       #
       def process(event_name, *args)
         reflection.events[event_name].each do |event|
-          next unless event.attachment_types.any? do |type|
-            self.is_a?( Attachment.class_from_type(type) )
+          if (types = event.attachment_types)
+            next unless types.include?(type)
           end
           processor_type = event.processor_type || default_processor_type
           processor_class = Processor.const_get(processor_type.to_s.camelize)
@@ -67,6 +80,13 @@ module Bulldog
       #
       def content_type
         @content_type ||= stream.content_type
+      end
+
+      #
+      # Return the class' attachment type.
+      #
+      def type
+        self.class.attachment_type
       end
 
       #

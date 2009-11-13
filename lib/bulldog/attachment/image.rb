@@ -1,6 +1,8 @@
 module Bulldog
   module Attachment
     class Image < Base
+      handle :image
+
       #
       # Return the width and height of the named style, as a 2-element
       # array.

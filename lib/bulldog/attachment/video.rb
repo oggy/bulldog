@@ -1,6 +1,8 @@
 module Bulldog
   module Attachment
     class Video < Base
+      handle :video
+
       #
       # Return the width and height of the named style, as a 2-element
       # array.

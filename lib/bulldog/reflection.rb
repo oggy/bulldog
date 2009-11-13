@@ -138,10 +138,10 @@ module Bulldog
       #
       def process(*types, &callback)
         options = types.extract_options!
-        types = [:base] if types.empty?
         event_name = event_name(options)
+        types = options[:types] ? Array(options[:types]) : nil
         @reflection.events[event_name] << Event.new(:processor_type => options[:with],
-                                                    :attachment_types => Array(types),
+                                                    :attachment_types => types,
                                                     :styles => options[:styles],
                                                     :callback => callback)
       end

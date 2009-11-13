@@ -1,3 +1,11 @@
+module Bulldog
+  module Attachment
+    def self.types_to_classes  #:nodoc:
+      @types_to_classes ||= {}
+    end
+  end
+end
+
 require 'bulldog/attachment/maybe'
 require 'bulldog/attachment/has_dimensions'
 require 'bulldog/attachment/base'
@@ -35,7 +43,7 @@ module Bulldog
     # Return the class corresponding to the given type.
     #
     def self.class_from_type(type)
-      const_get(type.to_s.camelize)
+      types_to_classes[type]
     end
   end
 end
