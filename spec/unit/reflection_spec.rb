@@ -182,7 +182,7 @@ describe Reflection do
     end
   end
 
-  describe "#detect_type" do
+  describe "#detect_type_by" do
     describe "when configured with a symbol" do
       it "should use the named registered type detection proc" do
         args = nil
@@ -239,6 +239,15 @@ describe Reflection do
           end.should spec.raise_error(ArgumentError)
         end
         block_run.should be_true
+      end
+    end
+
+    describe "when configured with #type" do
+      it "should return the given type" do
+        Thing.has_attachment :photo do
+          type :type
+        end
+        reflection.detect_attachment_type(Thing.new, mock).should == :type
       end
     end
   end

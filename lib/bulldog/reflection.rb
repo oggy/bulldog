@@ -10,12 +10,13 @@ module Bulldog
       @default_style = :original
       @stored_attributes = {}
       @events = Hash.new{|h,k| h[k] = []}
+      @type = nil
       @type_detector = nil
 
       configure(&block)
     end
 
-    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes, :type_detector
+    attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes, :type, :type_detector
     attr_writer :default_style, :path_template, :url_template
 
     #
@@ -87,6 +88,7 @@ module Bulldog
     # stream.
     #
     def detect_attachment_type(record, stream)
+      return type if type
       detector = type_detector || :default
       if detector.is_a?(Symbol)
         detector = self.class.named_type_detectors[detector]
@@ -154,9 +156,41 @@ module Bulldog
         @reflection.stored_attributes = stored_attributes
       end
 
+      #
+      # Always use the given attachment type for this attachment.
+      #
+      # This is equivalent to:
+      #
+      #     detect_type_by do
+      #       type if stream
+      #     end
+      #
+      def type(type)
+        @reflection.type = type
+        @reflection.type_detector = nil
+      end
+
+      #
+      # Specify a procedure to run to determine the type of the
+      # attachment.
+      #
+      # Pass either:
+      #
+      #   * A symbol argument, which names a named type detector.  Use
+      #    +Bulldog.to_detect_type_by+ to register custom named type
+      #    detectors.
+      #
+      #   * A block, which takes the record, attribute name, and
+      #     Stream being assigned, and returns the attachment type to
+      #     use as a Symbol.
+      #
+      #   * A callable object, e.g. a Proc or BoundMethod, which has
+      #     the same signature as the block above.
+      #
       def detect_type_by(detector=nil, &block)
         detector && block and
           raise ArgumentError, "cannot pass argument and a block"
+        @reflection.type = nil
         @reflection.type_detector = detector || block
       end
 
