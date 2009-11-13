@@ -46,6 +46,26 @@ module Bulldog
       end
 
       #
+      # Set the attachment type for this class.
+      #
+      # This will register it as the type of attachment to use for the
+      # given attachment type.
+      #
+      def self.handle(type)
+        self.attachment_type = type
+        Attachment.types_to_classes[type] = self
+      end
+
+      class_inheritable_accessor :attachment_type
+
+      #
+      # Return the class' attachment type.
+      #
+      def type
+        self.class.attachment_type
+      end
+
+      #
       # Set the stored attributes in the record.
       #
       def set_stored_attributes

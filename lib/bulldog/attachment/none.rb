@@ -1,6 +1,8 @@
 module Bulldog
   module Attachment
     class None < Maybe
+      handle :none
+
       #
       # Return true.  (Overrides ActiveSupport's Object#blank?)
       #
