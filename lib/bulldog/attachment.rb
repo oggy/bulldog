@@ -5,6 +5,7 @@ require 'bulldog/attachment/none'
 require 'bulldog/attachment/image'
 require 'bulldog/attachment/video'
 require 'bulldog/attachment/pdf'
+require 'bulldog/attachment/unknown'
 
 module Bulldog
   module Attachment
@@ -16,7 +17,7 @@ module Bulldog
     # represents a file that exists).
     def self.of_type(type, record, name, stream)
       if type.nil?
-        klass = stream.missing? ? None : Base
+        klass = stream.missing? ? None : Unknown
       else
         klass = class_from_type(type)
       end
