@@ -1,12 +1,13 @@
 require 'spec_helper'
 
 describe StyleSet do
-  describe "#[]" do
-    before do
-      @one = Style.new(:one, {})
-      @two = Style.new(:two, {})
-    end
+  before do
+    @one = Style.new(:one, {})
+    @two = Style.new(:two, {})
+    @original = Style.new(:original, {})
+  end
 
+  describe "#[]" do
     it "should allow lookup by style name" do
       style_set = StyleSet[@one, @two]
       style_set[:one].should equal(@one)
@@ -21,7 +22,23 @@ describe StyleSet do
 
     it "should return a special, empty style for :original" do
       style_set = StyleSet[]
-      style_set[:original].should == Style.new(:original, {})
+      style_set[:original].should == @original
+    end
+  end
+
+  describe "#clear" do
+    before do
+      @style_set = StyleSet[@one, @two]
+      @style_set.clear
+    end
+
+    it "should remove all non-original styles" do
+      @style_set[:one].should be_nil
+      @style_set[:two].should be_nil
+    end
+
+    it "should leave the original style" do
+      @style_set[:original].should == @original
     end
   end
 end

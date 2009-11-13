@@ -73,6 +73,15 @@ module Bulldog
     end
 
     #
+    # Clear all styles out of the style set.
+    #
+    # The original will still be retrievable.
+    #
+    def clear
+      @styles.clear
+    end
+
+    #
     # Yield each style.
     #
     def each(&block)
