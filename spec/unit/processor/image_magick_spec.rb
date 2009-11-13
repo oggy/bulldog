@@ -1,137 +1,150 @@
 require 'spec_helper'
 
 describe Processor::ImageMagick do
+  set_up_model_class :Thing do |t|
+    t.string :attachment_file_name
+  end
+
   before do
-    stub_system_calls
-    @styles = StyleSet.new
-  end
-
-  use_temporary_attribute_value Processor::ImageMagick, :convert_command, 'CONVERT'
-  use_temporary_attribute_value Processor::ImageMagick, :identify_command, 'IDENTIFY'
-
-  def style(name, attributes)
-    @styles << Style.new(name, attributes)
-  end
-
-  def fake_attachment
-    attachment = Object.new
-    styles = @styles
-    (class << attachment; self; end).class_eval do
-      define_method(:path){|style_name| styles[style_name][:path]}
+    spec = self
+    Thing.has_attachment :attachment do
+      path "#{spec.temporary_directory}/attachment.:style.:extension"
     end
-    attachment
+    thing = Thing.create(:attachment => test_image_file('test.jpg'))
+    @thing = Thing.find(thing.id)
   end
 
-  def process(input_path='INPUT.jpg', &block)
-    Processor::ImageMagick.new(fake_attachment, @styles, input_path).process(&block)
+  def convert
+    Processor::ImageMagick.convert_command
+  end
+
+  def original_path
+    "#{temporary_directory}/attachment.original.jpg"
+  end
+
+  def output_path(style_name=:output)
+    "#{temporary_directory}/attachment.#{style_name}.jpg"
+  end
+
+  def configure(&block)
+    Thing.attachment_reflections[:attachment].configure(&block)
+  end
+
+  def style(name, attributes={})
+    configure do
+      style name, attributes
+    end
+  end
+
+  def process(&block)
+    configure do
+      process(:on => :event, &block)
+    end
+    @thing.attachment.process(:event)
   end
 
   describe "#dimensions" do
     it "should yield the dimensions of the input file at that point in the processing pipeline if a block is given" do
-      input_path = create_image("#{temporary_directory}/input.jpg", :size => '40x30')
-      Bulldog.expects(:run).once.with('CONVERT', "#{input_path}[0]", '-format', '%w %h', '-identify', '/tmp/x.jpg').returns("40 30\n")
-      style :x, :path => '/tmp/x.jpg'
+      style :output
       values = []
-      process(input_path) do
+      process do
         dimensions do |*args|
           values << args
         end
       end
-      values.should == [[@styles.to_a, 40, 30]]
+      styles = Thing.attachment_reflections[:attachment].styles.to_a
+      values.should == [[styles, 40, 30]]
     end
 
     it "should yield the dimensions once per branch if called with a block after a branch in the pipeline" do
-      input_path = create_image("#{temporary_directory}/input.jpg", :size => '40x30')
-      Bulldog.expects(:run).once.with('CONVERT', "#{input_path}[0]", '(', '+clone', '-resize', '10x10', '-format', '%w %h', '-identify', '-write', '/tmp/small.jpg', '+delete', ')',
-                                     '-resize', '100x100', '-format', '%w %h', '-identify', '/tmp/large.jpg').returns("10 10\n100 100\n")
-      style :small, :size => '10x10', :path => '/tmp/small.jpg'
-      style :large, :size => '100x100', :path => '/tmp/large.jpg'
+      style :small, :size => '4x3'
+      style :large, :size => '400x300'
       values = []
-      process(input_path) do
+      process do
         resize
         dimensions do |*args|
           values << args
         end
       end
+      styles = Thing.attachment_reflections[:attachment].styles
       values.should have(2).sets_of_arguments
-      values[0].should == [[@styles[0]], 10, 10]
-      values[1].should == [[@styles[1]], 100, 100]
+      values[0].should == [[styles[:small]], 4, 3]
+      values[1].should == [[styles[:large]], 400, 300]
     end
   end
 
   describe "#process" do
     it "should run convert if no block is given" do
-      style :x, :path => '/tmp/x.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '/tmp/x.jpg').returns('')
+      style :output
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", output_path).returns('')
       process
     end
 
-    it "should use the given :quality image setting" do
-      style :x, :path => '/tmp/x.jpg', :quality => 50
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-quality', '50', '/tmp/x.jpg').returns('')
-      process{}
+    it "should use the given :quality style attribute" do
+      style :output, :quality => 50
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-quality', '50', output_path).returns('')
+      process
     end
 
-    it "should use the :colorspace image setting" do
-      style :x, :path => '/tmp/x.jpg', :colorspace => 'rgb'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-colorspace', 'rgb', '/tmp/x.jpg').returns('')
-      process{}
+    it "should use the :colorspace style attribute" do
+      style :output, :colorspace => 'rgb'
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-colorspace', 'rgb', output_path).returns('')
+      process
     end
 
     it "should log the command run if a logger is set" do
-      style :x, :path => '/tmp/x.jpg'
+      style :output
       log_path = "#{temporary_directory}/log"
       open(log_path, 'w') do |file|
         Bulldog.logger = Logger.new(file)
-        process{}
+        process
       end
-      File.read(log_path).should include('[Bulldog] Running: CONVERT')
+      File.read(log_path).should include("[Bulldog] Running: #{convert}")
     end
 
     it "should not blow up if the logger is set to nil" do
-      style :x, :path => '/tmp/x.jpg'
-      Bulldog.stubs(:run).returns('')
+      style :output
       Bulldog.logger = nil
-      lambda{process{}}.should_not raise_error
+      lambda{process}.should_not raise_error
     end
   end
 
   describe "#resize" do
     it "should resize the images to the style's size" do
-      style :small, :size => '10x10', :path => '/tmp/small.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-resize', '10x10', '/tmp/small.jpg').returns('')
+      style :output, :size => '10x10'
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-resize', '10x10', output_path).returns('')
       process{resize}
     end
   end
 
   describe "#auto_orient" do
     it "should auto-orient the images" do
-      style :small, :path => '/tmp/small.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-auto-orient', '/tmp/small.jpg').returns('')
+      style :output
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-auto-orient', output_path).returns('')
       process{auto_orient}
     end
   end
 
   describe "#strip" do
     it "should strip the images" do
-      style :small, :size => '10x10', :path => '/tmp/small.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-strip', '/tmp/small.jpg').returns('')
+      style :output, :size => '10x10'
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-strip', output_path).returns('')
       process{strip}
     end
   end
 
   describe "#flip" do
     it "should flip the image vertically" do
-      style :flipped, :path => '/tmp/flipped.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-flip', '/tmp/flipped.jpg').returns('')
+      style :output
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-flip', output_path).returns('')
       process{flip}
     end
   end
 
   describe "#flop" do
     it "should flip the image horizontally" do
-      style :flopped, :path => '/tmp/flopped.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-flop', '/tmp/flopped.jpg').returns('')
+      style :output
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-flop', output_path).returns('')
       process{flop}
     end
   end
@@ -139,58 +152,52 @@ describe Processor::ImageMagick do
   describe "#thumbnail" do
     describe "for filled styles" do
       it "should resize the image to fill the rectangle of the specified size and crop off the edges" do
-        style :small, :size => '10x10', :path => '/tmp/small.jpg', :filled => true
-        Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-resize', '10x10^',
-          '-gravity', 'Center', '-crop', '10x10+0+0', '+repage', '/tmp/small.jpg').returns('')
-        process do
-          thumbnail
-        end
+        style :output, :size => '10x10', :filled => true
+        Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-resize', '10x10^',
+          '-gravity', 'Center', '-crop', '10x10+0+0', '+repage', output_path).returns('')
+        process{thumbnail}
       end
     end
 
     describe "for unfilled styles" do
       it "should resize the image to fit inside the specified box size" do
-        style :small, :size => '10x10', :path => '/tmp/small.jpg'
-        Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-resize', '10x10', '/tmp/small.jpg').returns('')
-        process do
-          thumbnail
-        end
+        style :output, :size => '10x10'
+        Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-resize', '10x10', output_path).returns('')
+        process{thumbnail}
       end
     end
   end
 
   describe "#rotate" do
     it "should rotate the image by the given angle" do
-      style :rotated, :path => '/tmp/rotated.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-rotate', '90', '-rotate', '90', '/tmp/rotated.jpg').returns('')
-      process do
-        rotate(90)
-        rotate('90')
-      end
+      style :output
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-rotate', '90', output_path).returns('')
+      process{rotate 90}
+    end
+
+    it "should allow the angle to be given by a string" do
+      style :output
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-rotate', '90', output_path).returns('')
+      process{rotate '90'}
     end
 
     it "should not perform any rotation if the given angle is zero" do
-      style :rotated, :path => '/tmp/rotated.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '/tmp/rotated.jpg').returns('')
-      process do
-        rotate(0)
-        rotate('0')
-      end
+      style :output
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", output_path).returns('')
+      process{rotate 0}
     end
 
     it "should not perform any rotation if the given angle is blank" do
-      style :rotated, :path => '/tmp/rotated.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '/tmp/rotated.jpg').returns('')
-      process do
-        rotate('')
-      end
+      style :output
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", output_path).returns('')
+      process{rotate ''}
     end
   end
 
   describe "#crop" do
     it "should crop the image by the given size and origin, and repage" do
-      style :cropped, :path => '/tmp/cropped.jpg'
-      Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-crop', '10x20+30-40', '+repage', '/tmp/cropped.jpg').returns('')
+      style :output
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-crop', '10x20+30-40', '+repage', output_path).returns('')
       process do
         crop(:size => '10x20', :origin => '30,-40')
       end
@@ -198,10 +205,10 @@ describe Processor::ImageMagick do
   end
 
   it "should extract a common prefix if there are multiple styles which start with the same operations" do
-    Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-auto-orient',
-      '(', '+clone', '-resize', '100x100', '-write', '/tmp/big.jpg', '+delete', ')', '-resize', '40x40', '/tmp/small.jpg').returns('')
-    style :big, :size => '100x100', :path => '/tmp/big.jpg'
-    style :small, :size => '40x40', :path => '/tmp/small.jpg'
+    Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-auto-orient',
+      '(', '+clone', '-resize', '100x100', '-write', output_path(:big), '+delete', ')', '-resize', '40x40', output_path(:small)).returns('')
+    style :big, :size => '100x100'
+    style :small, :size => '40x40'
     process do
       auto_orient
       resize
@@ -217,15 +224,15 @@ describe Processor::ImageMagick do
     #     flip
     #       strip       [:c]
     #       quality 75  [:d]
-    Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-auto-orient',
-      '(', '+clone', '-resize', '10x20', '(', '+clone', '-flip', '-write', '/tmp/a.jpg', '+delete', ')',
-                                              '-flop', '-write', '/tmp/b.jpg', '+delete', ')',
-      '-flip', '(', '+clone', '-flop', '-write', '/tmp/c.jpg', '+delete', ')',
-                               '-quality', '75', '/tmp/d.jpg').returns('')
-    style :a, :path => "/tmp/a.jpg", :size => '10x20'
-    style :b, :path => "/tmp/b.jpg", :size => '10x20'
-    style :c, :path => "/tmp/c.jpg", :size => '30x40'
-    style :d, :path => "/tmp/d.jpg", :size => '30x40', :quality => 75
+    Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-auto-orient',
+      '(', '+clone', '-resize', '10x20', '(', '+clone', '-flip', '-write', output_path(:a), '+delete', ')',
+                                              '-flop', '-write', output_path(:b), '+delete', ')',
+      '-flip', '(', '+clone', '-flop', '-write', output_path(:c), '+delete', ')',
+                               '-quality', '75', output_path(:d)).returns('')
+    style :a, :size => '10x20'
+    style :b, :size => '10x20'
+    style :c, :size => '30x40'
+    style :d, :size => '30x40', :quality => 75
     process do
       auto_orient
       resize if [:a, :b].include?(style.name)
@@ -235,9 +242,9 @@ describe Processor::ImageMagick do
   end
 
   it "should allow specifying operations for some styles only by checking #style" do
-    Bulldog.expects(:run).once.with('CONVERT', 'INPUT.jpg[0]', '-auto-orient',
-      '(', '+clone', '-flip', '-write', '/tmp/flipped.jpg', '+delete', ')',
-      '-flop', '/tmp/flopped.jpg').returns('')
+    Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-auto-orient',
+      '(', '+clone', '-flip', '-write', output_path(:flipped), '+delete', ')',
+      '-flop', output_path(:flopped)).returns('')
     style :flipped, :path => '/tmp/flipped.jpg'
     style :flopped, :path => '/tmp/flopped.jpg'
     process do

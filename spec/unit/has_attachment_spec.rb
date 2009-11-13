@@ -356,14 +356,24 @@ describe HasAttachment do
 
         describe "when the record exists and there is an attachment" do
           before do
-            @old_file = uploaded_file('old.jpg', 'test.jpg')
+            @old_file = test_file('test.jpg')
             thing = Thing.create(:photo => @old_file)
             @thing = Thing.find(thing.id)
           end
 
+          def old_original_path
+            original_path
+          end
+
+          def new_original_path
+            new_dirname = File.dirname(original_path)
+            new_basename = File.basename(original_path, 'jpg') + 'png'
+            File.join(new_dirname, new_basename)
+          end
+
           describe "when a new attachment is assigned" do
             before do
-              @new_file = uploaded_file('new.jpg', 'test2.jpg')
+              @new_file = test_file('test.png')
             end
 
             it "should update the attachment" do
@@ -380,15 +390,21 @@ describe HasAttachment do
 
             it "should set the stored attributes" do
               @thing.photo = @new_file
-              @thing.photo_file_name.should == 'new.jpg'
-              @thing.photo_content_type.split(/;/).first.should == 'image/jpeg'
-              @thing.photo_file_size.should == File.size(test_image_path('test2.jpg'))
+              @thing.photo_file_name.should == 'test.png'
+              @thing.photo_content_type.split(/;/).first.should == 'image/png'
+              @thing.photo_file_size.should == File.size(test_path('test.png'))
             end
 
-            it "should not update the original file yet" do
+            it "should not create the new original file yet" do
               lambda do
                 @thing.photo = @new_file
-              end.should_not modify_file(original_path)
+              end.should_not create_file(new_original_path)
+            end
+
+            it "should not delete the old original file yet" do
+              lambda do
+                @thing.photo = @new_file
+              end.should_not delete_file(old_original_path)
             end
 
             describe "when the record is saved" do
@@ -396,10 +412,16 @@ describe HasAttachment do
                 @thing.photo = @new_file
               end
 
-              it "should create the original file" do
+              it "should create the new original file" do
                 lambda do
                   @thing.save.should be_true
-                end.should modify_file(original_path)
+                end.should create_file(new_original_path)
+              end
+
+              it "should delete the old original file" do
+                lambda do
+                  @thing.save.should be_true
+                end.should delete_file(old_original_path)
               end
 
               it "should remove any old processed files" do

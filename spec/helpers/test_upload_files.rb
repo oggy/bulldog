@@ -34,6 +34,12 @@ module TestUploadFiles
     io
   end
 
+  def test_file(basename)
+    path = test_path(basename)
+    file = open(path)
+    autoclose(file)
+  end
+
   def test_path(basename)
     "#{ROOT}/spec/data/#{basename}"
   end
