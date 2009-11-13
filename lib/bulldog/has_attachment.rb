@@ -157,7 +157,8 @@ module Bulldog
       # TODO: example that shows all the options.
       #
       def has_attachment(name, &block)
-        reflection = Reflection.new(self, name, &block)
+        reflection = attachment_reflections[name] || Reflection.new(self, name)
+        reflection.configure(&block)
         attachment_reflections[name] = reflection
         define_attachment_accessors(reflection.name)
         define_attachment_attribute_methods(reflection.name)

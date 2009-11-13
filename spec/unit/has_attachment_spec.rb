@@ -4,21 +4,30 @@ describe HasAttachment do
   describe ".has_attachment" do
     set_up_model_class :Thing
 
-    before do
-      Thing.has_attachment :photo
-    end
-
     it "should provide accessors for the attachment" do
+      Thing.has_attachment :photo
       thing = Thing.new
       thing.photo.should be_a(Attachment::Maybe)
     end
 
     it "should provide a query method for the attachment" do
+      Thing.has_attachment :photo
       thing = Thing.new
       file = uploaded_file
       thing.photo?.should be_false
       thing.photo = file
       thing.photo?.should be_true
+    end
+
+    it "should configure the existing attachment declared if one exists" do
+      Thing.has_attachment :photo do
+        style :one
+      end
+      Thing.has_attachment :photo do
+        style :two
+      end
+      Thing.attachment_reflections[:photo].styles[:one].should_not be_blank
+      Thing.attachment_reflections[:photo].styles[:two].should_not be_blank
     end
   end
 

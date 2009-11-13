@@ -1,6 +1,6 @@
 module Bulldog
   class Reflection
-    def initialize(model_class, name, &block)
+    def initialize(model_class, name)
       @model_class = model_class
       @name = name
 
@@ -12,8 +12,6 @@ module Bulldog
       @events = Hash.new{|h,k| h[k] = []}
       @type = nil
       @type_detector = nil
-
-      configure(&block)
     end
 
     attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes, :type, :type_detector
