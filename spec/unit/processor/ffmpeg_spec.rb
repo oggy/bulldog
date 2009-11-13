@@ -50,7 +50,7 @@ describe Processor::Ffmpeg do
 
   def process_video(options={}, &block)
     configure(:video) do
-      process(options.merge(:on => :event), &block)
+      process(options.merge(:on => :event, :with => :ffmpeg), &block)
     end
     @thing.video.process(:event)
   end

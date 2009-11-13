@@ -38,7 +38,7 @@ describe Processor::ImageMagick do
 
   def process(&block)
     configure do
-      process(:on => :event, &block)
+      process(:on => :event, :with => :image_magick, &block)
     end
     @thing.attachment.process(:event)
   end
