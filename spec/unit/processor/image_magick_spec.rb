@@ -92,6 +92,12 @@ describe Processor::ImageMagick do
       process
     end
 
+    it "should use the :format style attribute to set the file extension if it's specified by the :extension interpolation key" do
+      style :output, :format => 'png'
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", output_path.sub(/jpg\z/, 'png')).returns('')
+      process
+    end
+
     it "should log the command run if a logger is set" do
       style :output
       log_path = "#{temporary_directory}/log"

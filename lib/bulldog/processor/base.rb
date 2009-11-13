@@ -40,7 +40,11 @@ module Bulldog
       # The name of the output file for the given style.
       #
       def output_file(style_name)
-        attachment.path(style_name)
+        overrides = {}
+        if (format = styles[style_name][:format])
+          overrides[:extension] = format
+        end
+        attachment.interpolate_path(style_name, overrides)
       end
 
       #
