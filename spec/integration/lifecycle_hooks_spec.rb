@@ -169,7 +169,7 @@ describe "Lifecycle hooks" do
     runs = 0
     Thing.has_attachment :attachment do
       style :normal
-      process(:image, :on => :test_event){runs += 1}
+      process(:types => :image, :on => :test_event){runs += 1}
     end
     thing = Thing.new(:attachment => @file)
     thing.process_attachment(:attachment, :test_event)
@@ -191,7 +191,7 @@ describe "Lifecycle hooks" do
     runs = 0
     Thing.has_attachment :attachment do
       style :normal
-      process(:image, :video, :on => :test_event){runs += 1}
+      process(:types => [:image, :video], :on => :test_event){runs += 1}
     end
     thing = Thing.new(:attachment => @file)
     thing.process_attachment(:attachment, :test_event)

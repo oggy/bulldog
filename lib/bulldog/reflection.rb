@@ -123,23 +123,19 @@ module Bulldog
       # Register the callback to fire for the given types of
       # attachments.
       #
-      # +types+ is a single attribute type, or a list of them.  e.g.,
-      # process(:image) means to run the processor for images only.
-      # If +types+ is omitted, the processor is run for all attachment
-      # types.
-      #
       # Options:
       #
+      #   * :types - A list of attachment types to process on.  If
+      #     nil, process on any type.
       #   * :on - The name of the event to run the processor on.
       #   * :after - Same as prepending 'after_' to the given event.
       #   * :before - Same as prepending 'before_' to the given event.
       #   * :with - Use the given processor type.  If nil (the
       #     default), use the default type for the attachment.
       #
-      def process(*types, &callback)
-        options = types.extract_options!
+      def process(options={}, &callback)
         event_name = event_name(options)
-        types = options[:types] ? Array(options[:types]) : nil
+        types = Array(options[:types]) if options[:types]
         @reflection.events[event_name] << Event.new(:processor_type => options[:with],
                                                     :attachment_types => types,
                                                     :styles => options[:styles],
