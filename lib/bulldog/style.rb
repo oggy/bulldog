@@ -1,5 +1,5 @@
 module Bulldog
-  class Style < Hash
+  class Style
     def initialize(name, attributes={})
       @name = name
       @attributes = attributes
