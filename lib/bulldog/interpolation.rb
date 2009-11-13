@@ -59,7 +59,8 @@ module Bulldog
         reflection = record.attachment_reflection_for(name)
         column_name = reflection.column_name_for_stored_attribute(:file_name) or
           raise Error, ":extension interpolation requires storing the file name - add a column #{name}_file_name or use store_attributes"
-        basename = record.send(column_name)
+        basename = record.send(column_name) or
+          raise Error, ":extension interpolation used when file_name not set - if you need to interpolate the url, pass a :basename override"
         File.extname(basename).sub(/\A\./, '')
       end
     end

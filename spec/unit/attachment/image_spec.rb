@@ -33,13 +33,13 @@ describe Attachment::Image do
   describe "#dimensions" do
     it "should return 1x1 if the style is missing" do
       Thing.attachment_reflections[:photo].configure do
-        when_file_missing do
-          use_attachment(:image)
-        end
+        detect_type_by{:image}
       end
       @thing.save.should be_true
       File.unlink(@thing.photo.path(:original))
       @thing = Thing.find(@thing.id)
+      @thing.photo.is_a?(Attachment::Image)  # sanity check
+      @thing.photo.stream.missing?           # sanity check
       @thing.photo.dimensions(:original).should == [1, 1]
     end
 

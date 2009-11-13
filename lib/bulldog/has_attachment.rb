@@ -73,57 +73,43 @@ module Bulldog
       else
         reflection = attachment_reflection_for(name)
         file_name_column = reflection.column_name_for_stored_attribute(:file_name)
-
-        # TODO: refactor and make more intention revealing.
-        if file_name_column
-          if (file_name = send(file_name_column))
-            original_path = original_path(name)
-            if File.exist?(original_path)
-              value = SavedFile.new(original_path, :file_name => file_name)
-            else
-              value = nil
-              if reflection.file_missing_callback
-                attachment = reflection.file_missing_callback.call(self, name)
-              end
-            end
-          else
-            value = nil
-          end
+        file_name = file_name_column ? send(file_name_column) : nil
+        if file_name_column && file_name.nil?
+          value = nil
         else
-          original_path = original_path(name)
+          template = reflection.path_template
+          style = reflection.styles[:original]
+          original_path = Interpolation.interpolate(template, self, name, style, :basename => file_name)
           if File.exist?(original_path)
             value = SavedFile.new(original_path, :file_name => file_name)
           else
-            value = nil
-            if reflection.file_missing_callback
-              attachment = reflection.file_missing_callback.call(self, name)
-            end
+            value = MissingFile.new(:file_name => file_name)
           end
         end
       end
 
-      attachment ||= Attachment.new(self, name, value)
-      # Take care here not to mark the attribute as dirty.
+      attachment = make_attachment_for(name, value)
       write_attribute_without_dirty(name, attachment)
       attachment.read_storable_attributes
       attachment
-    end
-
-    def original_path(name)
-      reflection = attachment_reflection_for(name)
-      template = reflection.path_template
-      style = reflection.styles[:original]
-      Interpolation.interpolate(template, self, name, style)
     end
 
     def assign_attachment(name, value)
       old_attachment = _attachment_for(name)
       unless old_attachment.value == value
         old_attachment.clear_stored_attributes
-        new_attachment = Attachment.new(self, name, value)
+        new_attachment = make_attachment_for(name, value)
         new_attachment.set_stored_attributes
         write_attribute(name, new_attachment)
       end
+    end
+
+    def make_attachment_for(name, value)
+      return Attachment.none(self, name) if value.nil?
+      stream = Stream.new(value)
+      reflection = attachment_reflection_for(name)
+      type = reflection.detect_attachment_type(self, stream)
+      Attachment.of_type(type, self, name, stream)
     end
 
     def store_original_attachments
@@ -188,7 +174,7 @@ module Bulldog
           end
 
           def #{name}?
-            !!_attachment_for(:#{name}).value
+            _attachment_for(:#{name}).present?
           end
         EOS
       end

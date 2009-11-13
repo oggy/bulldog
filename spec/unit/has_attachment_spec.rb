@@ -105,6 +105,10 @@ describe HasAttachment do
         @file = uploaded_file('test.jpg', 'test.jpg')
       end
 
+      def configure(&block)
+        Thing.attachment_reflections[:photo].configure(&block)
+      end
+
       describe "instantiating the record" do
         before do
           spec = self
@@ -114,13 +118,86 @@ describe HasAttachment do
         end
 
         describe "when the attachment is blank" do
-          before do
-            thing = Thing.create
-            @thing = Thing.find(thing.id)
+          describe "when the type detection scheme returns nil" do
+            before do
+              configure do
+                detect_type_by{nil}
+              end
+              thing = Thing.create
+              @thing = Thing.find(thing.id)
+            end
+
+            it "should have a blank attachment" do
+              @thing.photo.should be_blank
+            end
           end
 
-          it "should set a blank attachment" do
-            @thing.photo.should be_blank
+          describe "when the type detection scheme returns a type" do
+            before do
+              configure do
+                detect_type_by{:image}
+              end
+              thing = Thing.create
+              @thing = Thing.find(thing.id)
+            end
+
+            it "should not have a blank attachment" do
+              @thing.photo.should be_present
+            end
+
+            it "should have an attachment of the specified type" do
+              @thing.photo.should be_a(Attachment::Image)
+            end
+
+            it "should have a missing stream" do
+              @thing.photo.stream.should be_missing
+            end
+          end
+        end
+
+        describe "when the attachment is not blank" do
+          describe "when the type detection scheme returns nil" do
+            before do
+              configure do
+                detect_type_by{nil}
+              end
+              thing = Thing.create(:photo => test_image_file)
+              @thing = Thing.find(thing.id)
+            end
+
+            it "should not have a blank attachment" do
+              @thing.photo.should be_present
+            end
+
+            it "should have an attachment of the base type" do
+              @thing.photo.should be_a(Attachment::Base)
+            end
+
+            it "should not have a missing stream" do
+              @thing.photo.stream.should_not be_missing
+            end
+          end
+
+          describe "when the type detection scheme returns a type" do
+            before do
+              configure do
+                detect_type_by{:video}
+              end
+              thing = Thing.create(:photo => test_image_file)
+              @thing = Thing.find(thing.id)
+            end
+
+            it "should not have a blank attachment" do
+              @thing.photo.should be_present
+            end
+
+            it "should have an attachment of the specified type" do
+              @thing.photo.should be_a(Attachment::Video)
+            end
+
+            it "should not have a missing stream" do
+              @thing.photo.stream.should_not be_missing
+            end
           end
         end
       end
@@ -183,13 +260,11 @@ describe HasAttachment do
         Thing.has_attachment :photo do
           path "#{spec.temporary_directory}/photos/:id-:style.:extension"
           style :small, :size => '10x10'
-
-          when_file_missing do
-            if spec.use_missing_file?
-              use_attachment(:image, :content_type => 'image/jpeg')
-            end
-          end
         end
+      end
+
+      def configure(&block)
+        Thing.attachment_reflections[:photo].configure(&block)
       end
 
       def original_path
@@ -198,14 +273,6 @@ describe HasAttachment do
 
       def small_path
         "#{temporary_directory}/photos/#{@thing.id}-small.jpg"
-      end
-
-      def use_missing_file?
-        @use_missing_file
-      end
-
-      def use_missing_file
-        @use_missing_file = true
       end
 
       describe "instantiating the record" do
@@ -238,7 +305,7 @@ describe HasAttachment do
             end
           end
 
-          describe "when the original file exists" do
+          describe "when a file name is set, and the original file exists" do
             before do
               file = uploaded_file('test.jpg', 'test.jpg')
               thing = Thing.create(:photo => file)
@@ -257,7 +324,7 @@ describe HasAttachment do
             end
           end
 
-          describe "when the original file does not exist" do
+          describe "when the no file name is set, and the original file does not exist" do
             before do
               thing = Thing.create
               @thing = Thing.find(thing.id)
@@ -275,20 +342,50 @@ describe HasAttachment do
             end
           end
 
-          describe "when the file is missing" do
-            before do
-              use_missing_file
+          describe "when a file name is set, but the original file is missing" do
+            def instantiate
               file = uploaded_file('test.jpg', 'test.jpg')
               @thing = Thing.create(:photo => file)
               File.unlink(original_path)
               @thing = Thing.find(@thing.id)
             end
 
-            it "should have the attachment specified by the file-missing callback" do
-              @thing.photo.should be_a(Attachment::Image)
+            describe "when the type detection scheme returns nil" do
+              before do
+                configure do
+                  detect_type_by{nil}
+                end
+                instantiate
+              end
+
+              it "should have a blank attachment" do
+                @thing.photo.should be_blank
+              end
+            end
+
+            describe "when the type detection scheme returns a type" do
+              before do
+                configure do
+                  detect_type_by{:pdf}
+                end
+                instantiate
+              end
+
+              it "should not have a blank attachment" do
+                @thing.photo.should be_present
+              end
+
+              it "should have an attachment of the specified type" do
+                @thing.photo.should be_a(Attachment::Pdf)
+              end
+
+              it "should have a missing stream attachment" do
+                @thing.photo.stream.should be_missing
+              end
             end
 
             it "should have stored attributes set" do
+              instantiate
               @thing.photo_file_name.should == 'test.jpg'
               @thing.photo_content_type == "image/jpeg"
               @thing.photo_file_size.should == File.size(test_path('test.jpg'))

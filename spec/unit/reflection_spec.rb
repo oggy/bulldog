@@ -182,6 +182,67 @@ describe Reflection do
     end
   end
 
+  describe "#detect_type" do
+    describe "when configured with a symbol" do
+      it "should use the named registered type detection proc" do
+        args = nil
+        Bulldog::Reflection.to_detect_type_by :a_custom_scheme do |*args|
+          :type
+        end
+        Thing.has_attachment :photo do
+          detect_type_by :a_custom_scheme
+        end
+
+        thing = Thing.new
+        stream = mock
+        reflection.detect_attachment_type(thing, stream).should == :type
+        args.should == [thing, :photo, stream]
+      end
+    end
+
+    describe "when configured with a block" do
+      it "should call the given block" do
+        Thing.has_attachment :photo do
+          detect_type_by{:type}
+        end
+        reflection.detect_attachment_type(Thing.new, mock).should == :type
+      end
+    end
+
+    describe "when configured with a BoundMethod" do
+      it "should call the given method" do
+        Thing.stubs(:detect_type).returns(:type)
+        Thing.has_attachment :photo do
+          detect_type_by Thing.method(:detect_type)
+        end
+        reflection.detect_attachment_type(Thing.new, mock).should == :type
+      end
+    end
+
+    describe "when configured with a proc" do
+      it "should call the given proc" do
+        Thing.has_attachment :photo do
+          detect_type_by lambda{:type}
+        end
+        reflection.detect_attachment_type(Thing.new, mock).should == :type
+      end
+    end
+
+    describe "when configured with both an argument and a block" do
+      it "should raise an ArgumentError" do
+        block_run = false
+        spec = self
+        Thing.has_attachment :photo do
+          block_run = true
+          lambda do
+            detect_type_by(lambda{:type}){:type}
+          end.should spec.raise_error(ArgumentError)
+        end
+        block_run.should be_true
+      end
+    end
+  end
+
   describe "#stored_attributes" do
     it "should return the configured stored attributes" do
       Thing.has_attachment :photo do
@@ -204,95 +265,6 @@ describe Reflection do
         :file_name => :photo_file_name,
         :content_type => :photo_content_type,
       }
-    end
-  end
-
-  describe "#file_missing_callback" do
-    it "should return a FileMissingCallback if a file-missing callback was provided" do
-      Thing.has_attachment :photo do
-        when_file_missing{}
-      end
-      reflection.file_missing_callback.should be_a(Reflection::FileMissingCallback)
-    end
-
-    it "should return nil if no file-missing callback was provided" do
-      Thing.has_attachment :photo
-      reflection.file_missing_callback.should be_nil
-    end
-  end
-
-  describe "FileMissingCallback" do
-    describe "#call" do
-      describe "context" do
-        describe "#record" do
-          it "should return the record given to #call" do
-            record = nil
-            Thing.has_attachment :photo do
-              when_file_missing{record = self.record}
-            end
-            dummy_record = Object.new
-            reflection.file_missing_callback.call(dummy_record, :name)
-            record.should equal(dummy_record)
-          end
-        end
-
-        describe "#name" do
-          it "should return the name given to #call" do
-            name = nil
-            Thing.has_attachment :photo do
-              when_file_missing{name = self.name}
-            end
-            reflection.file_missing_callback.call(Object.new, :name)
-            name.should == :name
-          end
-        end
-      end
-
-      describe "when the callback calls #use_attachment" do
-        it "should return an attachment of the corresponding type" do
-          Thing.has_attachment :photo do
-            when_file_missing do
-              use_attachment(:image)
-            end
-          end
-          result = reflection.file_missing_callback.call(Object.new, :name)
-          result.should be_a(Attachment::Image)
-        end
-
-        it "should return an attachment with a MissingFile value" do
-          Thing.has_attachment :photo do
-            when_file_missing do
-              use_attachment(:image)
-            end
-          end
-          result = reflection.file_missing_callback.call(Object.new, :name)
-          result.value.should be_a(MissingFile)
-        end
-
-        it "should stop evaluating the block" do
-          Thing.has_attachment :photo do
-            when_file_missing do
-              use_attachment(:image)
-              raise
-            end
-          end
-          lambda do
-            reflection.file_missing_callback.call(Object.new, :name)
-          end.should_not raise_error
-        end
-      end
-
-      describe "when the callback does not call #use_attachment" do
-        it "should return nil" do
-          Thing.has_attachment :photo do
-            when_file_missing do
-              :not_nil
-            end
-          end
-          result = reflection.file_missing_callback.call(Object.new, :name)
-          result.should be_nil
-        end
-      end
     end
   end
 

@@ -9,37 +9,25 @@ require 'bulldog/attachment/pdf'
 module Bulldog
   module Attachment
     #
-    # Return an attachment object for the given record, name, and
-    # value.
+    # Return a new attachment of the specified type.
     #
-    def self.new(record, name, value)
-      klass =
-        if value.blank?
-          None
-        else
-          stream = Stream.new(value)
-          case stream.content_type
-          when %r'\Aimage/'
-            Image
-          when %r'\Avideo/'
-            Video
-          when %r'\Aapplication/pdf'
-            Pdf
-          else
-            [Video, Image, Base].each do |klass|
-              attachment = klass.try(record, name, stream) and
-                return attachment
-            end
-            Base
-          end
-        end
-      attachment = klass.new(record, name, stream)
+    # If +type+ is nil, then the returned attachment will be None (if
+    # the stream is missing), or Base (otherwise - i.e., if the stream
+    # represents a file that exists).
+    def self.of_type(type, record, name, stream)
+      if type.nil?
+        klass = stream.missing? ? None : Base
+      else
+        klass = class_from_type(type)
+      end
+      klass.new(record, name, stream)
     end
 
-    def self.missing(type, record, name, value)
-      stream = Stream.new(value)
-      klass = class_from_type(type)
-      klass.new(record, name, stream)
+    #
+    # Return a None attachment for the given record and name.
+    #
+    def self.none(record, name)
+      None.new(record, name, nil)
     end
 
     #

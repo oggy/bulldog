@@ -3,39 +3,59 @@ require 'spec_helper'
 describe Attachment do
   set_up_model_class :Thing
 
-  describe ".new" do
+  before do
+    Thing.has_attachment :attachment
+  end
+
+  describe ".of_type" do
     before do
-      Thing.has_attachment :photo
-      @record = Thing.new
-      @name = :photo
+      @thing = Thing.new
     end
 
-    it "should return a None if the value is nil" do
-      Attachment.new(@record, @name, nil).should be_a(Attachment::None)
-    end
+    describe "when the type is nil" do
+      before do
+        @type = nil
+      end
 
-    it "should return an Image if the file is an image file" do
-      open("#{ROOT}/spec/data/test.jpg") do |file|
-        Attachment.new(@record, @name, file).should be_a(Attachment::Image)
+      describe "when the stream is missing" do
+        before do
+          @stream = Stream.new(MissingFile.new)
+        end
+
+        it "should return a None attachment" do
+          attachment = Attachment.of_type(@type, @thing, :attachment, @stream)
+          attachment.should be_a(Attachment::None)
+        end
+      end
+
+      describe "when the stream is not missing" do
+        before do
+          @stream = Stream.new(test_image_file)
+        end
+
+        it "should return a Base attachment" do
+          attachment = Attachment.of_type(@type, @thing, :attachment, @stream)
+          attachment.should be_a(Attachment::Base)
+        end
       end
     end
 
-    it "should return a Video if the file is a video file" do
-      open("#{ROOT}/spec/data/test.mov") do |file|
-        Attachment.new(@record, @name, file).should be_a(Attachment::Video)
+    describe "when the type is not nil" do
+      before do
+        @type = :video
+      end
+
+      it "should return an attachment of the specified type" do
+        attachment = Attachment.of_type(@type, @thing, :attachment, @stream)
+        attachment.should be_a(Attachment::Video)
       end
     end
+  end
 
-    it "should return a Pdf if the file is a PDF file" do
-      open("#{ROOT}/spec/data/test.pdf") do |file|
-        Attachment.new(@record, @name, file).should be_a(Attachment::Pdf)
-      end
-    end
-
-    it "should return a Base otherwise" do
-      open("#{ROOT}/spec/data/empty.txt") do |file|
-        Attachment.new(@record, @name, file).should be_a(Attachment::Base)
-      end
+  describe ".none" do
+    it "should return a None attachment" do
+      attachment = Attachment.none(Thing.new, :attachment)
+      attachment.should be_a(Attachment::None)
     end
   end
 end

@@ -35,13 +35,13 @@ describe Attachment::Video do
   describe "#dimensions" do
     it "should return 2x2 if the style is missing" do
       Thing.attachment_reflections[:video].configure do
-        when_file_missing do
-          use_attachment(:video)
-        end
+        detect_type_by{:video}
       end
       @thing.save.should be_true
       File.unlink(@thing.video.path(:original))
       @thing = Thing.find(@thing.id)
+      @thing.video.is_a?(Attachment::Video)  # sanity check
+      @thing.video.stream.missing?           # sanity check
       @thing.video.dimensions(:original).should == [2, 2]
     end
 

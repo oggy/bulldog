@@ -46,13 +46,13 @@ describe Attachment::Pdf do
   describe "#dimensions" do
     it "should return 1x1 if the style is missing" do
       Thing.attachment_reflections[:attachment].configure do
-        when_file_missing do
-          use_attachment(:pdf)
-        end
+        detect_type_by{:pdf}
       end
       @thing.save.should be_true
       File.unlink(@thing.attachment.path(:original))
       @thing = Thing.find(@thing.id)
+      @thing.attachment.is_a?(Attachment::Pdf)  # sanity check
+      @thing.attachment.stream.missing?         # sanity check
       @thing.attachment.dimensions(:original).should == [1, 1]
     end
 
