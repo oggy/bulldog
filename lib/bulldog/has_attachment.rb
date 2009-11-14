@@ -25,9 +25,8 @@ module Bulldog
 
     def save_attachments
       attachment_reflections.each do |name, reflection|
-        original_attachment = @original_attachments[name] or
-          next
-        original_attachment.destroy
+        original_attachment = @original_attachments[name] and
+          original_attachment.destroy
         _attachment_for(name).save
       end
     end
