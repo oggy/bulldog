@@ -29,6 +29,27 @@ describe HasAttachment do
       Thing.attachment_reflections[:photo].styles[:one].should_not be_blank
       Thing.attachment_reflections[:photo].styles[:two].should_not be_blank
     end
+
+    describe "when an attachment is inherited" do
+      set_up_model_class :Parent
+
+      before do
+        # Create the attachment before subclassing
+        Parent.has_attachment :photo do
+          style :one
+        end
+      end
+
+      set_up_model_class :Child, :Parent
+
+      it "should not affect the superclasses' attachment" do
+        Child.has_attachment :photo do
+          style :two
+        end
+        Child.attachment_reflections[:photo].styles[:two].should_not be_blank
+        Parent.attachment_reflections[:photo].styles[:two].should be_blank
+      end
+    end
   end
 
   describe ".attachment_reflections" do

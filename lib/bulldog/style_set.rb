@@ -13,6 +13,14 @@ module Bulldog
     end
 
     #
+    # Initialize a StyleSet from another.
+    #
+    def initialize_copy(other)
+      super
+      @styles = @styles.clone
+    end
+
+    #
     # Create a StyleSet containing the given styles.
     #
     def self.[](*styles)

@@ -2,8 +2,7 @@ module Bulldog
   module HasAttachment
     def self.included(base)
       base.extend ClassMethods
-      base.class_inheritable_accessor :attachment_reflections
-      base.attachment_reflections ||= {}
+      base.instance_variable_set(:@attachment_reflections, {})
 
       # We need to store the attachment changes ourselves, since
       # they're unavailable in an after_save.
@@ -151,6 +150,18 @@ module Bulldog
     delegate :attachment_reflections, :to => 'self.class'
 
     module ClassMethods
+      def attachment_reflections
+        @attachment_reflections ||=
+          begin
+            hash = {}
+            superhash = superclass.attachment_reflections
+            superhash.map do |name, reflection|
+              hash[name] = reflection.clone
+            end
+            hash
+          end
+      end
+
       #
       # Declare that this model has an attachment.
       #

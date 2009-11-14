@@ -4,14 +4,23 @@ module Bulldog
       @model_class = model_class
       @name = name
 
-      @default_path_template = nil
-      @default_url_template = nil
+      @path_template = nil
+      @url_template = nil
       @styles = StyleSet.new
       @default_style = :original
       @stored_attributes = {}
       @events = Hash.new{|h,k| h[k] = []}
       @type = nil
       @type_detector = nil
+    end
+
+    def initialize_copy(other)
+      super
+      instance_variables.each do |name|
+        value = instance_variable_get(name)
+        value = value.clone if value.duplicable?
+        instance_variable_set(name, value)
+      end
     end
 
     attr_accessor :model_class, :name, :path_template, :url_template, :styles, :events, :stored_attributes, :type, :type_detector
