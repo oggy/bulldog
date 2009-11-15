@@ -12,9 +12,7 @@ describe Attachment::Base do
   end
 
   describe "#path" do
-    set_up_model_class :Thing do |t|
-      t.string :photo_file_name
-    end
+    use_model_class(:Thing, :photo_file_name => :string)
 
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:style.jpg"
@@ -91,9 +89,7 @@ describe Attachment::Base do
   end
 
   describe "#url" do
-    set_up_model_class :Thing do |t|
-      t.string :photo_file_name
-    end
+    use_model_class(:Thing, :photo_file_name => :string)
 
     configure_attachment do
       path "/tmp/:style.jpg"
@@ -161,7 +157,7 @@ describe Attachment::Base do
   end
 
   describe "#file_size" do
-    set_up_model_class :Thing
+    use_model_class(:Thing)
 
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:id.:style.jpg"
@@ -192,9 +188,7 @@ describe Attachment::Base do
   end
 
   describe "#file_name" do
-    set_up_model_class :Thing do |t|
-      t.string :photo_file_name
-    end
+    use_model_class(:Thing, :photo_file_name => :string)
 
     configure_attachment do |spec|
       path "#{spec.temporary_directory}/:id.:style.jpg"
@@ -226,9 +220,7 @@ describe Attachment::Base do
   end
 
   describe "#process" do
-    set_up_model_class :Thing do |t|
-      t.string
-    end
+    use_model_class(:Thing)
 
     use_temporary_constant_value Processor, :Test do
       Class.new(Processor::Base)
@@ -291,11 +283,10 @@ describe Attachment::Base do
   end
 
   describe "storable attributes" do
-    set_up_model_class :Thing do |t|
-      t.string :photo_file_name
-      t.integer :photo_file_size
-      t.string :photo_content_type
-    end
+    use_model_class(:Thing,
+                    :photo_file_name => :string,
+                    :photo_file_size => :integer,
+                    :photo_content_type => :string)
 
     before do
       Thing.has_attachment :photo

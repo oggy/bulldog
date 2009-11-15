@@ -1,13 +1,12 @@
 require 'spec_helper'
 
 describe Attachment::Image do
-  set_up_model_class :Thing do |t|
-    t.string :photo_file_name
-    t.integer :photo_width
-    t.integer :photo_height
-    t.float :photo_aspect_ratio
-    t.string :photo_dimensions
-  end
+  use_model_class(:Thing,
+                  :photo_file_name => :string,
+                  :photo_width => :integer,
+                  :photo_height => :integer,
+                  :photo_aspect_ratio => :float,
+                  :photo_dimensions => :string)
 
   before do
     Thing.has_attachment :photo do

@@ -1,10 +1,9 @@
 require 'spec_helper'
 
 describe Processor::Ffmpeg do
-  set_up_model_class :Thing do |t|
-    t.string :video_file_name
-    t.string :frame_file_name
-  end
+  use_model_class(:Thing,
+                  :video_file_name => :string,
+                  :frame_file_name => :string)
 
   before do
     spec = self

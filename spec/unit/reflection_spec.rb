@@ -1,13 +1,11 @@
 require 'spec_helper'
 
 describe Reflection do
-  set_up_model_class :Thing do |t|
-    t.string :photo_file_name
-    t.string :photo_content_type
-
-    t.string :custom_file_name
-    t.string :custom_content_type
-  end
+  use_model_class(:Thing,
+                  :photo_file_name => :string,
+                  :photo_content_type => :string,
+                  :custom_file_name => :string,
+                  :custom_content_type => :string)
 
   def reflection
     Thing.attachment_reflections[:photo]

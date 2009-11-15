@@ -1,10 +1,9 @@
 require 'spec_helper'
 
 describe "Processing video attachments" do
-  set_up_model_class :Thing do |t|
-    t.string :video_file_name
-    t.string :still_frame_file_name
-  end
+  use_model_class(:Thing,
+                  :video_file_name => :string,
+                  :still_frame_file_name => :string)
 
   before do
     spec = self

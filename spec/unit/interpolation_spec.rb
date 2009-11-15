@@ -1,9 +1,7 @@
 require 'spec_helper'
 
 describe Interpolation do
-  set_up_model_class :Thing do |t|
-    t.string :photo_file_name
-  end
+  use_model_class(:Thing, :photo_file_name => :string)
 
   def interpolate(template)
     Interpolation.interpolate(template, @thing, :photo, @style)

@@ -1,9 +1,7 @@
 require 'spec_helper'
 
 describe Processor::ImageMagick do
-  set_up_model_class :Thing do |t|
-    t.string :attachment_file_name
-  end
+  use_model_class(:Thing, :attachment_file_name => :string)
 
   before do
     spec = self

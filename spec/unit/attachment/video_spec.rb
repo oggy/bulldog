@@ -1,14 +1,13 @@
 require 'spec_helper'
 
 describe Attachment::Video do
-  set_up_model_class :Thing do |t|
-    t.string :video_file_name
-    t.integer :video_width
-    t.integer :video_height
-    t.float :video_aspect_ratio
-    t.string :video_dimensions
-    t.string :video_duration
-  end
+  use_model_class(:Thing,
+                  :video_file_name => :string,
+                  :video_width => :integer,
+                  :video_height => :integer,
+                  :video_aspect_ratio => :float,
+                  :video_dimensions => :string,
+                  :video_duration => :string)
 
   before do
     Thing.has_attachment :video do

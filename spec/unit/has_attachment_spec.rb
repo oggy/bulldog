@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe HasAttachment do
   describe ".has_attachment" do
-    set_up_model_class :Thing
+    use_model_class(:Thing)
 
     it "should provide accessors for the attachment" do
       Thing.has_attachment :photo
@@ -31,7 +31,7 @@ describe HasAttachment do
     end
 
     describe "when an attachment is inherited" do
-      set_up_model_class :Parent
+      use_model_class(:Parent)
 
       before do
         # Create the attachment before subclassing
@@ -40,7 +40,7 @@ describe HasAttachment do
         end
       end
 
-      set_up_model_class :Child, :Parent
+      use_model_class(:Child => :Parent)
 
       it "should not affect the superclasses' attachment" do
         Child.has_attachment :photo do
@@ -53,7 +53,7 @@ describe HasAttachment do
   end
 
   describe ".attachment_reflections" do
-    set_up_model_class :Thing
+    use_model_class(:Thing)
 
     it "should allow reflection on the field names" do
       Thing.has_attachment :photo
@@ -62,7 +62,7 @@ describe HasAttachment do
   end
 
   describe "#process_attachment" do
-    set_up_model_class :Thing
+    use_model_class(:Thing)
 
     describe "when there is an attachment set" do
       it "should trigger the configured callbacks" do
@@ -129,7 +129,7 @@ describe HasAttachment do
 
   describe "object lifecycle" do
     outline "building a record" do
-      with_model :Thing do
+      with_model_class :Thing do
         spec = self
 
         Thing.has_attachment :attachment do
@@ -152,7 +152,7 @@ describe HasAttachment do
 
     outline "loading a record" do
       columns = store_file_name ? {:attachment_file_name => :string} : {}
-      with_model :Thing, columns do
+      with_model_class :Thing, columns do
         spec = self
 
         Thing.has_attachment :attachment do
@@ -198,7 +198,7 @@ describe HasAttachment do
     values true            , :image    , :test_image_file, true         , Attachment::Image  , false
 
     describe "when no attributes are stored" do
-      set_up_model_class :Thing
+      use_model_class(:Thing)
 
       before do
         @file = uploaded_file('test.jpg', 'test.jpg')
@@ -255,11 +255,10 @@ describe HasAttachment do
     end
 
     describe "when the file name is stored" do
-      set_up_model_class :Thing do |t|
-        t.string :photo_file_name
-        t.string :photo_content_type
-        t.integer :photo_file_size
-      end
+      use_model_class(:Thing,
+                      :photo_file_name => :string,
+                      :photo_content_type => :string,
+                      :photo_file_size => :integer)
 
       before do
         spec = self
@@ -551,9 +550,7 @@ describe HasAttachment do
   end
 
   describe "AR::Dirty" do
-    set_up_model_class :Thing do |t|
-      t.string :name
-    end
+    use_model_class(:Thing, :name => :string)
 
     before do
       spec = self
@@ -639,9 +636,7 @@ describe HasAttachment do
 
   describe "automatic timestamps" do
     describe "#save" do
-      set_up_model_class :Thing do |t|
-        t.datetime :photo_updated_at
-      end
+      use_model_class(:Thing, :photo_updated_at => :datetime)
 
       before do
         Thing.has_attachment :photo

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Processor::OneShot do
-  set_up_model_class :Thing
+  use_model_class(:Thing)
 
   before do
     Thing.has_attachment :attachment

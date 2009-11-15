@@ -1,9 +1,7 @@
 require 'spec_helper'
 
 describe Validations do
-  set_up_model_class :Thing do |t|
-    t.string :photo_file_name
-  end
+  use_model_class(:Thing, :photo_file_name => :string)
 
   before do
     Thing.has_attachment :photo
@@ -133,7 +131,7 @@ describe Validations do
 
     def self.it_should_use_i18n_key(key, validation_options={}, &block)
       describe "when the value is #{key.to_s.humanize.downcase}" do
-        set_up_model_class :Subthing, :Thing
+        use_model_class(:Subthing => :Thing)
 
         before do
           I18n.default_locale = :en

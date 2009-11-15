@@ -1,10 +1,9 @@
 require 'spec_helper'
 
 describe "Lifecycle hooks" do
-  set_up_model_class :Thing do |t|
-    t.string :attachment_file_name
-    t.integer :value
-  end
+  use_model_class(:Thing,
+                  :attachment_file_name => :string,
+                  :value => :integer)
 
   before do
     @file = open("#{ROOT}/spec/integration/data/test.jpg")

@@ -1,9 +1,7 @@
 require 'spec_helper'
 
 describe Attachment::Maybe do
-  set_up_model_class :Thing do |t|
-    t.string :photo_file_name
-  end
+  use_model_class(:Thing, :photo_file_name => :string)
 
   before do
     spec = self

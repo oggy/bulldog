@@ -1,10 +1,9 @@
 require 'spec_helper'
 
 describe "Processing image attachments" do
-  set_up_model_class :Thing do |t|
-    t.integer :width
-    t.integer :height
-  end
+  use_model_class(:Thing,
+                  :width => :integer,
+                  :height => :integer)
 
   def identify
     Bulldog::Processor::ImageMagick.identify_command

@@ -1,9 +1,7 @@
 require 'spec_helper'
 
 describe "Saving an attachment" do
-  set_up_model_class :Thing do |t|
-    t.integer :value
-  end
+  use_model_class(:Thing, :value => :integer)
 
   #
   # The list of files this process has open.
