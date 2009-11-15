@@ -13,6 +13,10 @@ module TemporaryDirectory
   def init_temporary_directory
     remove_temporary_directory
     FileUtils.mkdir_p(temporary_directory)
+
+    # When an attachment is deleted, it deletes empty ancestral
+    # directories.  Don't delete past the temporary directory.
+    FileUtils.touch "#{temporary_directory}/.do_not_delete"
   end
 
   def remove_temporary_directory

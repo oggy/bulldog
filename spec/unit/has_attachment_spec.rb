@@ -128,6 +128,75 @@ describe HasAttachment do
   end
 
   describe "object lifecycle" do
+    outline "building a record" do
+      with_model :Thing do
+        spec = self
+
+        Thing.has_attachment :attachment do
+          detect_type_by{spec.detect_as}
+          path "#{spec.temporary_directory}/:style.jpg"
+        end
+
+        original_path = "#{temporary_directory}/original.jpg"
+
+        thing = Thing.new(:attachment => eval(value.to_s))
+        thing.attachment.should be_a(attachment_class)
+      end
+    end
+
+    fields :detect_as, :value          , :attachment_class
+    values nil       , nil             , Attachment::None
+    values :image    , nil             , Attachment::None
+    values nil       , :test_image_file, Attachment::Unknown
+    values :image    , :test_image_file, Attachment::Image
+
+    outline "loading a record" do
+      columns = store_file_name ? {:attachment_file_name => :string} : {}
+      with_model :Thing, columns do
+        spec = self
+
+        Thing.has_attachment :attachment do
+          detect_type_by{spec.detect_as}
+          path "#{spec.temporary_directory}/:style.jpg"
+        end
+
+        original_path = "#{temporary_directory}/original.jpg"
+
+        thing = Thing.create(:attachment => eval(value_saved.to_s))
+        if file_exists?
+          FileUtils.touch(original_path)
+        else
+          FileUtils.rm_f(original_path)
+        end
+
+        thing = Thing.find(thing.id)
+        thing.attachment.should be_a(attachment_class)
+        if stream_missing.nil?
+          thing.attachment.stream.should be_nil
+        else
+          thing.attachment.stream.missing?.should == stream_missing
+        end
+      end
+    end
+
+    fields :store_file_name, :detect_as, :value_saved    , :file_exists?, :attachment_class  , :stream_missing
+    values false           , nil       , nil             , false        , Attachment::None   , nil
+    values false           , nil       , nil             , true         , Attachment::Unknown, false
+    values false           , nil       , :test_image_file, false        , Attachment::None   , nil
+    values false           , nil       , :test_image_file, true         , Attachment::Unknown, false
+    values false           , :image    , nil             , false        , Attachment::None   , nil
+    values false           , :image    , nil             , true         , Attachment::Image  , false
+    values false           , :image    , :test_image_file, false        , Attachment::None   , nil
+    values false           , :image    , :test_image_file, true         , Attachment::Image  , false
+    values true            , nil       , nil             , false        , Attachment::None   , nil
+    values true            , nil       , nil             , true         , Attachment::None   , nil
+    values true            , nil       , :test_image_file, false        , Attachment::Unknown, true #
+    values true            , nil       , :test_image_file, true         , Attachment::Unknown, false
+    values true            , :image    , nil             , false        , Attachment::None   , nil
+    values true            , :image    , nil             , true         , Attachment::None   , nil
+    values true            , :image    , :test_image_file, false        , Attachment::Image  , true
+    values true            , :image    , :test_image_file, true         , Attachment::Image  , false
+
     describe "when no attributes are stored" do
       set_up_model_class :Thing
 
@@ -137,99 +206,6 @@ describe HasAttachment do
 
       def configure(&block)
         Thing.attachment_reflections[:photo].configure(&block)
-      end
-
-      describe "instantiating the record" do
-        before do
-          spec = self
-          Thing.has_attachment :photo do
-            path "#{spec.temporary_directory}/:style.jpg"
-          end
-        end
-
-        describe "when the attachment is blank" do
-          describe "when the type detector returns nil" do
-            before do
-              configure do
-                detect_type_by{nil}
-              end
-              thing = Thing.create
-              @thing = Thing.find(thing.id)
-            end
-
-            it "should have a blank attachment" do
-              @thing.photo.should be_blank
-            end
-          end
-
-          describe "when the type detector returns a type" do
-            before do
-              configure do
-                detect_type_by{:image}
-              end
-              thing = Thing.create
-              @thing = Thing.find(thing.id)
-            end
-
-            it "should not have a blank attachment" do
-              @thing.photo.should be_present
-            end
-
-            it "should have an attachment of the specified type" do
-              @thing.photo.should be_a(Attachment::Image)
-            end
-
-            it "should have a missing stream" do
-              @thing.photo.stream.should be_missing
-            end
-          end
-        end
-
-        describe "when the attachment is not blank" do
-          describe "when the type detector returns nil" do
-            before do
-              configure do
-                detect_type_by{nil}
-              end
-              thing = Thing.create(:photo => test_image_file)
-              @thing = Thing.find(thing.id)
-            end
-
-            it "should not have a blank attachment" do
-              @thing.photo.should be_present
-            end
-
-            it "should have an unknown attachment" do
-              @thing.photo.should be_a(Attachment::Unknown)
-            end
-
-            it "should not have a missing stream" do
-              @thing.photo.stream.should_not be_missing
-            end
-          end
-
-          describe "when the type detector returns a type" do
-            before do
-              configure do
-                detect_type_by{:video}
-              end
-              thing = Thing.create(:photo => test_image_file)
-              @thing = Thing.find(thing.id)
-            end
-
-            it "should not have a blank attachment" do
-              @thing.photo.should be_present
-            end
-
-            it "should have an attachment of the specified type" do
-              @thing.photo.should be_a(Attachment::Video)
-            end
-
-            it "should not have a missing stream" do
-              @thing.photo.stream.should_not be_missing
-            end
-          end
-        end
       end
 
       describe "saving the record" do
@@ -311,11 +287,6 @@ describe HasAttachment do
             @thing = Thing.new
           end
 
-          it "should have no attachment" do
-            @thing.photo.should be_a(Attachment::Maybe)
-            @thing.photo.should be_blank
-          end
-
           it "should have no stored attributes set" do
             @thing.photo_file_name.should be_nil
             @thing.photo_content_type.should be_nil
@@ -324,17 +295,6 @@ describe HasAttachment do
         end
 
         describe "when the record already exists" do
-          describe "when the attachment is blank" do
-            before do
-              thing = Thing.create
-              @thing = Thing.find(thing.id)
-            end
-
-            it "should have a blank attachment" do
-              @thing.photo.should be_blank
-            end
-          end
-
           describe "when a file name is set, and the original file exists" do
             def instantiate
               file = uploaded_file('test.jpg', 'test.jpg')
@@ -348,81 +308,18 @@ describe HasAttachment do
               @thing.photo_content_type.split(/;/).first.should == "image/jpeg"
               @thing.photo_file_size.should == File.size(test_path('test.jpg'))
             end
-
-            describe "when the type detector returns nil" do
-              before do
-                configure do
-                  detect_type_by{nil}
-                end
-                instantiate
-              end
-
-              it "should have an unknown attachment" do
-                @thing.photo.should be_a(Attachment::Unknown)
-              end
-
-              it "should not have a missing stream" do
-                @thing.photo.stream.should_not be_missing
-              end
-            end
-
-            describe "when the type detector returns a type" do
-              before do
-                configure do
-                  detect_type_by{:video}
-                end
-                instantiate
-              end
-
-              it "should have an attachment of the specified type" do
-                @thing.photo.should be_a(Attachment::Video)
-              end
-
-              it "should not have a missing stream" do
-                @thing.photo.stream.should_not be_missing
-              end
-            end
           end
 
           describe "when the no file name is set, and the original file does not exist" do
-            def instantiate
+            before do
               thing = Thing.create
               @thing = Thing.find(thing.id)
             end
 
             it "should have no stored attributes set" do
-              instantiate
               @thing.photo_file_name.should be_nil
               @thing.photo_content_type.should be_nil
               @thing.photo_file_size.should be_nil
-            end
-
-            describe "when the type detector returns nil" do
-              before do
-                configure do
-                  detect_type_by{nil}
-                end
-                instantiate
-              end
-
-              it "should have no attachment" do
-                @thing.photo.should be_a(Attachment::Maybe)
-                @thing.photo.should be_blank
-              end
-            end
-
-            describe "when the type detector returns a type" do
-              before do
-                configure do
-                  detect_type_by{nil}
-                end
-                instantiate
-              end
-
-              it "should have no attachment" do
-                @thing.photo.should be_a(Attachment::Maybe)
-                @thing.photo.should be_blank
-              end
             end
           end
 
@@ -440,40 +337,6 @@ describe HasAttachment do
               @thing.photo_content_type == "image/jpeg"
               @thing.photo_file_size.should == File.size(test_path('test.jpg'))
             end
-
-            describe "when the type detector returns nil" do
-              before do
-                configure do
-                  detect_type_by{nil}
-                end
-                instantiate
-              end
-
-              it "should have a blank attachment" do
-                @thing.photo.should be_blank
-              end
-            end
-
-            describe "when the type detector returns a type" do
-              before do
-                configure do
-                  detect_type_by{:pdf}
-                end
-                instantiate
-              end
-
-              it "should not have a blank attachment" do
-                @thing.photo.should be_present
-              end
-
-              it "should have an attachment of the specified type" do
-                @thing.photo.should be_a(Attachment::Pdf)
-              end
-
-              it "should have a missing stream attachment" do
-                @thing.photo.stream.should be_missing
-              end
-            end
           end
         end
 
@@ -483,29 +346,9 @@ describe HasAttachment do
             @thing = Thing.find(thing.id)
           end
 
-          describe "when nil is assigned" do
-            it "should not update the attachment" do
-              original_photo = @thing.photo
-              @thing.photo = nil
-              @thing.photo.should equal(original_photo)
-            end
-          end
-
           describe "when an attachment is assigned" do
             before do
               @file = uploaded_file('test.jpg', 'test.jpg')
-            end
-
-            it "should update the attachment" do
-              original_photo = @thing.photo
-              @thing.photo = @file
-              @thing.photo.should_not equal(original_photo)
-            end
-
-            it "should have an attachment" do
-              @thing.photo = @file
-              @thing.photo.should be_a(Attachment::Maybe)
-              @thing.photo.should be_present
             end
 
             it "should set the stored attributes" do
@@ -555,18 +398,6 @@ describe HasAttachment do
           describe "when a new attachment is assigned" do
             before do
               @new_file = test_file('test.png')
-            end
-
-            it "should update the attachment" do
-              original_photo = @thing.photo
-              @thing.photo = @new_file
-              @thing.photo.should_not equal(original_photo)
-            end
-
-            it "should have an attachment" do
-              @thing.photo = @new_file
-              @thing.photo.should be_a(Attachment::Maybe)
-              @thing.photo.should be_present
             end
 
             it "should set the stored attributes" do

@@ -20,12 +20,12 @@ module Bulldog
     #
     # Return a new attachment of the specified type.
     #
-    # If +type+ is nil, then the returned attachment will be None (if
-    # the stream is missing), or Base (otherwise - i.e., if the stream
-    # represents a file that exists).
+    # If +type+ is nil, then the returned attachment will be None if
+    # the stream is nil, or Unknown otherwise.
+    #
     def self.of_type(type, record, name, stream)
       if type.nil?
-        klass = stream.missing? ? None : Unknown
+        klass = stream ? Unknown : None
       else
         klass = class_from_type(type)
       end

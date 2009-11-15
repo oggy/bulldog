@@ -2,6 +2,7 @@ require 'fileutils'
 require 'ostruct'
 
 require 'spec'
+require 'rspec_outlines'
 require 'mocha'
 require 'tempfile'
 require 'active_record'
@@ -13,6 +14,7 @@ include Bulldog
 ROOT = File.dirname( File.dirname(__FILE__) )
 
 require 'helpers/time_travel'
+require 'helpers/temporary_models'
 require 'helpers/temporary_values'
 require 'helpers/temporary_directory'
 require 'helpers/test_upload_files'
@@ -34,8 +36,6 @@ end
 
 module SpecHelper
   def self.included(mod)
-    mod.extend ClassMethods
-
     mod.use_temporary_attribute_value Bulldog, :default_url_template do
       ":class/:id.:style"
     end
@@ -59,32 +59,12 @@ module SpecHelper
   def stub_system_calls
     Kernel.stubs(:system).returns(true)
   end
-
-  module ClassMethods
-    #
-    # Set up a model class with the given name.  You may pass a block
-    # to configure the database table like an ActiveRecord migration.
-    #
-    def set_up_model_class(name, superclass_name='ActiveRecord::Base', &block)
-      need_table = superclass_name == 'ActiveRecord::Base'
-      block ||= lambda{}
-
-      before do
-        ActiveRecord::Base.connection.create_table(name.to_s.underscore.pluralize, &block) if need_table
-        Object.const_set(name, Class.new(superclass_name.to_s.constantize))
-      end
-
-      after do
-        Object.send(:remove_const, name)
-        ActiveRecord::Base.connection.drop_table(name.to_s.underscore.pluralize) if need_table
-      end
-    end
-  end
 end
 
 Spec::Runner.configure do |config|
   config.mock_with :mocha
   config.include TimeTravel
+  config.include TemporaryModels
   config.include TemporaryValues
   config.include TemporaryDirectory
   config.include TestUploadFiles

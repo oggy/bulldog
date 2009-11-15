@@ -81,7 +81,11 @@ module Bulldog
           if File.exist?(original_path)
             value = SavedFile.new(original_path, :file_name => file_name)
           else
-            value = MissingFile.new(:file_name => file_name)
+            if file_name_column
+              value = MissingFile.new(:file_name => file_name)
+            else
+              value = nil
+            end
           end
         end
       end

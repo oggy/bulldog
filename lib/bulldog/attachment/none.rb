@@ -25,8 +25,6 @@ module Bulldog
       end
 
       def save
-        return if saved?
-        delete_files_and_empty_parent_directories
       end
 
       def destroy

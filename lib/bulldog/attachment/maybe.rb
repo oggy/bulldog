@@ -224,34 +224,6 @@ module Bulldog
         alias per_style? per_style
         alias memoize? memoize
       end
-
-      #
-      # Remove the files for this attachment, along with any parent
-      # directories.
-      #
-      def delete_files_and_empty_parent_directories
-        style_names = reflection.styles.map{|style| style.name} << :original
-        # If the attachment was set to nil, we need the original value
-        # to work out what to delete.
-        if column_name = reflection.column_name_for_stored_attribute(:file_name)
-          interpolation_params = {:basename => record.send("#{column_name}_was")}
-        else
-          interpolation_params = {}
-        end
-        style_names.each do |style_name|
-          path = interpolate_path(style_name, interpolation_params) or
-            next
-          FileUtils.rm_f(path)
-          begin
-            loop do
-              path = File.dirname(path)
-              FileUtils.rmdir(path)
-            end
-          rescue Errno::EEXIST, Errno::ENOTEMPTY, Errno::ENOENT, Errno::EINVAL, Errno::ENOTDIR
-            # Can't delete any further.
-          end
-        end
-      end
     end
   end
 end

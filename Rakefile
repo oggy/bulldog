@@ -14,6 +14,7 @@ begin
     gem.homepage = "http://github.com/oggy/bulldog"
     gem.authors = ["George Ogata"]
     gem.add_development_dependency "rspec"
+    gem.add_development_dependency "rspec_outlines"
     gem.add_development_dependency "mocha"
   end
 rescue LoadError
