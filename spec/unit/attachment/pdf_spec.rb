@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe Attachment::Pdf do
   set_up_model_class :Thing do |t|
+    t.string :attachment_file_name
     t.integer :attachment_width
     t.integer :attachment_height
     t.float :attachment_aspect_ratio

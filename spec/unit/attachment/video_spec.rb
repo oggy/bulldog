@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe Attachment::Video do
   set_up_model_class :Thing do |t|
+    t.string :video_file_name
     t.integer :video_width
     t.integer :video_height
     t.float :video_aspect_ratio

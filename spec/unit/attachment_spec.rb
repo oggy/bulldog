@@ -17,9 +17,9 @@ describe Attachment do
         @type = nil
       end
 
-      describe "when the stream is missing" do
+      describe "when the stream is nil" do
         before do
-          @stream = Stream.new(MissingFile.new)
+          @stream = nil
         end
 
         it "should return a None attachment" do
@@ -28,7 +28,7 @@ describe Attachment do
         end
       end
 
-      describe "when the stream is not missing" do
+      describe "when the stream is not nil" do
         before do
           @stream = Stream.new(test_image_file)
         end

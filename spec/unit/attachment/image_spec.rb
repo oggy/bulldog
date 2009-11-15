@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe Attachment::Image do
   set_up_model_class :Thing do |t|
+    t.string :photo_file_name
     t.integer :photo_width
     t.integer :photo_height
     t.float :photo_aspect_ratio
@@ -15,13 +16,7 @@ describe Attachment::Image do
       style :unfilled, :size => '120x120'
       default_style :double
     end
-    @thing = Thing.new(:photo => test_file)
-  end
-
-  def test_file
-    path = "#{temporary_directory}/test.jpg"
-    create_image(path, :size => "40x30")
-    SavedFile.new(path)
+    @thing = Thing.new(:photo => test_image_file)
   end
 
   def run(command)
