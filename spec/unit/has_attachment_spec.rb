@@ -190,7 +190,7 @@ describe HasAttachment do
     values false           , :image    , :test_image_file, true         , Attachment::Image  , false
     values true            , nil       , nil             , false        , Attachment::None   , nil
     values true            , nil       , nil             , true         , Attachment::None   , nil
-    values true            , nil       , :test_image_file, false        , Attachment::Unknown, true #
+    values true            , nil       , :test_image_file, false        , Attachment::Unknown, true
     values true            , nil       , :test_image_file, true         , Attachment::Unknown, false
     values true            , :image    , nil             , false        , Attachment::None   , nil
     values true            , :image    , nil             , true         , Attachment::None   , nil
