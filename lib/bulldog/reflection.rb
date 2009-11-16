@@ -151,15 +151,13 @@ module Bulldog
                                                     :callback => callback)
       end
 
-      def process_once(*types, &callback)
-        options = types.extract_options!
+      def process_once(options={}, &callback)
         options[:with] and
           raise ArgumentError, "cannot specify a processor (:with option) with #process_once"
         options[:styles] and
           raise ArgumentError, "no :styles available for #process_once"
         options[:with] = :one_shot
-        types << options
-        process(*types, &callback)
+        process(options, &callback)
       end
 
       def store_attributes(*args)
