@@ -41,4 +41,22 @@ describe StyleSet do
       @style_set[:original].should == @original
     end
   end
+
+  describe "#size" do
+    it "should return the number of styles in the set, excluding the :original style" do
+      style_set = StyleSet[]
+      style_set.size.should == 0
+      style_set << Style.new(:style)
+      style_set.size.should == 1
+    end
+  end
+
+  describe "#length" do
+    it "should return the number of styles in the set, excluding the :original style" do
+      style_set = StyleSet[]
+      style_set.length.should == 0
+      style_set << Style.new(:style)
+      style_set.length.should == 1
+    end
+  end
 end

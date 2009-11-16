@@ -52,7 +52,8 @@ module Bulldog
     #
     # Return true if the given object has the same styles as this one.
     #
-    # The argument must have #to_a defined.
+    # The argument must have #to_a defined.  Style comparison is done
+    # by name only.
     #
     def ==(other)
       other.to_a == @styles
@@ -66,11 +67,26 @@ module Bulldog
     end
 
     #
+    # Return the number of styles in the set.
+    #
+    # The :original style is not taken into account.
+    #
+    delegate :length, :to => :@styles
+    alias size length
+
+    #
     # Return true if there are no styles in the set, false otherwise.
     #
-    def empty?
-      @styles.empty?
-    end
+    # The :original style is not taken into account.
+    #
+    delegate :empty?, :to => :@styles
+
+    #
+    # Clear all styles out of the style set.
+    #
+    # The original style will still be retrievable.
+    #
+    delegate :clear, :to => :@styles
 
     #
     # Return the style with the given names.
@@ -81,20 +97,11 @@ module Bulldog
     end
 
     #
-    # Clear all styles out of the style set.
-    #
-    # The original will still be retrievable.
-    #
-    def clear
-      @styles.clear
-    end
-
-    #
     # Yield each style.
     #
-    def each(&block)
-      @styles.each(&block)
-    end
+    # The :original style is not included.
+    #
+    delegate :each, :to => :@styles
 
     include Enumerable
   end

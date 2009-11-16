@@ -67,4 +67,14 @@ describe Processor::OneShot do
 
     it_should_behave_like "any one shot processor"
   end
+
+  describe "A standalone processor" do
+    it "should not affect the other processes' styles" do
+      style = Style.new(:style)
+      styles = StyleSet[style]
+      processor = Processor::OneShot.new(mock, styles, mock)
+      processor.process{}
+      styles.should have(1).style
+    end
+  end
 end

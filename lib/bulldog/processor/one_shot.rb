@@ -3,7 +3,7 @@ module Bulldog
     class OneShot < Base
       def initialize(*args)
         super
-        @styles.clear
+        @styles = StyleSet.new
       end
 
       def process(*args, &block)
