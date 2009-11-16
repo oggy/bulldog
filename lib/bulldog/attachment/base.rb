@@ -21,6 +21,8 @@ module Bulldog
       #
       # Run the processors for the named event.
       #
+      # Return true if no errors were encountered, false otherwise.
+      #
       def process(event_name, *args)
         reflection.events[event_name].each do |event|
           if (types = event.attachment_types)
@@ -31,6 +33,16 @@ module Bulldog
           processor = processor_class.new(self, styles_for_event(event), stream.path)
           processor.process(*args, &event.callback)
         end
+        record.errors.empty?
+      end
+
+      #
+      # Like #process, but raise ActiveRecord::RecordInvalid if there
+      # are any errors.
+      #
+      def process!(*args, &block)
+        process(*args, &block) or
+          raise ActiveRecord::RecordInvalid, record
       end
 
       #

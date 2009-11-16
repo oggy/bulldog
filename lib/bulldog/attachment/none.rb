@@ -30,7 +30,10 @@ module Bulldog
       def destroy
       end
 
-      def process(event, *args)
+      def process(event, options={})
+      end
+
+      def process!(event, options={})
       end
     end
   end

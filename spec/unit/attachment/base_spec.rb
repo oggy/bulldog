@@ -219,6 +219,17 @@ describe Attachment::Base do
     end
   end
 
+  def with_test_processor(options, &block)
+    test_processor_class = Class.new(Processor::Base) do
+      define_method :process do
+        if options[:error]
+          record.errors.add name, "error"
+        end
+      end
+    end
+    with_temporary_constant_value(Processor, :Test, test_processor_class, &block)
+  end
+
   describe "#process" do
     use_model_class(:Thing)
 
@@ -279,6 +290,54 @@ describe Attachment::Base do
       thing.photo.process(:test_event)
       styles.should be_a(StyleSet)
       styles.map(&:name).should == [:small]
+    end
+
+    it "should return true if no errors were encountered" do
+      with_test_processor(:error => false) do
+        Thing.has_attachment :attachment do
+          style :one
+          process(:on => :event, :with => :test){}
+        end
+        thing = Thing.new(:attachment => test_empty_file)
+        thing.attachment.process(:event).should be_true
+      end
+    end
+
+    it "should return false if an error was encountered" do
+      with_test_processor(:error => true) do
+        Thing.has_attachment :attachment do
+          style :one
+          process(:on => :event, :with => :test){}
+        end
+        thing = Thing.new(:attachment => test_empty_file)
+        thing.attachment.process(:event).should be_false
+      end
+    end
+  end
+
+  describe "#process!" do
+    use_model_class(:Thing)
+
+    it "should raise ActiveRecord::RecordInvalid if there are any errors present" do
+      with_test_processor(:error => true) do
+        Thing.has_attachment :attachment do
+          style :one
+          process :on => :event, :with => :test
+        end
+        thing = Thing.new(:attachment => test_empty_file)
+        lambda{thing.attachment.process!(:event)}.should raise_error(ActiveRecord::RecordInvalid)
+      end
+    end
+
+    it "should not raise ActiveRecord::RecordInvalid if there are no errors present" do
+      with_test_processor(:error => false) do
+        Thing.has_attachment :attachment do
+          style :one
+          process :on => :event, :with => :test
+        end
+        thing = Thing.new(:attachment => test_empty_file)
+        lambda{thing.attachment.process!(:event)}.should_not raise_error(ActiveRecord::RecordInvalid)
+      end
     end
   end
 

@@ -105,7 +105,7 @@ module Bulldog
       def run_convert
         add_final_style_arguments
         output = run_convert_command and
-        run_convert_callbacks(output)
+          run_convert_callbacks(output)
       end
 
       def add_final_style_arguments
@@ -120,7 +120,9 @@ module Bulldog
 
       def run_convert_command
         command = [self.class.convert_command, "#{input_file}[0]", *@tree.arguments].flatten
-        Bulldog.run(*command)
+        output = Bulldog.run(*command) or
+          record.errors.add name, "convert failed (status #$?)"
+        output
       end
 
       def run_convert_callbacks(output)

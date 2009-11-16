@@ -158,7 +158,8 @@ module Bulldog
           command = [self.class.ffmpeg_command]
           command << '-i' << input_file
           command.concat(arguments)
-          Bulldog.run(*command)
+          Bulldog.run(*command) or
+            record.errors.add name, "convert failed (status #$?)"
         end
       end
 

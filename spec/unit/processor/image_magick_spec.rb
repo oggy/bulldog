@@ -78,6 +78,20 @@ describe Processor::ImageMagick do
       process
     end
 
+    it "should add an error to the record if convert fails" do
+      style :output
+      Bulldog.stubs(:run).returns(nil)
+      process
+      @thing.errors.should be_present
+    end
+
+    it "should not add an error to the record if convert succeeds" do
+      style :output
+      Bulldog.stubs(:run).returns('')
+      process
+      @thing.errors.should_not be_present
+    end
+
     it "should use the given :quality style attribute" do
       style :output, :quality => 50
       Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-quality', '50', output_path).returns('')

@@ -66,14 +66,14 @@ describe HasAttachment do
 
     describe "when there is an attachment set" do
       it "should trigger the configured callbacks" do
-        args = nil
+        calls = []
         Thing.has_attachment :photo do
           style :normal
-          process(:on => :my_event){|*args|}
+          process(:on => :my_event){calls << 1}
         end
         thing = Thing.new(:photo => uploaded_file)
-        thing.process_attachment(:photo, :my_event, 1, 2)
-        args.should == [1, 2]
+        thing.process_attachment(:photo, :my_event)
+        calls.should == [1]
       end
     end
 
@@ -85,20 +85,19 @@ describe HasAttachment do
           process(:on => :my_event){|*args|}
         end
         thing = Thing.new(:photo => nil)
-        thing.process_attachment(:photo, :my_event, 1, 2)
+        thing.process_attachment(:photo, :my_event)
         args.should be_nil
       end
     end
 
     it "should raise an ArgumentError if the attachment name is invalid" do
-      args = nil
       Thing.has_attachment :photo do
         style :normal
-        process(:on => :my_event){|*args|}
+        process(:on => :my_event){}
       end
       thing = Thing.new
       lambda do
-        thing.process_attachment(:fail, :my_event, 1, 2)
+        thing.process_attachment(:fail, :my_event)
       end.should raise_error(ArgumentError)
     end
 

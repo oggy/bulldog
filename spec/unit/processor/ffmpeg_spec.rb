@@ -54,7 +54,7 @@ describe Processor::Ffmpeg do
     @thing.video.process(:event)
   end
 
-  describe "when a simple conversion is performed" do
+  describe "#process" do
     before do
       video_style :output
     end
@@ -71,6 +71,20 @@ describe Processor::Ffmpeg do
         process_video
       end
       File.read(log_path).should include("[Bulldog] Running: #{ffmpeg}")
+    end
+
+    it "should add an error to the record if convert fails" do
+      video_style :output
+      Bulldog.stubs(:run).returns(nil)
+      process_video
+      @thing.errors.should be_present
+    end
+
+    it "should not add an error to the record if convert succeeds" do
+      video_style :output
+      Bulldog.stubs(:run).returns('')
+      process_video
+      @thing.errors.should_not be_present
     end
   end
 
