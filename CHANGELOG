@@ -1,4 +1,4 @@
-== 0.1.0 2009-11-16
+== 0.0.3 2009-11-16
 
  * Add a way to respond to processing errors:
    - #process returns true/false.
