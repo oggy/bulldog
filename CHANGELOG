@@ -1,3 +1,7 @@
+== 0.0.5 2009-11-17
+
+ * Fix @original_attachments not being set in after save.
+
 == 0.0.4 2009-11-16
 
  * Fix destroying the original file when the record is destroyed.
