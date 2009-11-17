@@ -124,7 +124,10 @@ module Bulldog
     end
 
     def clear_original_attachments
-      remove_instance_variable :@original_attachments
+      # Somehow this can be unset sometimes.  TODO: Work out how.
+      if instance_variable_defined?(:@original_attachments)
+        remove_instance_variable :@original_attachments
+      end
     end
 
     def process_attachments_for_event(event, *args)
