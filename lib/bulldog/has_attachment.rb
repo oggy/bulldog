@@ -99,9 +99,9 @@ module Bulldog
     def assign_attachment(name, value)
       old_attachment = _attachment_for(name)
       unless old_attachment.value == value
-        old_attachment.clear_stored_attributes
+        old_attachment.unload
         new_attachment = make_attachment_for(name, value)
-        new_attachment.set_stored_attributes
+        new_attachment.load
         write_attribute(name, new_attachment)
       end
     end

@@ -66,9 +66,13 @@ module Bulldog
       end
 
       #
-      # Set the stored attributes in the record.
+      # Load the attachment.
       #
-      def set_stored_attributes
+      # Called just after initializing the attachment, or after a
+      # reload on the new attachment.
+      #
+      def load
+
         storable_attributes.each do |name, storable_attribute|
           if (column_name = reflection.column_name_for_stored_attribute(name))
             value = storable_attribute.value_for(self, :original)
@@ -78,9 +82,12 @@ module Bulldog
       end
 
       #
-      # Clear the stored attributes in the record.
+      # Unload the attachment.
       #
-      def clear_stored_attributes
+      # Called before a reload on the old attachment, or before a
+      # destroy.
+      #
+      def unload
         storable_attributes.each do |name, callback|
           if (column_name = reflection.column_name_for_stored_attribute(name))
             record.send("#{column_name}=", nil)
