@@ -1,3 +1,7 @@
+== 0.0.4 2009-11-16
+
+ * Fix destroying the original file when the record is destroyed.
+
 == 0.0.3 2009-11-16
 
  * Add a way to respond to processing errors:
