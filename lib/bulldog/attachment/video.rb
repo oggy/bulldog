@@ -80,6 +80,13 @@ module Bulldog
 
       storable_attribute :duration    , :per_style => true, :memoize => true
 
+      def unload
+        super
+        instance_variables.grep(/@original_/).each do |name|
+          instance_variable_set(name, nil)
+        end
+      end
+
       protected  # ---------------------------------------------------
 
       #

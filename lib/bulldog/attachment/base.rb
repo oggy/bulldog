@@ -118,6 +118,11 @@ module Bulldog
         end
       end
 
+      def unload
+        super
+        @examination_result = nil
+      end
+
       protected  # ---------------------------------------------------
 
       #

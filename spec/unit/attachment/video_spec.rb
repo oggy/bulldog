@@ -173,4 +173,40 @@ describe Attachment::Video do
       end
     end
   end
+
+  describe "#reload" do
+    before do
+      thing = Thing.create(:video => test_video_file('test.mov'))
+      @thing = Thing.find(thing.id)
+    end
+
+    it "should update the stored attributes from the file" do
+      # Prime the cached values.
+      @thing.video_width.should == 640
+      @thing.video_height.should == 480
+      @thing.video_aspect_ratio.should be_close(4.0/3, 1e-5)
+      @thing.video_dimensions.should == '640x480'
+
+      FileUtils.cp(test_path('test.ogg'), @thing.video.path(:original))
+      @thing.video.reload
+      @thing.video_width.should == 176
+      @thing.video_height.should == 144
+      @thing.video_aspect_ratio.should == 176.0/144
+      @thing.video_dimensions.should == '176x144'
+    end
+
+    it "should update the original dimensions from the file" do
+      @thing.video.dimensions(:original).should == [640, 480]
+      FileUtils.cp(test_path('test.ogg'), @thing.video.path(:original))
+      @thing.video.reload
+      @thing.video.dimensions(:original).should == [176, 144]
+    end
+
+    it "should update the dimensions for each style from the file" do
+      @thing.video.dimensions(:half).should == [320, 240]
+      FileUtils.cp(test_path('test.ogg'), @thing.video.path(:original))
+      @thing.video.reload
+      @thing.video.dimensions(:half).should == [292, 240]
+    end
+  end
 end

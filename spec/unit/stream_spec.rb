@@ -82,6 +82,40 @@ describe Stream do
         end
       end
     end
+
+    describe "#reload" do
+      if options[:reloadable]
+        it "should make #size return the new size of the file" do
+          stream = stream('content')
+          update_target(stream, 'new content')
+          stream.reload
+          stream.size.should == 'new content'.size
+        end
+
+        it "should make #content_type return the new content type of the file" do
+          jpg_data = File.read(test_path('test.jpg'))
+          png_data = File.read(test_path('test.png'))
+          stream = stream(jpg_data)
+          stream.content_type.should =~ %r'\Aimage/jpeg'
+          update_target(stream, png_data)
+          stream.reload
+          stream.content_type.should =~ %r'\Aimage/png'
+        end
+      else
+        it "should not change the result of #size" do
+          stream = stream('content')
+          stream.reload
+          stream.size.should == 'content'.size
+        end
+
+        it "should not change the result of #content_type" do
+          jpg_data = File.read(test_path('test.jpg'))
+          stream = stream(jpg_data)
+          stream.reload
+          stream.content_type.should =~ %r'\Aimage/jpeg'
+        end
+      end
+    end
   end
 
   describe 'for a small uploaded file' do
@@ -100,11 +134,12 @@ describe Stream do
     it_should_behave_like_all_streams :file_name => :original_path
 
     def object(content)
-      stringio = StringIO.new(content)
-      class << stringio
+      tempfile = Tempfile.new('bulldog-spec')
+      tempfile.print(content)
+      class << tempfile
         attr_accessor :original_path
       end
-      stringio
+      tempfile
     end
   end
 
@@ -112,12 +147,11 @@ describe Stream do
     it_should_behave_like_all_streams
 
     def object(content)
-      tempfile = Tempfile.new('bulldog-spec')
-      tempfile.print(content)
-      class << tempfile
+      stringio = StringIO.new(content)
+      class << stringio
         attr_accessor :original_path
       end
-      tempfile
+      stringio
     end
   end
 
@@ -163,12 +197,16 @@ describe Stream do
   end
 
   describe 'for an SavedFile' do
-    it_should_behave_like_all_streams :file_name => :file_name
+    it_should_behave_like_all_streams :file_name => :file_name, :reloadable => true
 
     def object(content)
       path = "#{temporary_directory}/file"
       open(path, 'w'){|f| f.print content}
       SavedFile.new(path)
+    end
+
+    def update_target(stream, content)
+      open(stream.target.path, 'w'){|f| f.print content}
     end
   end
 
@@ -214,8 +252,10 @@ describe Stream do
     it_should_behave_like_all_streams
 
     def object(content)
-      io = IO.popen("echo -n #{content}")
-      autoclose_stream(io)
+      readable, writable = IO.pipe
+      writable.print content
+      writable.close
+      autoclose_stream(readable)
     end
 
     describe "#path" do

@@ -88,6 +88,13 @@ module Bulldog
           FileUtils.cp src, dst
         end
       end
+
+      #
+      # Reload data from the target.
+      #
+      def reload
+        @content_type = nil
+      end
     end
 
     class ForTempfile < Base

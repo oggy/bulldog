@@ -125,4 +125,40 @@ describe Attachment::Image do
       end
     end
   end
+
+  describe "#reload" do
+    before do
+      thing = Thing.create(:photo => test_image_file('test.jpg'))
+      @thing = Thing.find(thing.id)
+    end
+
+    it "should update the stored attributes from the file" do
+      # Prime the cached values.
+      @thing.photo_width.should == 40
+      @thing.photo_height.should == 30
+      @thing.photo_aspect_ratio.should be_close(4.0/3, 1e-5)
+      @thing.photo_dimensions.should == '40x30'
+
+      FileUtils.cp(test_path('test2.jpg'), @thing.photo.path(:original))
+      @thing.photo.reload
+      @thing.photo_width.should == 2
+      @thing.photo_height.should == 2
+      @thing.photo_aspect_ratio.should == 1
+      @thing.photo_dimensions.should == '2x2'
+    end
+
+    it "should update the original dimensions from the file" do
+      @thing.photo.dimensions(:original).should == [40, 30]
+      FileUtils.cp(test_path('test2.jpg'), @thing.photo.path(:original))
+      @thing.photo.reload
+      @thing.photo.dimensions(:original).should == [2, 2]
+    end
+
+    it "should update the dimensions for each style from the file" do
+      @thing.photo.dimensions(:double).should == [80, 60]
+      FileUtils.cp(test_path('test2.jpg'), @thing.photo.path(:original))
+      @thing.photo.reload
+      @thing.photo.dimensions(:double).should == [60, 60]
+    end
+  end
 end

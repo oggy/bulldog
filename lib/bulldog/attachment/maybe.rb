@@ -72,7 +72,6 @@ module Bulldog
       # reload on the new attachment.
       #
       def load
-
         storable_attributes.each do |name, storable_attribute|
           if (column_name = reflection.column_name_for_stored_attribute(name))
             value = storable_attribute.value_for(self, :original)
@@ -88,11 +87,38 @@ module Bulldog
       # destroy.
       #
       def unload
-        storable_attributes.each do |name, callback|
+        storable_attributes.each do |name, storable_attribute|
           if (column_name = reflection.column_name_for_stored_attribute(name))
             record.send("#{column_name}=", nil)
           end
+          if storable_attribute.memoize?
+            send("memoized_#{name}").clear
+          end
         end
+      end
+
+      #
+      # Refresh the attachment.  This includes anything read from the
+      # file, such as stored attributes, and dimensions.
+      #
+      # Use this to update the record if the underlying file has been
+      # modified outside of Bulldog.  Note that the file has to be
+      # initialized from a saved file for this to work.
+      #
+      # Example:
+      #
+      #     article = Article.create(:photo => photo_file)
+      #     article = Article.find(article.id)
+      #
+      #     # ... file is modified by an outside force ...
+      #
+      #     article.photo.reload
+      #     article.photo.dimensions  # now reflects the new dimensions
+      #
+      def reload
+        unload
+        stream.reload
+        load
       end
 
       #

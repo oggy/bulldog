@@ -27,6 +27,11 @@ module Bulldog
 
       include HasDimensions
 
+      def unload
+        super
+        @original_dimensions = nil
+      end
+
       protected  # ---------------------------------------------------
 
       #

@@ -1,7 +1,10 @@
 require 'spec_helper'
 
 describe Attachment::Maybe do
-  use_model_class(:Thing, :photo_file_name => :string)
+  use_model_class(:Thing,
+                  :photo_file_name => :string,
+                  :photo_file_size => :integer,
+                  :photo_content_type => :string)
 
   before do
     spec = self
@@ -121,6 +124,25 @@ describe Attachment::Maybe do
         end
         @thing.photo.interpolate_url(:original, :extension => 'xyz').should == "/photo.original.xyz"
       end
+    end
+  end
+
+  describe "#reload" do
+    before do
+      thing = Thing.create(:photo => test_file('test.png'))
+      @thing = Thing.find(thing.id)
+    end
+
+    it "should update the file size stored attribute from the file" do
+      FileUtils.cp(test_path('test2.jpg'), @thing.photo.path(:original))
+      @thing.photo.reload
+      @thing.photo_file_size.should == File.size(test_path('test2.jpg'))
+    end
+
+    it "should reload the content type stored attribute from the file" do
+      FileUtils.cp(test_path('test.png'), @thing.photo.path(:original))
+      @thing.photo.reload
+      @thing.photo_content_type.should =~ %r'image/png'
     end
   end
 end
