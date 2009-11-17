@@ -3,9 +3,12 @@ module Bulldog
     Error = Class.new(Bulldog::Error)
 
     def self.interpolate(template, record, name, style, overrides={})
-      if overrides[:basename] && overrides[:extension].nil?
-        extension = File.extname(overrides[:basename]).sub(/\A./, '')
-        overrides = overrides.merge(:extension => extension)
+      unless overrides[:extension]
+        overrides = overrides.dup
+        overrides[:extension] ||= style[:format]
+        if overrides[:basename]
+          overrides[:extension] ||= File.extname(overrides[:basename]).sub(/\A./, '')
+        end
       end
       template.gsub(/:(?:(\w+)|\{(\w+?)\})/) do
         key = ($1 || $2).to_sym

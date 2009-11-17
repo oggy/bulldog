@@ -40,7 +40,7 @@ describe Interpolation do
     describe "when the file name is not being stored" do
       before do
         Thing.has_attachment :photo do
-          style :small, {}
+          style :small
           store_attributes :file_name => nil
         end
         @thing = Thing.new(:photo => test_image_file('test.jpg'))
@@ -69,20 +69,39 @@ describe Interpolation do
         interpolate("a/:style/b").should == "a/small/b"
       end
 
-      it "should raise an error for :basename" do
+      it "should raise an error for :basename by default" do
         lambda{interpolate("a/:basename/b")}.should raise_error(Interpolation::Error)
       end
 
-      it "should passing a basename to use to avoid an error" do
+      it "should raise an error for :extension by default" do
+        lambda{interpolate("a/:extension/b")}.should raise_error(Interpolation::Error)
+      end
+
+      it "should allow overriding the basename to use to avoid an error" do
         interpolate("a/:basename/b", :basename => 'BASENAME').should == 'a/BASENAME/b'
       end
 
-      it "should raise an error for :extension" do
-        lambda{interpolate("a/:extension/b")}.should raise_error(Interpolation::Error)
+      it "should allow overriding the extension to use to avoid an error" do
+        interpolate("a/:extension/b", :extension => 'EXT').should == 'a/EXT/b'
+      end
+
+      it "should take the extension from the style format, if given" do
+        @style[:format] = 'FMT'
+        Interpolation.interpolate("a/:extension/b", @thing, :photo, @style).should == 'a/FMT/b'
       end
 
       it "should take the extension from the overridden basename, if given" do
         interpolate("a/:extension/b", :basename => 'BASENAME.EXT').should == 'a/EXT/b'
+      end
+
+      it "should use an extension override over the style format if both are present" do
+        @style[:format] = 'FMT'
+        interpolate("a/:extension/b", :extension => 'EXT').should == 'a/EXT/b'
+      end
+
+      it "should use the style format over the basename override if both are present" do
+        @style[:format] = 'FMT'
+        interpolate("a/:extension/b", :basename => 'BASENAME.EXT').should == 'a/FMT/b'
       end
 
       it "should not modify the hash of overrides, if given" do
