@@ -16,7 +16,7 @@ module Bulldog
         @tree = ArgumentTree.new(styles)
       end
 
-      def process(*args, &block)
+      def process
         return if styles.empty?
         super
         run_convert

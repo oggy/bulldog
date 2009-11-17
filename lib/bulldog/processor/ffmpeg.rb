@@ -14,7 +14,7 @@ module Bulldog
         @still_frame_callbacks = style_list_map
       end
 
-      def process(*args)
+      def process
         return if styles.empty?
         super
         run_ffmpeg

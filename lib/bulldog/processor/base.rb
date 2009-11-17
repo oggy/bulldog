@@ -61,12 +61,12 @@ module Bulldog
       # #style will be set to the current style each time the block is
       # called.
       #
-      def process(*args, &block)
+      def process(&block)
         return if styles.empty?
         styles.each do |style|
           @style = style
           begin
-            process_style(*args, &block)
+            process_style(&block)
           ensure
             @style = nil
           end
