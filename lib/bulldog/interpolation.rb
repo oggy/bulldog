@@ -3,8 +3,8 @@ module Bulldog
     Error = Class.new(Bulldog::Error)
 
     def self.interpolate(template, record, name, style, overrides={})
-      # TODO: would be nice if this wasn't such a special case.
       if overrides[:basename]
+        overrides = overrides.dup
         extension = File.extname(overrides[:basename]).sub(/\A./, '')
         overrides[:extension] ||= extension
       end

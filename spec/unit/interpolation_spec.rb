@@ -77,12 +77,18 @@ describe Interpolation do
         interpolate("a/:basename/b", :basename => 'BASENAME').should == 'a/BASENAME/b'
       end
 
+      it "should raise an error for :extension" do
+        lambda{interpolate("a/:extension/b")}.should raise_error(Interpolation::Error)
+      end
+
       it "should take the extension from the overridden basename, if given" do
         interpolate("a/:extension/b", :basename => 'BASENAME.EXT').should == 'a/EXT/b'
       end
 
-      it "should raise an error for :extension" do
-        lambda{interpolate("a/:extension/b")}.should raise_error(Interpolation::Error)
+      it "should not modify the hash of overrides, if given" do
+        overrides = {:basename => 'BASENAME.EXT'}
+        interpolate("a/:extension/b", overrides).should == 'a/EXT/b'
+        overrides.should == {:basename => 'BASENAME.EXT'}
       end
 
       it "should allow using braces for interpolating between symbol characters" do
