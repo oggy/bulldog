@@ -143,7 +143,7 @@ describe Stream do
     end
   end
 
-  describe 'for a StringIO' do
+  describe Stream::ForStringIO do
     it_should_behave_like_all_streams
 
     def object(content)
@@ -155,7 +155,7 @@ describe Stream do
     end
   end
 
-  describe 'for a Tempfile' do
+  describe Stream::ForTempfile do
     it_should_behave_like_all_streams
 
     def object(content)
@@ -165,7 +165,7 @@ describe Stream do
     end
   end
 
-  describe 'for a File opened for reading' do
+  describe "Stream::ForFile (opened for writing)" do
     it_should_behave_like_all_streams :file_name => :basename
 
     def object(content)
@@ -186,7 +186,7 @@ describe Stream do
     end
   end
 
-  describe 'for a File opened for writing' do
+  describe "Stream::ForFile (opened for writing)" do
     it_should_behave_like_all_streams :file_name => :basename
 
     def object(content)
@@ -196,7 +196,7 @@ describe Stream do
     end
   end
 
-  describe 'for an SavedFile' do
+  describe Stream::ForSavedFile do
     it_should_behave_like_all_streams :file_name => :file_name, :reloadable => true
 
     def object(content)
@@ -210,7 +210,7 @@ describe Stream do
     end
   end
 
-  describe 'for a MissingFile' do
+  describe Stream::ForMissingFile do
     it_should_behave_like_all_streams :file_name => :file_name
 
     def object(content)
@@ -248,7 +248,7 @@ describe Stream do
     end
   end
 
-  describe 'for an IO' do
+  describe Stream::ForIO do
     it_should_behave_like_all_streams
 
     def object(content)
