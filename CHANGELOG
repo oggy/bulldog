@@ -1,3 +1,8 @@
+== 0.0.9 2009-11-18
+
+ * Allow specifying a subset of styles to process via a :styles option
+   to #process.
+
 == 0.0.8 2009-11-18
 
  * Fix invocations of ffmpeg over multiple styles.

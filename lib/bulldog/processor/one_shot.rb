@@ -6,7 +6,7 @@ module Bulldog
         @styles = StyleSet.new
       end
 
-      def process(&block)
+      def process(*args, &block)
         @style = nil
         process_style(&block)
       end

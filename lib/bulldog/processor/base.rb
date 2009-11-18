@@ -61,8 +61,16 @@ module Bulldog
       # #style will be set to the current style each time the block is
       # called.
       #
-      def process(&block)
-        return if styles.empty?
+      # Return true if any styles were processed, false otherwise.
+      # Subclasses can use this to determine if any processing
+      # commands need to be run.
+      #
+      def process(options={}, &block)
+        styles = self.styles
+        style_names = options[:styles] and
+          styles = styles.slice(*style_names)
+
+        return false if styles.empty?
         styles.each do |style|
           @style = style
           begin
@@ -71,6 +79,7 @@ module Bulldog
             @style = nil
           end
         end
+        true
       end
 
       #

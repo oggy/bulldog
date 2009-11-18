@@ -34,11 +34,11 @@ describe Processor::ImageMagick do
     end
   end
 
-  def process(&block)
+  def process(*args, &block)
     configure do
       process(:on => :event, :with => :image_magick, &block)
     end
-    @thing.attachment.process(:event)
+    @thing.attachment.process(:event, *args)
   end
 
   describe "#dimensions" do
@@ -76,6 +76,16 @@ describe Processor::ImageMagick do
       style :output
       Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", output_path).returns('')
       process
+    end
+
+    it "should only process the specified subset of styles, if given" do
+      style :one
+      style :two
+      styles = []
+      process(:styles => [:two]) do
+        styles << style.name
+      end
+      styles.should == [:two]
     end
 
     it "should add an error to the record if convert fails" do

@@ -23,7 +23,7 @@ module Bulldog
       #
       # Return true if no errors were encountered, false otherwise.
       #
-      def process(event_name)
+      def process(event_name, options={})
         reflection.events[event_name].each do |event|
           if (types = event.attachment_types)
             next unless types.include?(type)
@@ -31,7 +31,7 @@ module Bulldog
           processor_type = event.processor_type || default_processor_type
           processor_class = Processor.const_get(processor_type.to_s.camelize)
           processor = processor_class.new(self, styles_for_event(event), stream.path)
-          processor.process(&event.callback)
+          processor.process(options, &event.callback)
         end
         record.errors.empty?
       end

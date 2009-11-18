@@ -11,9 +11,9 @@ module Bulldog
         @still_frame_callbacks = style_list_map
       end
 
-      def process
-        return if styles.empty?
-        super
+      def process(*args)
+        super or
+          return
         run_still_frame_callbacks
       end
 

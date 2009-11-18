@@ -51,7 +51,7 @@ describe Processor::Ffmpeg do
     configure(:video) do
       process(options.merge(:on => :event, :with => :ffmpeg), &block)
     end
-    @thing.video.process(:event)
+    @thing.video.process(:event, options)
   end
 
   describe "#process" do
@@ -59,6 +59,16 @@ describe Processor::Ffmpeg do
       video_style :output
       Bulldog.expects(:run).once.with(ffmpeg, '-i', original_video_path, '-y', output_video_path)
       process_video
+    end
+
+    it "should only process the specified subset of styles, if given" do
+      video_style :one
+      video_style :two
+      styles = []
+      process_video(:styles => [:two]) do
+        styles << style.name
+      end
+      styles.should == [:two]
     end
 
     it "should log the command run" do
