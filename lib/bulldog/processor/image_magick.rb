@@ -8,9 +8,6 @@ module Bulldog
         attr_accessor :identify_path
       end
 
-      self.convert_path = 'convert'
-      self.identify_path = 'identify'
-
       def initialize(*args)
         super
         @tree = ArgumentTree.new(styles)

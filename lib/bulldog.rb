@@ -38,6 +38,24 @@ module Bulldog
     attr_accessor :default_url_template
 
     #
+    # The path to `ffmpeg'.  Only required if you use ffmpeg
+    # (processing videos, or retrieving video attributes).
+    #
+    delegate :ffmpeg_path, :ffmpeg_path=, :to => Processor::Ffmpeg
+
+    #
+    # The path to `convert'.  Only required if you use convert
+    # (processing images or pdfs).
+    #
+    delegate :convert_path, :convert_path=, :to => Processor::ImageMagick
+
+    #
+    # The path to `identify'.  Only required if you use identify
+    # (retrieving image attributes).
+    #
+    delegate :identify_path, :identify_path=, :to => Processor::ImageMagick
+
+    #
     # Define an interpolation token.
     #
     # If :<token> appears in a path or URL template, the block will be
@@ -89,6 +107,9 @@ module Bulldog
   self.logger = nil
   self.default_path_template = nil
   self.default_url_template = "/assets/:class/:id.:style.:extension"
+  self.convert_path = 'convert'
+  self.identify_path = 'identify'
+  self.ffmpeg_path = 'ffmpeg'
 end
 
 ActiveRecord::Base.send :include, Bulldog::HasAttachment

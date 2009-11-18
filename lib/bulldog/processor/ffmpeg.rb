@@ -5,8 +5,6 @@ module Bulldog
         attr_accessor :ffmpeg_path
       end
 
-      self.ffmpeg_path = 'ffmpeg'
-
       def initialize(*args)
         super
         @operation = nil

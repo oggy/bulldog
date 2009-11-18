@@ -50,6 +50,9 @@ module SpecHelper
       end
       logger
     end
+    mod.use_temporary_attribute_value Bulldog, :convert_path, 'convert'
+    mod.use_temporary_attribute_value Bulldog, :identify_path, 'identify'
+    mod.use_temporary_attribute_value Bulldog, :ffmpeg_path, 'ffmpeg'
   end
 
   #
