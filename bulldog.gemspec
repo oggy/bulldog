@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{bulldog}
-  s.version = "0.0.5"
+  s.version = "0.0.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["George Ogata"]
@@ -62,6 +62,7 @@ Flexible file attachments for active record.
      "spec/data/empty.txt",
      "spec/data/test.jpg",
      "spec/data/test.mov",
+     "spec/data/test.ogg",
      "spec/data/test.pdf",
      "spec/data/test.png",
      "spec/data/test2.jpg",
