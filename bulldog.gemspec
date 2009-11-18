@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{bulldog}
-  s.version = "0.0.6"
+  s.version = "0.0.7"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["George Ogata"]
@@ -58,6 +58,7 @@ Flexible file attachments for active record.
      "lib/bulldog/validations.rb",
      "lib/bulldog/vector2.rb",
      "rails/init.rb",
+     "rails/rails.rb",
      "script/console",
      "spec/data/empty.txt",
      "spec/data/test.jpg",
@@ -91,6 +92,7 @@ Flexible file attachments for active record.
      "spec/unit/processor/ffmpeg_spec.rb",
      "spec/unit/processor/image_magick_spec.rb",
      "spec/unit/processor/one_shot_spec.rb",
+     "spec/unit/rails_spec.rb",
      "spec/unit/reflection_spec.rb",
      "spec/unit/stream_spec.rb",
      "spec/unit/style_set_spec.rb",
@@ -129,6 +131,7 @@ Flexible file attachments for active record.
      "spec/unit/processor/ffmpeg_spec.rb",
      "spec/unit/processor/image_magick_spec.rb",
      "spec/unit/processor/one_shot_spec.rb",
+     "spec/unit/rails_spec.rb",
      "spec/unit/reflection_spec.rb",
      "spec/unit/stream_spec.rb",
      "spec/unit/style_set_spec.rb",
