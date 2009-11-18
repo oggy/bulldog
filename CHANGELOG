@@ -1,3 +1,8 @@
+== 0.0.6 2009-11-17
+
+ * Add attachment#reload for when the file changes behind Bulldog's
+   back.
+
 == 0.0.5 2009-11-17
 
  * Fix @original_attachments not being set in after save.
