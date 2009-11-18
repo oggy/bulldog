@@ -5,7 +5,7 @@ module Bulldog
         attr_accessor :ffmpeg_command
       end
 
-      self.ffmpeg_command = Bulldog.find_in_path('ffmpeg')
+      self.ffmpeg_command = 'ffmpeg'
 
       def initialize(*args)
         super
