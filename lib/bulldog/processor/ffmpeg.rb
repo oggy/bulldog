@@ -37,6 +37,7 @@ module Bulldog
         style_option '-acodec', params[:audio_codec]
         preset_option '-vpre', params[:video_preset]
         preset_option '-apre', params[:audio_preset]
+        preset_option '-spre', params[:subtitle_preset]
         operate '-s', attachment.dimensions(style.name).join('x') if params[:size]
         style_option '-r', params[:frame_rate]
         style_option '-b', params[:video_bit_rate]
@@ -50,7 +51,6 @@ module Bulldog
         style_option '-coder', params[:coder]
         style_option '-v', params[:verbosity]
         style_option '-flags', params[:flags]
-        preset_option '-spre', params[:subtitle_preset]
         style_option '-y', output_file(style.name)
       end
 
