@@ -4,12 +4,12 @@ module Bulldog
   module Processor
     class ImageMagick < Base
       class << self
-        attr_accessor :convert_command
-        attr_accessor :identify_command
+        attr_accessor :convert_path
+        attr_accessor :identify_path
       end
 
-      self.convert_command = 'convert'
-      self.identify_command = 'identify'
+      self.convert_path = 'convert'
+      self.identify_path = 'identify'
 
       def initialize(*args)
         super
@@ -119,7 +119,7 @@ module Bulldog
       end
 
       def run_convert_command
-        command = [self.class.convert_command, "#{input_file}[0]", *@tree.arguments].flatten
+        command = [self.class.convert_path, "#{input_file}[0]", *@tree.arguments].flatten
         output = Bulldog.run(*command) or
           record.errors.add name, "convert failed (status #$?)"
         output

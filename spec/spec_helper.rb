@@ -42,7 +42,6 @@ module SpecHelper
     mod.use_temporary_attribute_value Bulldog, :default_path_template do
       "#{temporary_directory}/attachments/:class/:id.:style"
     end
-
     mod.use_temporary_attribute_value Bulldog, :logger do
       buffer = StringIO.new
       logger = Logger.new(buffer)

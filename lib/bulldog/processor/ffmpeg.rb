@@ -2,10 +2,10 @@ module Bulldog
   module Processor
     class Ffmpeg < Base
       class << self
-        attr_accessor :ffmpeg_command
+        attr_accessor :ffmpeg_path
       end
 
-      self.ffmpeg_command = 'ffmpeg'
+      self.ffmpeg_path = 'ffmpeg'
 
       def initialize(*args)
         super
@@ -155,7 +155,7 @@ module Bulldog
 
       def run_ffmpeg
         @arguments.each do |style, arguments|
-          command = [self.class.ffmpeg_command]
+          command = [self.class.ffmpeg_path]
           command << '-i' << input_file
           command.concat(arguments)
           Bulldog.run(*command) or

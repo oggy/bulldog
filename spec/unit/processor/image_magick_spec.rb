@@ -13,7 +13,7 @@ describe Processor::ImageMagick do
   end
 
   def convert
-    Processor::ImageMagick.convert_command
+    Processor::ImageMagick.convert_path
   end
 
   def original_path

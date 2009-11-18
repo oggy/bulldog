@@ -6,7 +6,7 @@ describe "Processing image attachments" do
                   :height => :integer)
 
   def identify
-    Bulldog::Processor::ImageMagick.identify_command
+    Bulldog::Processor::ImageMagick.identify_path
   end
 
   before do

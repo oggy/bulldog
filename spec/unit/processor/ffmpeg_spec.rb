@@ -22,7 +22,7 @@ describe Processor::Ffmpeg do
   end
 
   def ffmpeg
-    Bulldog::Processor::Ffmpeg.ffmpeg_command
+    Bulldog::Processor::Ffmpeg.ffmpeg_path
   end
 
   def original_video_path
