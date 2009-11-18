@@ -1,3 +1,7 @@
+== 0.0.8 2009-11-18
+
+ * Fix invocations of ffmpeg over multiple styles.
+
 == 0.0.7 2009-11-17
 
  * Allow configuration through config/bulldog.yml in Rails.

@@ -7,7 +7,6 @@ module Bulldog
 
       def initialize(*args)
         super
-        @operation = nil
         @arguments = style_list_map
         @still_frame_callbacks = style_list_map
       end
@@ -15,13 +14,14 @@ module Bulldog
       def process
         return if styles.empty?
         super
-        run_ffmpeg
         run_still_frame_callbacks
       end
 
       def process_style(*args)
+        @operation = nil
         super
-        run_default_operation
+        set_default_operation
+        run_ffmpeg
       end
 
       def use_threads(num_threads)
@@ -91,7 +91,7 @@ module Bulldog
         @arguments[style].concat args.map(&:to_s)
       end
 
-      def run_default_operation
+      def set_default_operation
         encode if @operation.nil?
       end
 
@@ -152,13 +152,11 @@ module Bulldog
       end
 
       def run_ffmpeg
-        @arguments.each do |style, arguments|
-          command = [self.class.ffmpeg_path]
-          command << '-i' << input_file
-          command.concat(arguments)
-          Bulldog.run(*command) or
-            record.errors.add name, "convert failed (status #$?)"
-        end
+        command = [self.class.ffmpeg_path]
+        command << '-i' << input_file
+        command.concat(@arguments[style])
+        Bulldog.run(*command) or
+          record.errors.add name, "convert failed (status #$?)"
       end
 
       def run_still_frame_callbacks

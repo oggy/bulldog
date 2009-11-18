@@ -29,8 +29,8 @@ describe Processor::Ffmpeg do
     "#{temporary_directory}/video.original.mov"
   end
 
-  def output_video_path
-    "#{temporary_directory}/video.output.mov"
+  def output_video_path(style=:output)
+    "#{temporary_directory}/video.#{style}.mov"
   end
 
   def original_frame_path
@@ -55,16 +55,14 @@ describe Processor::Ffmpeg do
   end
 
   describe "#process" do
-    before do
-      video_style :output
-    end
-
     it "should run ffmpeg" do
+      video_style :output
       Bulldog.expects(:run).once.with(ffmpeg, '-i', original_video_path, '-y', output_video_path)
       process_video
     end
 
     it "should log the command run" do
+      video_style :output
       log_path = "#{temporary_directory}/log"
       open(log_path, 'w') do |file|
         Bulldog.logger = Logger.new(file)
@@ -93,6 +91,14 @@ describe Processor::Ffmpeg do
       video_style :output
       Bulldog.expects(:run).once.with(ffmpeg, '-i', original_video_path, '-y', output_video_path)
       process_video{encode}
+    end
+
+    it "should run ffmpeg once for each style" do
+      video_style :one
+      video_style :two
+      Bulldog.expects(:run).once.with(ffmpeg, '-i', original_video_path, '-y', output_video_path(:one))
+      Bulldog.expects(:run).once.with(ffmpeg, '-i', original_video_path, '-y', output_video_path(:two))
+      process_video
     end
 
     it "should allow overriding style attributes from parameters" do
@@ -216,6 +222,14 @@ describe Processor::Ffmpeg do
   end
 
   describe "encoding style attributes" do
+    it "should add arguments for style attributes to the relevant invocation" do
+      video_style :one, :verbosity => 1
+      video_style :two, :verbosity => 2
+      Bulldog.expects(:run).once.with(ffmpeg, '-i', original_video_path, '-v', '1', '-y', output_video_path(:one))
+      Bulldog.expects(:run).once.with(ffmpeg, '-i', original_video_path, '-v', '2', '-y', output_video_path(:two))
+      process_video{encode}
+    end
+
     describe "video" do
       it "should interpret '30fps' as a frame rate of 30fps" do
         video_style :output, :video => '30fps'
