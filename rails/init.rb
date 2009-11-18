@@ -1,9 +1,4 @@
 require 'bulldog'
+require File.dirname(__FILE__) + '/rails'
 
-Bulldog.instance_eval do
-  self.logger = Rails.logger
-
-  to_interpolate(:rails_root){Rails.root}
-  to_interpolate(:rails_env){Rails.env}
-  to_interpolate(:public_path){Rails.public_path}
-end
+Bulldog::Rails.init("#{Rails.root}/config/bulldog.yml", Rails)
