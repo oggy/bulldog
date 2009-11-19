@@ -61,14 +61,18 @@ describe Processor::Ffmpeg do
       process_video
     end
 
-    it "should only process the specified subset of styles, if given" do
+    it "should process the specified set of styles, if given, even those not in the configured style set" do
       video_style :one
       video_style :two
+      video_style :three
       styles = []
-      process_video(:styles => [:two]) do
-        styles << style.name
+      configure :video do
+        process(:on => :event, :with => :image_magick, :styles => [:one, :two]) do
+          styles << style.name
+        end
       end
-      styles.should == [:two]
+      @thing.video.process(:event, :styles => [:two, :three])
+      styles.should == [:two, :three]
     end
 
     it "should log the command run" do

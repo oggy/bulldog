@@ -78,14 +78,18 @@ describe Processor::ImageMagick do
       process
     end
 
-    it "should only process the specified subset of styles, if given" do
+    it "should process the specified set of styles, if given, even those not in the configured style set" do
       style :one
       style :two
+      style :three
       styles = []
-      process(:styles => [:two]) do
-        styles << style.name
+      configure do
+        process(:on => :event, :with => :image_magick, :styles => [:one, :two]) do
+          styles << style.name
+        end
       end
-      styles.should == [:two]
+      @thing.attachment.process(:event, :styles => [:two, :three])
+      styles.should == [:two, :three]
     end
 
     it "should add an error to the record if convert fails" do

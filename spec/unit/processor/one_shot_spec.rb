@@ -72,8 +72,8 @@ describe Processor::OneShot do
     it "should not affect the other processes' styles" do
       style = Style.new(:style)
       styles = StyleSet[style]
-      processor = Processor::OneShot.new(mock, styles, mock)
-      processor.process{}
+      processor = Processor::OneShot.new(mock, mock)
+      processor.process(styles){}
       styles.should have(1).style
     end
   end

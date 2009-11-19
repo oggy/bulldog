@@ -10,10 +10,10 @@ module Bulldog
 
       def initialize(*args)
         super
-        @tree = ArgumentTree.new(styles)
       end
 
-      def process(*args)
+      def process(styles, options={})
+        @tree = ArgumentTree.new(styles)
         super or
           return
         run_convert

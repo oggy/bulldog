@@ -30,8 +30,11 @@ module Bulldog
           end
           processor_type = event.processor_type || default_processor_type
           processor_class = Processor.const_get(processor_type.to_s.camelize)
-          processor = processor_class.new(self, styles_for_event(event), stream.path)
-          processor.process(options, &event.callback)
+          processor = processor_class.new(self, stream.path)
+          styles = reflection.styles
+          names = options[:styles] || event.styles and
+            styles = reflection.styles.slice(*names)
+          processor.process(styles, options, &event.callback)
         end
         record.errors.empty?
       end
@@ -143,14 +146,6 @@ module Bulldog
       end
 
       private  # -------------------------------------------------------
-
-      def styles_for_event(event)
-        if event.styles
-          styles = reflection.styles.slice(*event.styles)
-        else
-          styles = reflection.styles
-        end
-      end
 
       #
       # Remove the files for this attachment, along with any parent

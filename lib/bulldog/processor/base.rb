@@ -1,9 +1,8 @@
 module Bulldog
   module Processor
     class Base
-      def initialize(attachment, styles, input_file)
+      def initialize(attachment, input_file)
         @attachment = attachment
-        @styles = styles
         @input_file = input_file
       end
 
@@ -65,11 +64,8 @@ module Bulldog
       # Subclasses can use this to determine if any processing
       # commands need to be run.
       #
-      def process(options={}, &block)
-        styles = self.styles
-        style_names = options[:styles] and
-          styles = styles.slice(*style_names)
-
+      def process(styles, options={}, &block)
+        @styles = styles
         return false if styles.empty?
         styles.each do |style|
           @style = style

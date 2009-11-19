@@ -7,21 +7,21 @@ module Bulldog
 
       def initialize(*args)
         super
-        @arguments = style_list_map
-        @still_frame_callbacks = style_list_map
       end
 
-      def process(*args)
+      def process(styles, options={})
         super or
           return
-        run_still_frame_callbacks
       end
 
       def process_style(*args)
         @operation = nil
+        @arguments = []
+        @still_frame_callbacks = []
         super
         set_default_operation
         run_ffmpeg
+        run_still_frame_callbacks
       end
 
       def use_threads(num_threads)
@@ -65,7 +65,7 @@ module Bulldog
         if (attribute = params[:assign_to])
           basename = "recorded_frame.#{params[:format]}"
           output_path = record.send(attribute).interpolate_path(:original, :basename => basename)
-          @still_frame_callbacks[style] << lambda do
+          @still_frame_callbacks << lambda do
             file = SavedFile.new(output_path, :file_name => basename)
             record.update_attribute(attribute, file)
           end
@@ -75,7 +75,7 @@ module Bulldog
 
         operate '-y', output_path
         if block
-          @still_frame_callbacks[style] << lambda{instance_exec(output_path, &block)}
+          @still_frame_callbacks << lambda{instance_exec(output_path, &block)}
         end
       end
 
@@ -88,7 +88,7 @@ module Bulldog
       end
 
       def operate(*args)
-        @arguments[style].concat args.map(&:to_s)
+        @arguments.concat args.map(&:to_s)
       end
 
       def set_default_operation
@@ -154,15 +154,13 @@ module Bulldog
       def run_ffmpeg
         command = [self.class.ffmpeg_path]
         command << '-i' << input_file
-        command.concat(@arguments[style])
+        command.concat(@arguments)
         Bulldog.run(*command) or
           record.errors.add name, "convert failed (status #$?)"
       end
 
       def run_still_frame_callbacks
-        @still_frame_callbacks.each do |style, callbacks|
-          callbacks.each{|c| c.call}
-        end
+        @still_frame_callbacks.each(&:call)
       end
     end
   end
