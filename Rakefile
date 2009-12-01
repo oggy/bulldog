@@ -42,7 +42,6 @@ namespace :spec do
   Spec::Rake::SpecTask.new(:unit) do |t|
     t.pattern = 'spec/unit/**/*_spec.rb'
     t.libs << 'lib' << 'spec'
-    t.spec_opts = ['--options', "\"#{PLUGIN_ROOT}/spec/spec.opts\""]
   end
 
   Spec::Rake::SpecTask.new(:integration) do |t|
