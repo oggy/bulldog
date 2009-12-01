@@ -66,8 +66,12 @@ module Bulldog
           basename = "recorded_frame.#{params[:format]}"
           output_path = record.send(attribute).interpolate_path(:original, :basename => basename)
           @still_frame_callbacks << lambda do
-            file = SavedFile.new(output_path, :file_name => basename)
-            record.update_attribute(attribute, file)
+            if existing_frame_path(attribute) == output_path
+              attachment.reload
+            else
+              file = SavedFile.new(output_path, :file_name => basename)
+              record.update_attribute(attribute, file)
+            end
           end
         else
           output_path = output_file(style.name)
@@ -157,6 +161,11 @@ module Bulldog
         command.concat(@arguments)
         Bulldog.run(*command) or
           record.errors.add name, "convert failed (status #$?)"
+      end
+
+      def existing_frame_path(attribute)
+        stream = record.send(attribute).stream
+        stream && stream.path
       end
 
       def run_still_frame_callbacks

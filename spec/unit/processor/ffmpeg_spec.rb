@@ -184,6 +184,25 @@ describe Processor::Ffmpeg do
         context.should be_a(Processor::Ffmpeg)
         argument.should == original_frame_path
       end
+
+      describe "when the frame attachment already exists" do
+        before do
+          thing = Thing.create(:frame => test_image_file('test.jpg'))
+          @thing = Thing.find(thing.id)
+          @thing.video = test_video_file('test.mov')
+          @thing.video.stubs(:duration).returns(1)
+        end
+
+        it "should update the original file of the specified attachment" do
+          lambda do
+            process_video :styles => [:original] do
+              record_frame(:format => 'jpg', :assign_to => :frame)
+            end
+          end.should modify_file(original_frame_path)
+          # file could be empty if it is destroyed before saving
+          File.size(original_frame_path).should > 0
+        end
+      end
     end
 
     describe "using style attributes" do
