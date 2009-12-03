@@ -339,6 +339,22 @@ describe Attachment::Base do
         lambda{thing.attachment.process!(:event)}.should_not raise_error(ActiveRecord::RecordInvalid)
       end
     end
+
+    it "should pass the given options to #process" do
+      with_test_processor(:error => false) do
+        styles = nil
+        Thing.has_attachment :attachment do
+          style :one
+          style :two
+          process :on => :event, :with => :base do
+            styles = self.styles.map(&:name)
+          end
+        end
+        thing = Thing.new(:attachment => test_empty_file)
+        thing.attachment.process!(:event, :styles => [:one])
+        styles.should == [:one]
+      end
+    end
   end
 
   describe "storable attributes" do

@@ -1,3 +1,7 @@
+== 0.0.11 2009-12-03
+
+ * Make Attachment::Base#process! take options like #process.
+
 == 0.0.10 2009-12-01
 
  * Fix recording video frame when frame attachment already exists.

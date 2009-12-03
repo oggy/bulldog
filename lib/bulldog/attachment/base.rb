@@ -43,8 +43,8 @@ module Bulldog
       # Like #process, but raise ActiveRecord::RecordInvalid if there
       # are any errors.
       #
-      def process!(event_name, &block)
-        process(event_name, &block) or
+      def process!(event_name, options={}, &block)
+        process(event_name, options, &block) or
           raise ActiveRecord::RecordInvalid, record
       end
 
