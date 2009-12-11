@@ -54,7 +54,7 @@ module Bulldog
           if $?.success? && output.present?
             width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map(&:to_i)
             rotated = (orientation & 0x4).nonzero?
-            @original_dimensions ||= rotated ? [height, width] : [width, height]
+            @original_dimensions = rotated ? [height, width] : [width, height]
             true
           else
             Bulldog.logger.warn "command failed (#{$?.exitstatus})"
