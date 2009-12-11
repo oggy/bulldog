@@ -44,7 +44,7 @@ describe Attachment::Pdf do
   end
 
   describe "#dimensions" do
-    it "should return 1x1 if the style is missing" do
+    it "should return 1x1 if the file is missing" do
       Thing.attachment_reflections[:attachment].configure do
         detect_type_by{:pdf}
       end
