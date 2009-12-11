@@ -30,8 +30,7 @@ module Bulldog
         if stream.missing?
           0
         else
-          examine
-          @original_duration
+          from_examination :original_duration
         end
       end
 
@@ -50,7 +49,7 @@ module Bulldog
           if stream.missing?
             [VideoTrack.new(:dimensions => [2, 2])]
           else
-            examine
+            examine unless @original_video_tracks
             if @original_video_tracks.empty?
               @original_video_tracks << VideoTrack.new(:dimensions => [2, 2])
             end

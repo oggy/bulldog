@@ -16,8 +16,7 @@ module Bulldog
       #
       def dimensions(style_name)
         if style_name.equal?(:original)
-          examine
-          @original_dimensions
+          from_examination :original_dimensions
         else
           style = reflection.styles[style_name]
           target_dimensions = style[:size].split(/x/).map(&:to_i)

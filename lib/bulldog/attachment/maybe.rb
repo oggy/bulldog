@@ -130,14 +130,12 @@ module Bulldog
           if (column_name = reflection.column_name_for_stored_attribute(name))
             value = record.send(column_name)
             value = send("deserialize_#{name}", value) if storable_attribute.cast
-            ivar = :"@#{name}"
             if storable_attribute.per_style?
-              instance_variable_get(ivar) or
-                instance_variable_set(ivar, {})
-              instance_variable_get(ivar)[name] = value
+              ivar = :"@original_#{name}"
             else
-              instance_variable_set(ivar, value)
+              ivar = :"@#{name}"
             end
+            instance_variable_set(ivar, value)
           end
         end
       end
