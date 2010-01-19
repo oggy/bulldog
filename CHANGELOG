@@ -1,3 +1,11 @@
+== 0.0.13 2010-01-19
+
+ * Optimizations.
+
+== 0.0.12 2010-01-18
+
+ * Strip images if the :stripped style attribute is set.
+
 == 0.0.11 2009-12-03
 
  * Make Attachment::Base#process! take options like #process.
