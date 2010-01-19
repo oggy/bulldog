@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["George Ogata"]
-  s.date = %q{2009-12-11}
+  s.date = %q{2010-01-18}
   s.description = %q{= Bulldog
 
 Flexible file attachments for active record.
