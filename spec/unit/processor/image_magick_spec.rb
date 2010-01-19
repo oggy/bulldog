@@ -118,6 +118,18 @@ describe Processor::ImageMagick do
       process
     end
 
+    it "should add -strip if the :stripped style attribute is true" do
+      style :output, :stripped => true
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", '-strip', output_path).returns('')
+      process
+    end
+
+    it "should add -strip if the :stripped style attribute is true" do
+      style :output, :stripped => false
+      Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", output_path).returns('')
+      process
+    end
+
     it "should use the :format style attribute to set the file extension if it's specified by the :extension interpolation key" do
       style :output, :format => 'png'
       Bulldog.expects(:run).once.with(convert, "#{original_path}[0]", output_path.sub(/jpg\z/, 'png')).returns('')

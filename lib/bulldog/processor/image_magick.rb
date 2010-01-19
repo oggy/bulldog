@@ -109,6 +109,7 @@ module Bulldog
         styles.each do |style|
           @tree.add(style, ['-quality', style[:quality].to_s]) if style[:quality]
           @tree.add(style, ['-colorspace', style[:colorspace]]) if style[:colorspace]
+          @tree.add(style, ['-strip']) if style[:stripped]
           path = output_file(style.name)
           FileUtils.mkdir_p(File.dirname(path))
           @tree.output(style, path)
