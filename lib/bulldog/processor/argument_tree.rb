@@ -58,7 +58,7 @@ module Bulldog
       private  # ---------------------------------------------------
 
       def inspect_node(io, node, margin='')
-        puts "#{margin}* #{node.styles.map(&:name).join(', ')}: #{node.arguments.join(' ')}"
+        puts "#{margin}* #{node.styles.map{|s| s.name}.join(', ')}: #{node.arguments.join(' ')}"
         node.children.each do |child|
           inspect_node(io, child, margin + '  ')
         end

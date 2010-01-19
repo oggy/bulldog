@@ -19,7 +19,7 @@ module Bulldog
           from_examination :original_dimensions
         else
           style = reflection.styles[style_name]
-          target_dimensions = style[:size].split(/x/).map(&:to_i)
+          target_dimensions = style[:size].split(/x/).map{|s| s.to_i}
           resized_dimensions(dimensions(:original), target_dimensions, style[:filled])
         end
       end
@@ -51,7 +51,7 @@ module Bulldog
         else
           output = `identify -format "%w %h %[exif:Orientation]" #{stream.path} 2> /dev/null`
           if $?.success? && output.present?
-            width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map(&:to_i)
+            width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map{|s| s.to_i}
             rotated = (orientation & 0x4).nonzero?
             @original_dimensions = rotated ? [height, width] : [width, height]
             true

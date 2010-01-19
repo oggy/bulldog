@@ -57,7 +57,7 @@ module Bulldog
           end
         else
           style = reflection.styles[style_name]
-          target_dimensions = style[:size].split(/x/).map(&:to_i)
+          target_dimensions = style[:size].split(/x/).map{|s| s.to_i}
           video_tracks(:original).map do |video_track|
             dimensions = resized_dimensions(dimensions(:original), target_dimensions, style[:filled])
             dimensions.map!{|i| i &= -2}  # some codecs require multiples of 2

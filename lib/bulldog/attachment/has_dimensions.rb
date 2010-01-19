@@ -87,7 +87,7 @@ module Bulldog
 
       def deserialize_dimensions(string)
         return nil if string.blank?
-        string.scan(/\d+/).map(&:to_i)
+        string.scan(/\d+/).map{|s| s.to_i}
       end
     end
   end

@@ -32,7 +32,7 @@ module Bulldog
       def dimensions(&block)
         operate '-format', '%w %h'
         operate '-identify' do |styles, output|
-          width, height = output.gets.split.map(&:to_i)
+          width, height = output.gets.split.map{|line| line.to_i}
           block.call(styles, width, height)
         end
       end

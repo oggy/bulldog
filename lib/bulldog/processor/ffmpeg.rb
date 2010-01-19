@@ -92,7 +92,7 @@ module Bulldog
       end
 
       def operate(*args)
-        @arguments.concat args.map(&:to_s)
+        @arguments.concat args.map{|s| s.to_s}
       end
 
       def set_default_operation
@@ -169,7 +169,7 @@ module Bulldog
       end
 
       def run_still_frame_callbacks
-        @still_frame_callbacks.each(&:call)
+        @still_frame_callbacks.each{|c| c.call}
       end
     end
   end
