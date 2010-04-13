@@ -1,3 +1,0 @@
-= Bulldog
-
-Flexible file attachments for active record.
