@@ -63,13 +63,36 @@ describe Attachment::Image do
         @thing.photo.dimensions(:unfilled).should == [120, 90]
       end
 
-      it "should honor the exif:Orientation header" do
-        path = create_image("#{temporary_directory}/test.jpg", :size => '40x30')
-        rotated_path = "#{temporary_directory}/rotated-test.jpg"
-        run "exif --create-exif --ifd=EXIF --tag=Orientation --set-value=4 --output=#{rotated_path} #{path}"
-        open(rotated_path) do |file|
-          @thing.photo = file
-          @thing.photo.dimensions(:original).should == [30, 40]
+      describe "when an exif:Orientation header is set" do
+        before do
+          @path = create_image("#{temporary_directory}/test.jpg", :size => '40x30')
+          @rotated_path = "#{temporary_directory}/rotated-test.jpg"
+        end
+
+        attr_reader :path, :rotated_path
+
+        def set_header(value)
+          run "exif --create-exif --ifd=EXIF --tag=Orientation --set-value=4 --output=#{rotated_path} #{path}"
+        end
+
+        it "should not swap the dimensions if the value is between 1 and 4" do
+          (1..4).each do |value|
+            set_header value
+            open(rotated_path) do |file|
+              @thing.photo = file
+              @thing.photo.dimensions(:original).should == [40, 30]
+            end
+          end
+        end
+
+        it "should swap the dimensions if the value is between 5 and 8" do
+          (5..8).each do |value|
+            set_header value
+            open(rotated_path) do |file|
+              @thing.photo = file
+              @thing.photo.dimensions(:original).should == [30, 40]
+            end
+          end
         end
       end
 

@@ -52,7 +52,7 @@ module Bulldog
           output = `identify -format "%w %h %[exif:Orientation]" #{stream.path} 2> /dev/null`
           if $?.success? && output.present?
             width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map{|s| s.to_i}
-            rotated = (orientation & 0x4).nonzero?
+            rotated = (orientation-1 & 0x4).nonzero?
             @original_dimensions = rotated ? [height, width] : [width, height]
             true
           else
