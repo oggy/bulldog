@@ -72,7 +72,7 @@ describe Attachment::Image do
         attr_reader :path, :rotated_path
 
         def set_header(value)
-          run "exif --create-exif --ifd=EXIF --tag=Orientation --set-value=4 --output=#{rotated_path} #{path}"
+          run "exif --create-exif --ifd=EXIF --tag=Orientation --set-value=#{value} --output=#{rotated_path} #{path}"
         end
 
         it "should not swap the dimensions if the value is between 1 and 4" do
