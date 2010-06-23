@@ -7,6 +7,7 @@ module Bulldog
       def init(config_path, rails)
         config = read_config(config_path, rails.env)
         set_logger(config, rails.logger)
+        Bulldog.path_root = rails.public_path
         set_attribute config, :default_path_template
         set_attribute config, :default_url_template
         set_attribute config, :convert_path
@@ -40,7 +41,6 @@ module Bulldog
       def define_interpolations(rails)
         Bulldog.to_interpolate(:rails_root){rails.root}
         Bulldog.to_interpolate(:rails_env){rails.env}
-        Bulldog.to_interpolate(:public_path){rails.public_path}
       end
     end
   end

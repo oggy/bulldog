@@ -1,3 +1,8 @@
+== LATEST
+
+ * Add Bulldog.path_root, for specifying per-environment roots.
+ * Add :root interpolation key. Replaces :public_path for Rails apps.
+
 == 0.0.15 2010-04-13
 
  * Fix image dimensions when exif:Orientation is 8.

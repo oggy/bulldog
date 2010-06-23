@@ -103,8 +103,8 @@ describe Reflection do
         end
       end
 
-      it "should return the URL prefixed with the public path" do
-        reflection.path_template.should == ":public_path/configured/url"
+      it "should return the URL prefixed with the root" do
+        reflection.path_template.should == ":root/configured/url"
       end
     end
   end

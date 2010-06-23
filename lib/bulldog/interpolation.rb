@@ -65,6 +65,10 @@ module Bulldog
           raise Error, ":extension interpolation used when file_name not set - if you need to interpolate the url, pass a :basename override"
         File.extname(basename).sub(/\A\./, '')
       end
+
+      to_interpolate(:root) do
+        Bulldog.path_root
+      end
     end
 
     #

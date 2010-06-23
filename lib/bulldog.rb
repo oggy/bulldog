@@ -38,6 +38,11 @@ module Bulldog
     attr_accessor :default_url_template
 
     #
+    # The root directory to use for paths.
+    #
+    attr_accessor :path_root
+
+    #
     # The path to `ffmpeg'.  Only required if you use ffmpeg
     # (processing videos, or retrieving video attributes).
     #

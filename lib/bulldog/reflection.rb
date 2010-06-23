@@ -43,7 +43,7 @@ module Bulldog
     end
 
     def path_template
-      @path_template || Bulldog.default_path_template || File.join(':public_path', url_template)
+      @path_template || Bulldog.default_path_template || File.join(':root', url_template)
     end
 
     def url_template

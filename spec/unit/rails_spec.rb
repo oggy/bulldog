@@ -75,9 +75,9 @@ describe Rails do
         interpolate("a/:rails_env/b").should == "a/ENVIRONMENT/b"
       end
 
-      it "should interpolate :public_path as Rails.public_path" do
+      it "should interpolate :root as Rails.public_path" do
         init
-        interpolate("a/:public_path/b").should == "a/PUBLIC/b"
+        interpolate("a/:root/b").should == "a/PUBLIC/b"
       end
     end
   end

@@ -104,6 +104,11 @@ describe Interpolation do
         interpolate("a/:extension/b", :basename => 'BASENAME.EXT').should == 'a/FMT/b'
       end
 
+      it "should interpolate :root as Bulldog.path_root" do
+        Bulldog.path_root = 'TEST'
+        interpolate("a/:root/b").should == 'a/TEST/b'
+      end
+
       it "should not modify the hash of overrides, if given" do
         overrides = {:basename => 'BASENAME.EXT'}
         interpolate("a/:extension/b", overrides).should == 'a/EXT/b'
