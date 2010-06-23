@@ -1,4 +1,4 @@
-== 010 2010-06-23
+== 0.1.0 2010-06-23
 
  * Add Bulldog.path_root, for specifying per-environment roots.
  * Add :root interpolation key. Replaces :public_path for Rails apps.
