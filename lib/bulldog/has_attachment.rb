@@ -124,7 +124,8 @@ module Bulldog
     end
 
     def clear_original_attachments
-      # Somehow this can be unset sometimes.  TODO: Work out how.
+      # This can be unset if the record is resaved between store and
+      # clear (e.g., in an after_save: store, save, store, clear, clear).
       if instance_variable_defined?(:@original_attachments)
         remove_instance_variable :@original_attachments
       end
