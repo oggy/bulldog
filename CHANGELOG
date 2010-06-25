@@ -1,6 +1,7 @@
 == LATEST
 
  * Create output directory when recording frames if necessary.
+ * Only add Bulldog callbacks in classes that need them.
 
 == 0.1.0 2010-06-23
 

@@ -117,5 +117,5 @@ module Bulldog
   self.ffmpeg_path = 'ffmpeg'
 end
 
-ActiveRecord::Base.send :include, Bulldog::HasAttachment
+ActiveRecord::Base.send :extend, Bulldog::HasAttachment
 ActiveRecord::Base.send :include, Bulldog::Validations
