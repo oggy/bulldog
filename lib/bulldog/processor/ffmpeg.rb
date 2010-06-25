@@ -77,6 +77,7 @@ module Bulldog
           output_path = output_file(style.name)
         end
 
+        FileUtils.mkdir_p File.dirname(output_path)
         operate '-y', output_path
         if block
           @still_frame_callbacks << lambda{instance_exec(output_path, &block)}

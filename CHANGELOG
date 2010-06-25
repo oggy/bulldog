@@ -1,3 +1,7 @@
+== LATEST
+
+ * Create output directory when recording frames if necessary.
+
 == 0.1.0 2010-06-23
 
  * Add Bulldog.path_root, for specifying per-environment roots.
