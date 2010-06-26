@@ -39,7 +39,8 @@ module Bulldog
       # same state as the given Attachment.
       #
       def ==(other)
-        record == other.record &&
+        other.is_a?(Bulldog::Attachment::Maybe) &&
+          record == other.record &&
           name == other.name &&
           value == other.value &&
           saved? == other.saved?
