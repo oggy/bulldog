@@ -3,6 +3,7 @@
  * Create output directory when recording frames if necessary.
  * Only add Bulldog callbacks in classes that need them.
  * Fix comparison of attachments with non-attachment classes.
+ * Don't create blank file when saving record with a missing file.
 
 == 0.1.0 2010-06-23
 

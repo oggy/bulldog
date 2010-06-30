@@ -11,10 +11,7 @@ module Bulldog
       end
 
       def initialize(record, name, stream)
-        @record = record
-        @name = name
-        @stream = stream
-        @value = stream && stream.target
+        super
         @examination_result = nil
       end
 

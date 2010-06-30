@@ -335,6 +335,17 @@ describe HasAttachment do
               @thing.photo_content_type == "image/jpeg"
               @thing.photo_file_size.should == File.size(test_path('test.jpg'))
             end
+
+            describe "when the record is saved" do
+              before do
+                instantiate
+              end
+
+              it "should not create any files" do
+                @thing.save
+                File.should_not exist(@thing.photo.path(:original))
+              end
+            end
           end
         end
 
