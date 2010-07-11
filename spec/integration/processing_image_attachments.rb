@@ -28,19 +28,7 @@ describe "Processing image attachments" do
     end
     @thing = Thing.new
     @thing.stubs(:id).returns(5)
-    @file = small_uploaded_file(:size => "40x30")
-  end
-
-  def small_uploaded_file(options={})
-    tmp_path = "#{temporary_directory}/small_uploaded_file.tmp.png"
-    create_image(tmp_path, options)
-    content = File.read(tmp_path)
-    File.unlink(tmp_path)
-
-    io = ActionController::UploadedStringIO.new(content)
-    io.original_path = "tmp.png"
-    io.content_type = 'image/png'
-    io
+    @file = uploaded_file('test-40x30.jpg')
   end
 
   after do

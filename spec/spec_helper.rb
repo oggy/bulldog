@@ -17,7 +17,6 @@ require 'helpers/time_travel'
 require 'helpers/temporary_models'
 require 'helpers/temporary_values'
 require 'helpers/files'
-require 'helpers/test_upload_files'
 require 'helpers/image_creation'
 require 'matchers/file_operations'
 require 'macros/attachment/has_dimensions_spec'
@@ -70,7 +69,6 @@ Spec::Runner.configure do |config|
   config.include TemporaryModels
   config.include TemporaryValues
   config.include Files
-  config.include TestUploadFiles  # obsolete
   config.include ImageCreation
   config.include Matchers
   config.include SpecHelper

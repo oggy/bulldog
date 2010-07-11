@@ -33,7 +33,7 @@ describe Attachment::Base do
     end
 
     it "should return the path of the given style, interpolated from the path template" do
-      @thing.photo = test_image_file
+      @thing.photo = uploaded_file('test.jpg')
       @thing.stubs(:id).returns(5)
       @thing.photo.path(:original).should == original_path
       @thing.photo.path(:small).should == small_path
@@ -45,7 +45,7 @@ describe Attachment::Base do
         Thing.attachment_reflections[:photo].configure do
           path "#{spec.temporary_directory}/:style.:extension"
         end
-        @thing.photo = test_image_file
+        @thing.photo = uploaded_file('test.jpg')
       end
 
       it "should use the extension of the original file for the original style" do
@@ -62,7 +62,7 @@ describe Attachment::Base do
         Thing.attachment_reflections[:photo].configure do
           path "#{spec.temporary_directory}/:style.xyz"
         end
-        @thing.photo = test_image_file
+        @thing.photo = uploaded_file('test.jpg')
       end
 
       it "should use the extension of the path template for the original style" do
@@ -82,7 +82,7 @@ describe Attachment::Base do
       end
 
       it "should default to the attachment's default style" do
-        @thing.photo = test_image_file
+        @thing.photo = uploaded_file('test.jpg')
         @thing.photo.path.should == "/tmp/small.jpg"
       end
     end
@@ -99,7 +99,7 @@ describe Attachment::Base do
     end
 
     it "should return the url of the given style, interpolated from the url template" do
-      @thing.photo = test_image_file
+      @thing.photo = uploaded_file('test.jpg')
       @thing.photo.url(:original).should == "/assets/original.jpg"
       @thing.photo.url(:small).should == "/assets/small.jpg"
     end
@@ -111,7 +111,7 @@ describe Attachment::Base do
           path "/tmp/:style.:extension"
           url "/assets/:style.:extension"
         end
-        @thing.photo = test_image_file
+        @thing.photo = uploaded_file('test.jpg')
       end
 
       it "should use the extension of the original file for the original style" do
@@ -130,7 +130,7 @@ describe Attachment::Base do
           path "/tmp/:style.xyz"
           url "/assets/:style.xyz"
         end
-        @thing.photo = test_image_file
+        @thing.photo = uploaded_file('test.jpg')
       end
 
       it "should use the extension of the url template for the original style" do
@@ -150,7 +150,7 @@ describe Attachment::Base do
       end
 
       it "should default to the attachment's default style" do
-        @thing.photo = test_image_file
+        @thing.photo = uploaded_file('test.jpg')
         @thing.photo.url.should == "/assets/small.jpg"
       end
     end
@@ -168,22 +168,12 @@ describe Attachment::Base do
       "#{temporary_directory}/#{@thing.id}.original.jpg"
     end
 
-    def with_temporary_file(path, content)
-      FileUtils.mkdir_p File.dirname(path)
-      open(path, 'w'){|f| f.print '...'}
-      begin
-        yield path
-      ensure
-        File.delete(path)
-      end
-    end
-
     before do
-      @thing = Thing.new(:photo => test_image_file)
+      @thing = Thing.new(:photo => uploaded_file('test.jpg'))
     end
 
     it "should return the size of the file" do
-      @thing.photo.file_size.should == File.size(test_image_path)
+      @thing.photo.file_size.should == File.size("#{ROOT}/spec/data/test.jpg")
     end
   end
 
@@ -200,22 +190,12 @@ describe Attachment::Base do
       "#{temporary_directory}/#{@thing.id}.original.jpg"
     end
 
-    def with_temporary_file(path, content)
-      FileUtils.mkdir_p File.dirname(path)
-      open(path, 'w'){|f| f.print '...'}
-      begin
-        yield path
-      ensure
-        File.delete(path)
-      end
-    end
-
     before do
-      @thing = Thing.new(:photo => test_image_file)
+      @thing = Thing.new(:photo => uploaded_file('test.jpg'))
     end
 
     it "should return the original base name of the file" do
-      @thing.photo.file_name.should == File.basename(test_image_path)
+      @thing.photo.file_name.should == File.basename("#{ROOT}/spec/data/test.jpg")
     end
   end
 
@@ -245,7 +225,7 @@ describe Attachment::Base do
           context = self
         end
       end
-      thing = Thing.new(:photo => test_image_file)
+      thing = Thing.new(:photo => uploaded_file('test.jpg'))
       thing.photo.stubs(:default_processor_type).returns(:test)
       thing.photo.process(:test_event)
       context.should be_a(Processor::Test)
@@ -259,7 +239,7 @@ describe Attachment::Base do
           context = self
         end
       end
-      thing = Thing.new(:photo => test_image_file)
+      thing = Thing.new(:photo => uploaded_file('test.jpg'))
       thing.photo.process(:test_event)
       context.should be_a(Processor::Test)
     end
@@ -286,7 +266,7 @@ describe Attachment::Base do
           styles = self.styles
         end
       end
-      thing = Thing.new(:photo => test_image_file)
+      thing = Thing.new(:photo => uploaded_file('test.jpg'))
       thing.photo.process(:test_event)
       styles.should be_a(StyleSet)
       styles.map(&:name).should == [:small]
@@ -298,7 +278,7 @@ describe Attachment::Base do
           style :one
           process(:on => :event, :with => :test){}
         end
-        thing = Thing.new(:attachment => test_empty_file)
+        thing = Thing.new(:attachment => uploaded_file('empty.txt'))
         thing.attachment.process(:event).should be_true
       end
     end
@@ -309,7 +289,7 @@ describe Attachment::Base do
           style :one
           process(:on => :event, :with => :test){}
         end
-        thing = Thing.new(:attachment => test_empty_file)
+        thing = Thing.new(:attachment => uploaded_file('empty.txt'))
         thing.attachment.process(:event).should be_false
       end
     end
@@ -324,7 +304,7 @@ describe Attachment::Base do
           style :one
           process :on => :event, :with => :test
         end
-        thing = Thing.new(:attachment => test_empty_file)
+        thing = Thing.new(:attachment => uploaded_file('empty.txt'))
         lambda{thing.attachment.process!(:event)}.should raise_error(ActiveRecord::RecordInvalid)
       end
     end
@@ -335,7 +315,7 @@ describe Attachment::Base do
           style :one
           process :on => :event, :with => :test
         end
-        thing = Thing.new(:attachment => test_empty_file)
+        thing = Thing.new(:attachment => uploaded_file('empty.txt'))
         lambda{thing.attachment.process!(:event)}.should_not raise_error(ActiveRecord::RecordInvalid)
       end
     end
@@ -350,7 +330,7 @@ describe Attachment::Base do
             styles = self.styles.map(&:name)
           end
         end
-        thing = Thing.new(:attachment => test_empty_file)
+        thing = Thing.new(:attachment => uploaded_file('empty.txt'))
         thing.attachment.process!(:event, :styles => [:one])
         styles.should == [:one]
       end

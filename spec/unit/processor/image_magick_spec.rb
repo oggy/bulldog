@@ -8,7 +8,7 @@ describe Processor::ImageMagick do
     Thing.has_attachment :attachment do
       path "#{spec.temporary_directory}/attachment.:style.:extension"
     end
-    thing = Thing.create(:attachment => test_image_file('test.jpg'))
+    thing = Thing.create(:attachment => uploaded_file('test.jpg'))
     @thing = Thing.find(thing.id)
   end
 

@@ -44,7 +44,7 @@ module Files
   # finished. The file handle will be automatically closed at the end
   # of the spec.
   #
-  def file(path)
+  def temporary_file(path)
     tmp_path = temporary_path(path)
     file = open(tmp_path)
     files_to_close << file
@@ -58,18 +58,11 @@ module Files
   # is uploaded through a multipart form.
   #
   def uploaded_file(path, content_type=nil)
-    io = file(path)
+    io = temporary_file(path)
     io.extend(ActionController::UploadedFile)
     io.original_path = File.basename(path)
     io.content_type = content_type || guess_content_type(path)
     io
-  end
-
-  #
-  # Return the contents of the +path+ relative to spec/data/files.
-  #
-  def read(path)
-    File.read(source_path(path))
   end
 
   private

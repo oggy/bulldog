@@ -30,7 +30,7 @@ describe Attachment do
 
       describe "when the stream is not nil" do
         before do
-          @stream = Stream.new(test_image_file)
+          @stream = Stream.new(temporary_file('test.jpg'))
         end
 
         it "should return a Base attachment" do

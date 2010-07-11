@@ -93,8 +93,8 @@ describe Stream do
         end
 
         it "should make #content_type return the new content type of the file" do
-          jpg_data = File.read(test_path('test.jpg'))
-          png_data = File.read(test_path('test.png'))
+          jpg_data = File.read("#{ROOT}/spec/data/test.jpg")
+          png_data = File.read("#{ROOT}/spec/data/test.png")
           stream = stream(jpg_data)
           stream.content_type.should =~ %r'\Aimage/jpeg'
           update_target(stream, png_data)
@@ -109,7 +109,7 @@ describe Stream do
         end
 
         it "should not change the result of #content_type" do
-          jpg_data = File.read(test_path('test.jpg'))
+          jpg_data = File.read("#{ROOT}/spec/data/test.jpg")
           stream = stream(jpg_data)
           stream.reload
           stream.content_type.should =~ %r'\Aimage/jpeg'

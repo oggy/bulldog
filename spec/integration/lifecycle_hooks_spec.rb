@@ -194,7 +194,7 @@ describe "Lifecycle hooks" do
     end
     thing = Thing.new(:attachment => @file)
     thing.process_attachment(:attachment, :test_event)
-    thing.attachment = uploaded_file_with_content('test.avi', "RIFF    AVI ")
+    thing.attachment = uploaded_file('test.mov')
     thing.process_attachment(:attachment, :test_event)
     runs.should == 2
   end

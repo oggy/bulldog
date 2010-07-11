@@ -17,7 +17,7 @@ describe Processor::Ffmpeg do
       end
     end
 
-    thing = Thing.create(:video => test_video_file('test.mov'))
+    thing = Thing.create(:video => uploaded_file('test.mov'))
     @thing = Thing.find(thing.id)
   end
 
@@ -187,9 +187,9 @@ describe Processor::Ffmpeg do
 
       describe "when the frame attachment already exists" do
         before do
-          thing = Thing.create(:frame => test_image_file('test.jpg'))
+          thing = Thing.create(:frame => uploaded_file('test.jpg'))
           @thing = Thing.find(thing.id)
-          @thing.video = test_video_file('test.mov')
+          @thing.video = uploaded_file('test.mov')
           @thing.video.stubs(:duration).returns(1)
         end
 

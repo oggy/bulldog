@@ -194,11 +194,11 @@ describe Validations do
     end
 
     def make_thing_pass
-      @thing.photo = test_image_file
+      @thing.photo = uploaded_file('test.jpg')
     end
 
     def make_thing_fail
-      @thing.photo = test_empty_file
+      @thing.photo = uploaded_file('empty.txt')
     end
 
     it_should_behave_like "an ActiveRecord validation"
@@ -212,18 +212,18 @@ describe Validations do
 
       it "should fail if the file is empty" do
         Thing.validates_attachment_presence_of :photo
-        @thing = Thing.new(:photo => test_empty_file)
+        @thing = Thing.new(:photo => uploaded_file('empty.txt'))
         @thing.should_not be_valid
       end
 
       it "should pass if the file is not empty" do
         Thing.validates_attachment_presence_of :photo
-        @thing = Thing.new(:photo => test_image_file)
+        @thing = Thing.new(:photo => uploaded_file('test.jpg'))
         @thing.should be_valid
       end
     end
 
-    it_should_use_i18n_key(:attachment_blank){@thing.photo = test_empty_file}
+    it_should_use_i18n_key(:attachment_blank){@thing.photo = uploaded_file('empty.txt')}
   end
 
   describe ".validates_attachment_file_size_of" do
@@ -236,11 +236,11 @@ describe Validations do
     end
 
     def make_thing_pass
-      @thing.photo = uploaded_file_with_content('test.jpg', '....')
+      @thing.photo = uploaded_file('4-bytes.txt')
     end
 
     def make_thing_fail
-      @thing.photo = uploaded_file_with_content('test.jpg', '..')
+      @thing.photo = uploaded_file('6-bytes.txt')
     end
 
     it_should_behave_like "an ActiveRecord validation"
@@ -259,17 +259,17 @@ describe Validations do
         end
 
         it "should fail if the file size is less than the limit" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*4)
+          @thing.photo = uploaded_file('4-bytes.txt')
           @thing.should_not be_valid
         end
 
         it "should fail if the file size is equal to the limit" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*5)
+          @thing.photo = uploaded_file('5-bytes.txt')
           @thing.should_not be_valid
         end
 
         it "should pass if the file size is greater than the limit" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*6)
+          @thing.photo = uploaded_file('6-bytes.txt')
           @thing.should be_valid
         end
       end
@@ -281,72 +281,72 @@ describe Validations do
         end
 
         it "should fail if the file size is greater than the limit" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*6)
+          @thing.photo = uploaded_file('6-bytes.txt')
           @thing.should_not be_valid
         end
 
         it "should fail if the file size is equal to the limit" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*5)
+          @thing.photo = uploaded_file('5-bytes.txt')
           @thing.should_not be_valid
         end
 
         it "should pass if the file size is less than the limit" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*4)
+          @thing.photo = uploaded_file('4-bytes.txt')
           @thing.should be_valid
         end
       end
 
       describe "when :in is given" do
         before do
-          Thing.validates_attachment_file_size_of :photo, :in => 3..5
+          Thing.validates_attachment_file_size_of :photo, :in => 4..5
           @thing = Thing.new
         end
 
         it "should fail if the file size is less than the lower bound" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*2)
+          @thing.photo = uploaded_file('3-bytes.txt')
           @thing.should_not be_valid
         end
 
         it "should pass if the file size is equal to the lower bound" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*3)
+          @thing.photo = uploaded_file('4-bytes.txt')
           @thing.should be_valid
         end
 
         it "should fail if the file size is greater than the upper bound" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*6)
+          @thing.photo = uploaded_file('6-bytes.txt')
           @thing.should_not be_valid
         end
       end
 
       describe "when :in is given with an inclusive range" do
         before do
-          Thing.validates_attachment_file_size_of :photo, :in => 3..5
+          Thing.validates_attachment_file_size_of :photo, :in => 4..5
           @thing = Thing.new
         end
 
         it "should pass if the file size is equal to the upper bound" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*5)
+          @thing.photo = uploaded_file('5-bytes.txt')
           @thing.should be_valid
         end
       end
 
       describe "when :in is given with an exclusive range" do
         before do
-          Thing.validates_attachment_file_size_of :photo, :in => 3...5
+          Thing.validates_attachment_file_size_of :photo, :in => 4...5
           @thing = Thing.new
         end
 
         it "should fail if the file size is equal to the upper bound" do
-          @thing.photo = uploaded_file_with_content('test.jpg', '.'*5)
+          @thing.photo = uploaded_file('5-bytes.txt')
           @thing.should_not be_valid
         end
       end
     end
 
-    it_should_use_i18n_key(:attachment_too_large, :in => 3..5){@thing.photo = uploaded_file_with_content('test.jpg', '......')}
-    it_should_use_i18n_key(:attachment_too_large, :less_than => 5){@thing.photo = uploaded_file_with_content('test.jpg', '......')}
-    it_should_use_i18n_key(:attachment_too_small, :in => 3..5){@thing.photo = uploaded_file_with_content('test.jpg', '..')}
-    it_should_use_i18n_key(:attachment_too_small, :greater_than => 5){@thing.photo = uploaded_file_with_content('test.jpg', '..')}
+    it_should_use_i18n_key(:attachment_too_large, :in => 3..5){@thing.photo = uploaded_file('6-bytes.txt')}
+    it_should_use_i18n_key(:attachment_too_large, :less_than => 5){@thing.photo = uploaded_file('6-bytes.txt')}
+    it_should_use_i18n_key(:attachment_too_small, :in => 4..5){@thing.photo = uploaded_file('3-bytes.txt')}
+    it_should_use_i18n_key(:attachment_too_small, :greater_than => 5){@thing.photo = uploaded_file('4-bytes.txt')}
   end
 
   describe ".validates_attachment_type_of" do
@@ -359,11 +359,11 @@ describe Validations do
     end
 
     def make_thing_pass
-      @thing.photo = uploaded_file_with_content('test.jpg', "\xff\xd8")
+      @thing.photo = uploaded_file('test.jpg')
     end
 
     def make_thing_fail
-      @thing.photo = uploaded_file_with_content('test.avi', "RIFF    AVI ")
+      @thing.photo = uploaded_file('test.mov')
     end
 
     it_should_behave_like "an ActiveRecord validation"
@@ -400,12 +400,12 @@ describe Validations do
           end
 
           it "should pass if the symbol matches the Attachment type" do
-            @thing.photo = uploaded_file_with_content('test.jpg', "\xff\xd8")
+            @thing.photo = uploaded_file('test.jpg')
             @thing.should be_valid
           end
 
           it "should fail if the symbol does not match the Attachment type" do
-            @thing.photo = uploaded_file_with_content('test.avi', "RIFF    AVI ")
+            @thing.photo = uploaded_file('test.mov')
             @thing.should_not be_valid
             @thing.errors.on(:photo).should_not be_blank
           end
@@ -486,6 +486,6 @@ describe Validations do
       end
     end
 
-    it_should_use_i18n_key(:attachment_wrong_type, :matches => /\Aimage/){@thing.photo = uploaded_file_with_content('test.avi', "RIFF    AVI ")}
+    it_should_use_i18n_key(:attachment_wrong_type, :matches => /\Aimage/){@thing.photo = uploaded_file('test.mov')}
   end
 end

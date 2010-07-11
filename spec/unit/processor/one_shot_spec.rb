@@ -5,7 +5,7 @@ describe Processor::OneShot do
 
   before do
     Thing.has_attachment :attachment
-    @thing = Thing.create(:attachment => test_empty_file)
+    @thing = Thing.create(:attachment => uploaded_file('empty.txt'))
   end
 
   def configure(&block)

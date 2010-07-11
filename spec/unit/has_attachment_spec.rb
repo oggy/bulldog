@@ -126,6 +126,10 @@ describe HasAttachment do
   end
 
   describe "object lifecycle" do
+    def test_image_file
+      uploaded_file('test.jpg')
+    end
+
     outline "building a record" do
       with_model_class :Thing do
         spec = self
@@ -303,7 +307,7 @@ describe HasAttachment do
               instantiate
               @thing.photo_file_name.should == 'test.jpg'
               @thing.photo_content_type.split(/;/).first.should == "image/jpeg"
-              @thing.photo_file_size.should == File.size(test_path('test.jpg'))
+              @thing.photo_file_size.should == File.size("#{ROOT}/spec/data/test.jpg")
             end
           end
 
@@ -332,7 +336,7 @@ describe HasAttachment do
               instantiate
               @thing.photo_file_name.should == 'test.jpg'
               @thing.photo_content_type == "image/jpeg"
-              @thing.photo_file_size.should == File.size(test_path('test.jpg'))
+              @thing.photo_file_size.should == File.size("#{ROOT}/spec/data/test.jpg")
             end
 
             describe "when the record is saved" do
@@ -363,7 +367,7 @@ describe HasAttachment do
               @thing.photo = @file
               @thing.photo_file_name.should == 'test.jpg'
               @thing.photo_content_type.split(/;/).first.should == "image/jpeg"
-              @thing.photo_file_size.should == File.size(test_path('test.jpg'))
+              @thing.photo_file_size.should == File.size("#{ROOT}/spec/data/test.jpg")
             end
 
             it "should not create the original file" do
@@ -388,7 +392,7 @@ describe HasAttachment do
 
         describe "when the record exists and there is an attachment" do
           before do
-            @old_file = test_file('test.jpg')
+            @old_file = uploaded_file('test.jpg')
             thing = Thing.create(:photo => @old_file)
             @thing = Thing.find(thing.id)
           end
@@ -405,14 +409,14 @@ describe HasAttachment do
 
           describe "when a new attachment is assigned" do
             before do
-              @new_file = test_file('test.png')
+              @new_file = uploaded_file('test.png')
             end
 
             it "should set the stored attributes" do
               @thing.photo = @new_file
               @thing.photo_file_name.should == 'test.png'
               @thing.photo_content_type.split(/;/).first.should == 'image/png'
-              @thing.photo_file_size.should == File.size(test_path('test.png'))
+              @thing.photo_file_size.should == File.size("#{ROOT}/spec/data/test.png")
             end
 
             it "should not create the new original file yet" do
