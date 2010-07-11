@@ -10,10 +10,8 @@ module Bulldog
       def self.included(base)
         super
         base.class_eval do
-          storable_attribute :width       , :per_style => true, :memoize => true
-          storable_attribute :height      , :per_style => true, :memoize => true
-          storable_attribute :aspect_ratio, :per_style => true, :memoize => true
-          storable_attribute :dimensions  , :per_style => true, :memoize => true, :cast => true
+          storable_attribute :width , :per_style => true, :memoize => true
+          storable_attribute :height, :per_style => true, :memoize => true
         end
       end
 
@@ -22,8 +20,13 @@ module Bulldog
       #
       # +style_name+ defaults to the attribute's #default_style.
       #
-      def width(style_name)
-        dimensions(style_name)[0]
+      def width(style_name=nil)
+        style_name ||= reflection.default_style
+        if style_name.equal?(:original)
+          from_examination :@original_width
+        else
+          dimensions(style_name).at(0)
+        end
       end
 
       #
@@ -31,8 +34,13 @@ module Bulldog
       #
       # +style_name+ defaults to the attribute's #default_style.
       #
-      def height(style_name)
-        dimensions(style_name)[1]
+      def height(style_name=nil)
+        style_name ||= reflection.default_style
+        if style_name.equal?(:original)
+          from_examination :@original_height
+        else
+          dimensions(style_name).at(1)
+        end
       end
 
       #
@@ -40,54 +48,55 @@ module Bulldog
       #
       # +style_name+ defaults to the attribute's #default_style.
       #
-      def aspect_ratio(style_name)
-        width(style_name).to_f / height(style_name)
+      def aspect_ratio(style_name=nil)
+        style_name ||= reflection.default_style
+        if style_name.equal?(:original)
+          original_width = from_examination(:@original_width)
+          original_height = from_examination(:@original_height)
+          original_width.to_f / original_height
+        else
+          w, h = *dimensions(style_name)
+          w.to_f / h
+        end
       end
 
       #
       # Return the width and height of the named style, as a 2-element
       # array.
       #
-      def dimensions
-        raise 'abstract method called'
+      def dimensions(style_name=nil)
+        style_name ||= reflection.default_style
+        if style_name.equal?(:original)
+          original_width = from_examination(:@original_width)
+          original_height = from_examination(:@original_height)
+          [original_width, original_height]
+        else
+          resize_dimensions(dimensions(:original), reflection.styles[style_name])
+        end
       end
 
       protected  # -----------------------------------------------------
 
       #
       # Return the dimensions, as an array [width, height], that
-      # result from resizing +original_dimensions+ to
-      # +target_dimensions+.  If fill is true, assume the final image
-      # will fill the target box.  Otherwise the aspect ratio will be
-      # maintained.
+      # result from resizing +original_dimensions+ for the given
+      # +style+.
       #
-      def resized_dimensions(original_dimensions, target_dimensions, fill)
-        if fill
-          target_dimensions
+      def resize_dimensions(original_dimensions, style)
+        if style.filled?
+          style.dimensions
         else
           original_aspect_ratio = original_dimensions[0].to_f / original_dimensions[1]
-          target_aspect_ratio = target_dimensions[0].to_f / target_dimensions[1]
+          target_aspect_ratio = style.dimensions[0].to_f / style.dimensions[1]
           if original_aspect_ratio > target_aspect_ratio
-            width = target_dimensions[0]
+            width = style.dimensions[0]
             height = (width / original_aspect_ratio).round
           else
-            height = target_dimensions[1]
+            height = style.dimensions[1]
             width = (height * original_aspect_ratio).round
           end
           [width, height]
         end
-      end
-
-      private  # -----------------------------------------------------
-
-      def serialize_dimensions(dimensions)
-        return nil if dimensions.blank?
-        dimensions.join('x')
-      end
-
-      def deserialize_dimensions(string)
-        return nil if string.blank?
-        string.scan(/\d+/).map{|s| s.to_i}
       end
     end
   end

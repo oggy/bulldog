@@ -372,7 +372,7 @@ describe Validations do
       describe "when :matches is given" do
         before do
           Thing.validates_attachment_type_of :photo, :matches => /^image/
-          @thing = Thing.new(:photo => uploaded_file)
+          @thing = Thing.new(:photo => uploaded_file('test.jpg'))
         end
 
         it "should pass if the attachment is nil" do
@@ -396,7 +396,7 @@ describe Validations do
         describe "when the value is a symbol" do
           before do
             Thing.validates_attachment_type_of :photo, :is => :image
-            @thing = Thing.new(:photo => uploaded_file)
+            @thing = Thing.new(:photo => uploaded_file('test.jpg'))
           end
 
           it "should pass if the symbol matches the Attachment type" do
@@ -413,7 +413,7 @@ describe Validations do
 
         describe "when a mime-type string is given" do
           before do
-            @thing = Thing.new(:photo => uploaded_file)
+            @thing = Thing.new(:photo => uploaded_file('test.jpg'))
           end
 
           describe "when the string contains optional parameters" do

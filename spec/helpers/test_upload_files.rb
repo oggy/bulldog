@@ -1,3 +1,4 @@
+# TODO: Replace with Files.
 module TestUploadFiles
   def self.included(mod)
     mod.before{init_test_upload_files}
@@ -5,7 +6,7 @@ module TestUploadFiles
   end
 
   def autoclose(file)
-    @files_to_close << file
+    @upload_files_to_close << file
     file
   end
 
@@ -45,7 +46,7 @@ module TestUploadFiles
   end
 
   # For when it doesn't matter if it's small or large.
-  alias uploaded_file small_uploaded_file
+  #alias uploaded_file small_uploaded_file
 
   def test_image_file(basename='test.jpg')
     path = test_image_path(basename)
@@ -85,11 +86,11 @@ module TestUploadFiles
   private  # ---------------------------------------------------------
 
   def init_test_upload_files
-    @files_to_close = []
+    @upload_files_to_close = []
   end
 
   def close_test_upload_files
-    @files_to_close.each(&:close)
+    @upload_files_to_close.each(&:close)
   end
 
   def content_for_uploaded_file(test_file)

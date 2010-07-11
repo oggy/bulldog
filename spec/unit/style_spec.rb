@@ -48,4 +48,44 @@ describe Style do
       style.inspect.should == "#<Style :big {:size=>\"100x100\"}>"
     end
   end
+
+  describe "#dimensions" do
+    it "should return nil if there is no :size attribute" do
+      style = Style.new(:dimensionless)
+      style.dimensions.should be_nil
+    end
+
+    it "should return the value parsed from the :size attribute" do
+      style = Style.new(:dimensionless, :size => '40x30')
+      style.dimensions.should == [40, 30]
+    end
+
+    describe "when the :size attribute is updated" do
+      before do
+        @style = Style.new(:dimensionless, :size => '40x30')
+      end
+
+      it "should return nil if it was set to nil" do
+        @style[:size] = nil
+        @style.dimensions.should be_nil
+      end
+
+      it "should return the value parsed from the new :size attribute" do
+        @style[:size] = '80x60'
+        @style.dimensions.should == [80, 60]
+      end
+    end
+  end
+
+  describe "#filled?" do
+    it "should return true if the :filled attribute is true" do
+      style = Style.new(:filled, :filled => true)
+      style.should be_filled
+    end
+
+    it "should return false if the :filled attribute is omitted" do
+      style = Style.new(:unfilled)
+      style.should_not be_filled
+    end
+  end
 end

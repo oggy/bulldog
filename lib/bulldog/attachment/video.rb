@@ -2,19 +2,6 @@ module Bulldog
   module Attachment
     class Video < Base
       handle :video
-
-      #
-      # Return the width and height of the named style, as a 2-element
-      # array.
-      #
-      # This runs ffmpeg for, and only for, the original style.
-      #
-      # +style_name+ defaults to the attribute's #default_style.
-      #
-      def dimensions(style_name)
-        video_tracks(style_name).first.dimensions
-      end
-
       include HasDimensions
 
       #
@@ -26,12 +13,7 @@ module Bulldog
       # +style_name+ defaults to the attribute's #default_style.
       #
       def duration(style_name)
-        # TODO: support styles with different durations
-        if stream.missing?
-          0
-        else
-          from_examination :original_duration
-        end
+        from_examination :@original_duration
       end
 
       #
@@ -40,27 +22,18 @@ module Bulldog
       #
       # Each VideoTrack has:
       #
-      #  * <tt>#dimension</tt> - the dimensions of the video track,
-      #    [width, height].
+      #  * <tt>#duration</tt> - the duration of the video track.
+      #  * <tt>#dimensions</tt> - the [width, height] of the video
+      #    track.
       #
       def video_tracks(style_name=nil)
         style_name ||= reflection.default_style
-        if style_name == :original
-          if stream.missing?
-            [VideoTrack.new(:dimensions => [2, 2])]
-          else
-            examine unless @original_video_tracks
-            if @original_video_tracks.empty?
-              @original_video_tracks << VideoTrack.new(:dimensions => [2, 2])
-            end
-            @original_video_tracks
-          end
+        if style_name.equal?(:original)
+          from_examination :@original_video_tracks
         else
           style = reflection.styles[style_name]
-          target_dimensions = style[:size].split(/x/).map{|s| s.to_i}
           video_tracks(:original).map do |video_track|
-            dimensions = resized_dimensions(dimensions(:original), target_dimensions, style[:filled])
-            dimensions.map!{|i| i &= -2}  # some codecs require multiples of 2
+            dimensions = resize_dimensions(dimensions(:original), style)
             VideoTrack.new(:dimensions => dimensions)
           end
         end
@@ -72,12 +45,12 @@ module Bulldog
       #
       # AudioTrack objects do not yet have any useful methods.
       #
-      def audio_tracks(style_name)
+      def audio_tracks(style_name=nil)
         examine
         @original_audio_tracks
       end
 
-      storable_attribute :duration    , :per_style => true, :memoize => true
+      storable_attribute :duration, :per_style => true, :memoize => true
 
       def unload
         super
@@ -95,37 +68,65 @@ module Bulldog
         :ffmpeg
       end
 
+      #
+      # Overridden to round down to multiples of 2, as required by
+      # some codecs.
+      #
+      def resize_dimensions(original_dimensions, style)
+        dimensions = super
+        dimensions.map!{|i| i &= -2}
+      end
+
       private  # -----------------------------------------------------
 
       #
       # Read the original image metadata with ffmpeg.
       #
       def run_examination
-        return false if stream.missing?
-        output = `ffmpeg -i #{stream.path} 2>&1`
-        parse_output(output)
+        if stream.missing?
+          set_defaults
+          false
+        else
+          output = `ffmpeg -i #{stream.path} 2>&1`
+          # ffmpeg exits nonzero - don't bother checking status.
+          parse_output(output)
+          true
+        end
+      end
+
+      def set_defaults
+        @original_duration = 0
+        @original_width = 2
+        @original_height = 2
+        @original_audio_tracks = []
+        @original_video_tracks = []
       end
 
       def parse_output(output)
         result = false
-        @original_duration = 0
-        @original_video_tracks = []
-        @original_audio_tracks = []
+        set_defaults
         io = StringIO.new(output)
         while (line = io.gets)
           case line
           when /^Input #0, (.*?), from '(?:.*)':$/
             result = true
+            duration = nil
           when /^  Duration: (\d+):(\d+):(\d+)\.(\d+)/
-            @original_duration = $1.to_i.hours + $2.to_i.minutes + $3.to_i.seconds
+            duration = $1.to_i.hours + $2.to_i.minutes + $3.to_i.seconds
           when /Stream #(?:.*?): Video: /
             if $' =~ /(\d+)x(\d+)/
               dimensions = [$1.to_i, $2.to_i]
             end
-            @original_video_tracks << VideoTrack.new(:dimensions => dimensions)
+            @original_video_tracks << VideoTrack.new(:dimensions => dimensions, :duration => duration)
           when /Stream #(?:.*?): Audio: (.*?)/
-            @original_audio_tracks << AudioTrack.new
+            @original_audio_tracks << AudioTrack.new(:duration => duration)
           end
+        end
+        if (track = @original_video_tracks.first)
+          @original_width, @original_height = *track.dimensions
+        end
+        if (track = @original_video_tracks.first || @original_audio_tracks.first)
+          @original_duration = track.duration
         end
         result
       end
@@ -136,6 +137,8 @@ module Bulldog
             send("#{name}=", value)
           end
         end
+
+        attr_accessor :duration
       end
 
       class VideoTrack < Track

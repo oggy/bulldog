@@ -13,9 +13,8 @@ describe HasAttachment do
     it "should provide a query method for the attachment" do
       Thing.has_attachment :photo
       thing = Thing.new
-      file = uploaded_file
       thing.photo?.should be_false
-      thing.photo = file
+      thing.photo = uploaded_file('test.jpg')
       thing.photo?.should be_true
     end
 
@@ -71,7 +70,7 @@ describe HasAttachment do
           style :normal
           process(:on => :my_event){calls << 1}
         end
-        thing = Thing.new(:photo => uploaded_file)
+        thing = Thing.new(:photo => uploaded_file('test.jpg'))
         thing.process_attachment(:photo, :my_event)
         calls.should == [1]
       end
@@ -108,7 +107,7 @@ describe HasAttachment do
           style :normal
           process(:on => :my_event, :with => :test){context = self}
         end
-        thing = Thing.new(:photo => uploaded_file)
+        thing = Thing.new(:photo => uploaded_file('test.jpg'))
         thing.process_attachment(:photo, :my_event)
         context.should be_a(Processor::Test)
       end
@@ -120,7 +119,7 @@ describe HasAttachment do
         style :normal
         process(:on => :my_event){context = self}
       end
-      thing = Thing.new(:photo => uploaded_file)
+      thing = Thing.new(:photo => uploaded_file('test.jpg'))
       thing.process_attachment(:photo, :my_event)
       context.should be_a(Processor::Base)
     end
@@ -200,7 +199,7 @@ describe HasAttachment do
       use_model_class(:Thing)
 
       before do
-        @file = uploaded_file('test.jpg', 'test.jpg')
+        @file = uploaded_file('test.jpg')
       end
 
       def configure(&block)
@@ -295,7 +294,7 @@ describe HasAttachment do
         describe "when the record already exists" do
           describe "when a file name is set, and the original file exists" do
             def instantiate
-              file = uploaded_file('test.jpg', 'test.jpg')
+              file = uploaded_file('test.jpg')
               thing = Thing.create(:photo => file)
               @thing = Thing.find(thing.id)
             end
@@ -323,7 +322,7 @@ describe HasAttachment do
 
           describe "when a file name is set, but the original file is missing" do
             def instantiate
-              file = uploaded_file('test.jpg', 'test.jpg')
+              file = uploaded_file('test.jpg')
               @thing = Thing.create(:photo => file)
               File.unlink(original_path)
               @thing = Thing.find(@thing.id)
@@ -357,7 +356,7 @@ describe HasAttachment do
 
           describe "when an attachment is assigned" do
             before do
-              @file = uploaded_file('test.jpg', 'test.jpg')
+              @file = uploaded_file('test.jpg')
             end
 
             it "should set the stored attributes" do
@@ -499,7 +498,7 @@ describe HasAttachment do
       describe "#destroy" do
         describe "when the record is new" do
           before do
-            file = uploaded_file('test.jpg', 'test.jpg')
+            file = uploaded_file('test.jpg')
             @thing = Thing.new(:photo => file)
           end
 
@@ -526,7 +525,7 @@ describe HasAttachment do
 
         describe "when the record existed and had an attachment" do
           before do
-            file = uploaded_file('test.jpg', 'test.jpg')
+            file = uploaded_file('test.jpg')
             thing = Thing.create(:photo => file)
             @thing = Thing.find(thing.id)
           end
@@ -567,7 +566,7 @@ describe HasAttachment do
       Thing.has_attachment :photo do
         path "#{spec.temporary_directory}/:id.jpg"
       end
-      thing = Thing.create(:name => 'old', :photo => uploaded_file)
+      thing = Thing.create(:name => 'old', :photo => uploaded_file('test.jpg'))
       @thing = Thing.find(thing.id)
     end
 
@@ -586,7 +585,7 @@ describe HasAttachment do
       end
 
       it "should return true if a new value has been assigned to the attachment" do
-        @thing.photo = uploaded_file
+        @thing.photo = uploaded_file('test.jpg')
         @thing.photo_changed?.should be_true
       end
     end
@@ -599,7 +598,7 @@ describe HasAttachment do
 
       it "should return a clone of the original value after assignment" do
         original_photo = @thing.photo
-        @thing.photo = uploaded_file
+        @thing.photo = uploaded_file('test.jpg')
         @thing.photo_was.should_not equal(original_photo)
         @thing.photo_was.should == original_photo
       end
@@ -609,7 +608,7 @@ describe HasAttachment do
       it "should return attachment changes along with other attribute changes" do
         old_photo = @thing.photo
         @thing.name = 'new'
-        @thing.photo = uploaded_file
+        @thing.photo = uploaded_file('test.jpg')
         @thing.changes.should == {
           'name' => ['old', 'new'],
           'photo' => [old_photo, @thing.photo],
@@ -619,7 +618,7 @@ describe HasAttachment do
 
     describe "when the record is saved and only attachments have been modified" do
       before do
-        @thing.photo = uploaded_file
+        @thing.photo = uploaded_file('test.jpg')
       end
 
       it "should not hit the database"
@@ -634,7 +633,7 @@ describe HasAttachment do
     describe "#save" do
       before do
         @thing.name = 'new'
-        @thing.photo = uploaded_file
+        @thing.photo = uploaded_file('test.jpg')
       end
 
       it "should clear all changes" do
@@ -674,7 +673,7 @@ describe HasAttachment do
 
         describe "when a file was assigned to the attachment" do
           it "should update ATTACHMENT_updated_at" do
-            @thing.photo = uploaded_file
+            @thing.photo = uploaded_file('test.jpg')
             @thing.save.should be_true
             @thing.photo_updated_at.should == Time.now
           end
@@ -683,7 +682,7 @@ describe HasAttachment do
 
       describe "when the record already exists" do
         before do
-          thing = Thing.create(:photo => uploaded_file('test.jpg', 'test.jpg'))
+          thing = Thing.create(:photo => uploaded_file('test.jpg'))
           @thing = Thing.find(thing.id)
         end
 
@@ -699,7 +698,7 @@ describe HasAttachment do
         describe "when a new file was assigned to the attachment" do
           it "should update ATTACHMENT_updated_at" do
             warp_ahead 1.minute
-            @thing.photo = uploaded_file('test.jpg', 'test.jpg')
+            @thing.photo = uploaded_file('test.jpg')
             @thing.save.should be_true
             @thing.photo_updated_at.should == Time.now
           end

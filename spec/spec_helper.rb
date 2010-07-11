@@ -16,10 +16,11 @@ ROOT = File.dirname( File.dirname(__FILE__) )
 require 'helpers/time_travel'
 require 'helpers/temporary_models'
 require 'helpers/temporary_values'
-require 'helpers/temporary_directory'
+require 'helpers/files'
 require 'helpers/test_upload_files'
 require 'helpers/image_creation'
 require 'matchers/file_operations'
+require 'macros/attachment/has_dimensions_spec'
 
 class Time
   #
@@ -68,8 +69,8 @@ Spec::Runner.configure do |config|
   config.include TimeTravel
   config.include TemporaryModels
   config.include TemporaryValues
-  config.include TemporaryDirectory
-  config.include TestUploadFiles
+  config.include Files
+  config.include TestUploadFiles  # obsolete
   config.include ImageCreation
   config.include Matchers
   config.include SpecHelper

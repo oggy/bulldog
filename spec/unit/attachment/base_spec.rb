@@ -365,13 +365,13 @@ describe Attachment::Base do
 
     before do
       Thing.has_attachment :photo
-      @thing = Thing.new(:photo => uploaded_file_with_content('test.jpg', "\xff\xd8"))
+      @thing = Thing.new(:photo => uploaded_file('test.jpg'))
     end
 
     it "should set the stored attributes on assignment" do
       @thing.photo_file_name.should == 'test.jpg'
-      @thing.photo_file_size.should == 2
-      @thing.photo_content_type.should =~ /image\/jpeg/
+      @thing.photo_file_size.should == File.size('spec/data/test.jpg')
+      @thing.photo_content_type.should include('image/jpeg')
     end
 
     it "should successfully roundtrip the stored attributes" do
@@ -379,8 +379,8 @@ describe Attachment::Base do
       @thing.save
       @thing = Thing.find(@thing.id)
       @thing.photo_file_name.should == 'test.jpg'
-      @thing.photo_file_size.should == 2
-      @thing.photo_content_type.should =~ /image\/jpeg/
+      @thing.photo_file_size.should == File.size('spec/data/test.jpg')
+      @thing.photo_content_type.should include('image/jpeg')
     end
   end
 end

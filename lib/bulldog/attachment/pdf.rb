@@ -2,28 +2,6 @@ module Bulldog
   module Attachment
     class Pdf < Base
       handle :pdf
-
-      #
-      # Return the width and height of the named style, as a 2-element
-      # array.
-      #
-      # For :original, this is based on the output of ImageMagick's
-      # <tt>identify</tt> command.  Other styles are calculated from
-      # the original style's dimensions, plus the style's :size and
-      # :filled attributes.
-      #
-      # +style_name+ defaults to the attribute's #default_style.
-      #
-      def dimensions(style_name)
-        if style_name.equal?(:original)
-          from_examination :original_dimensions
-        else
-          style = reflection.styles[style_name]
-          target_dimensions = style[:size].split(/x/).map{|s| s.to_i}
-          resized_dimensions(dimensions(:original), target_dimensions, style[:filled])
-        end
-      end
-
       include HasDimensions
 
       protected  # ---------------------------------------------------
@@ -41,18 +19,15 @@ module Bulldog
       #
       def run_examination
         if stream.missing?
-          @original_dimensions = [1, 1]
+          @original_width, @original_height = 1, 1
           false
         else
-          output = `identify -format "%w %h %[exif:Orientation]" #{stream.path}[0] 2> /dev/null`
+          output = `identify -format "%w %h" #{stream.path}[0] 2> /dev/null`
           if $?.success? && output.present?
-            width, height, orientation = *output.scan(/(\d+) (\d+) (\d?)/).first.map{|s| s.to_i}
-            rotated = (orientation & 0x4).nonzero?
-            @original_dimensions ||= rotated ? [height, width] : [width, height]
+            @original_width, @original_height = *output.scan(/(\d+) (\d+)/).first.map{|s| s.to_i}
             true
           else
             Bulldog.logger.warn "command failed (#{$?.exitstatus})"
-            @original_dimensions = [1, 1]
             false
           end
         end

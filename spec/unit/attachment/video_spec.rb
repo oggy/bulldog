@@ -1,212 +1,140 @@
 require 'spec_helper'
 
 describe Attachment::Video do
-  use_model_class(:Thing,
-                  :video_file_name => :string,
-                  :video_width => :integer,
-                  :video_height => :integer,
-                  :video_aspect_ratio => :float,
-                  :video_dimensions => :string,
-                  :video_duration => :string)
+  it_should_behave_like_an_attachment_with_dimensions(
+    :type => :video,
+    :missing_dimensions => [2, 2],
+    :file_40x30 => 'test-40x30x1.mov',
+    :file_20x10 => 'test-20x10x1.mov'
+  )
 
-  before do
-    Thing.has_attachment :video do
-      # original video is 640x480.
-      style :half, :size => '320x240'
-      style :filled, :size => '60x60', :filled => true
-      style :unfilled, :size => '120x120'
-      default_style :half
-    end
-    @thing = Thing.new(:video => test_file)
-  end
+  describe "when instantiated" do
+    use_model_class(:Thing, :attachment_file_name => :string)
 
-  def test_file
-    path = "#{temporary_directory}/test.mov"
-    FileUtils.cp("#{ROOT}/spec/data/test.mov", path)
-    autoclose open(path)
-  end
-
-  def run(command)
-    `#{command}`
-    $?.success? or
-      raise "command failed: #{command}"
-  end
-
-  describe "#dimensions" do
-    it "should return 2x2 if the style is missing" do
-      Thing.attachment_reflections[:video].configure do
-        detect_type_by{:video}
+    before do
+      Thing.has_attachment :attachment do
+        style :double, :size => '80x60'
+        style :filled, :size => '60x60', :filled => true
+        style :unfilled, :size => '120x120'
+        default_style :double
       end
-      @thing.save.should be_true
-      File.unlink(@thing.video.path(:original))
-      @thing = Thing.find(@thing.id)
-      @thing.video.is_a?(Attachment::Video)  # sanity check
-      @thing.video.stream.missing?           # sanity check
-      @thing.video.dimensions(:original).should == [2, 2]
+      @thing = Thing.new(:attachment => uploaded_file('test-40x30x1.mov'))
     end
 
-    it "should return the width and height of the default style if no style name is given" do
-      @thing.video.dimensions.should == [320, 240]
+    describe "#dimensions" do
+      it "should round calculated dimensions down to the nearest multiple of 2" do
+        Thing.has_attachment :attachment do
+          style :odd, :size => '59x59', :filled => true
+        end
+        @thing.attachment.dimensions(:odd).should == [58, 58]
+      end
     end
 
-    it "should return the width and height of the given style" do
-      @thing.video.dimensions(:original).should == [640, 480]
-      @thing.video.dimensions(:half).should == [320, 240]
+    describe "#duration" do
+      it "should return the duration of the given style" do
+        @thing.attachment.duration(:original).should == 1.second
+        # TODO: Add video slicing, and make duration return the correct duration.
+        @thing.attachment.duration(:double).should == 1.second
+      end
+
+      it "should use the default style if no style is given"
     end
 
-    it "should return the calculated width according to style filledness" do
-      @thing.video.dimensions(:filled).should == [60, 60]
-      @thing.video.dimensions(:unfilled).should == [120, 90]
+    describe "#video_tracks" do
+      it "should return the video tracks of the given style" do
+        @thing.attachment.video_tracks(:original).should have(1).video_track
+        @thing.attachment.video_tracks(:original).first.dimensions.should == [40, 30]
+      end
+
+      it "should take into account filledness of the style" do
+        @thing.attachment.video_tracks(:original).should have(1).video_track
+        @thing.attachment.video_tracks(:original).first.dimensions.should == [40, 30]
+      end
+
+      it "should use the default style if no style is given" do
+        @thing.attachment.video_tracks.should have(1).video_track
+        @thing.attachment.video_tracks.first.dimensions.should == [80, 60]
+      end
     end
 
-    it "should round calculated dimensions down to the nearest multiple of 2" do
-      # TODO: ick!
-      Thing.attachment_reflections[:video].styles[:filled][:size] = '59x59'
-      @thing.video.dimensions(:filled).should == [58, 58]
-    end
+    describe "#audio_tracks" do
+      it "should return the audio tracks of the given style" do
+        @thing.attachment.audio_tracks(:original).should have(1).audio_track
+        @thing.attachment.audio_tracks(:original).first.duration.should == 1
+      end
 
-    it "should only invoke ffmpeg once"
-    it "should log the result"
-  end
-
-  describe "#width" do
-    it "should return the width of the default style if no style name is given" do
-      @thing.video.width.should == 320
-    end
-
-    it "should return the width of the given style" do
-      @thing.video.width(:original).should == 640
-      @thing.video.width(:half).should == 320
-    end
-  end
-
-  describe "#height" do
-    it "should return the height of the default style if no style name is given" do
-      @thing.video.height.should == 240
-    end
-
-    it "should return the height of the given style" do
-      @thing.video.height(:original).should == 480
-      @thing.video.height(:half).should == 240
+      it "should use the default style if no style is given" do
+        @thing.attachment.audio_tracks.should have(1).audio_track
+        @thing.attachment.audio_tracks.first.duration.should == 1
+      end
     end
   end
 
-  describe "#aspect_ratio" do
-    it "should return the aspect ratio of the default style if no style name is given" do
-      @thing.video.aspect_ratio.should be_close(4.0/3, 1e-5)
+  describe "when the duration is stored" do
+    use_model_class(:Thing, :attachment_file_name => :string, :attachment_duration => :integer)
+
+    before do
+      Thing.has_attachment :attachment do
+        type :video
+        style :double, :size => '80x60'
+      end
     end
 
-    it "should return the aspect ratio of the given style" do
-      @thing.video.aspect_ratio(:original).should be_close(4.0/3, 1e-5)
-      @thing.video.aspect_ratio(:filled).should be_close(1, 1e-5)
-    end
-  end
-
-  describe "#duration" do
-    it "should return the duration of the original style if no style name is given" do
-      @thing.video.duration.should == 1.second
-    end
-
-    it "should return the duration of the original style if a style name is given" do
-      @thing.video.duration(:filled).should == 1.second
-    end
-
-    # TODO: make these work instead of the above
-    it "should return the duration of the default style if no style name is given"
-    it "should return the duration of the given style"
-  end
-
-  describe "#video_tracks" do
-    it "should return the video tracks of the original style if no style name is given" do
-      @thing.video.video_tracks.should have(1).video_track
-      @thing.video.video_tracks.first.dimensions.should == [320, 240]
-    end
-
-    it "should return the video tracks of the target style if a style name is given" do
-      @thing.video.video_tracks(:original).should have(1).video_track
-      @thing.video.video_tracks(:original).first.dimensions.should == [640, 480]
-
-      @thing.video.video_tracks(:filled).should have(1).video_track
-      @thing.video.video_tracks(:filled).first.dimensions.should == [60, 60]
-    end
-  end
-
-  describe "#audio_tracks" do
-    it "should return the audio tracks of the original style if no style name is given" do
-      @thing.video.video_tracks.should have(1).video_track
-      @thing.video.video_tracks.first.dimensions.should == [320, 240]
-    end
-
-    it "should return the audio tracks of the target style if a style name is given" do
-      @thing.video.video_tracks(:original).should have(1).video_track
-      @thing.video.video_tracks(:original).first.dimensions.should == [640, 480]
-
-      @thing.video.video_tracks(:filled).should have(1).video_track
-      @thing.video.video_tracks(:filled).first.dimensions.should == [60, 60]
-    end
-  end
-
-  describe "storable attributes" do
-    it "should set the stored attributes on assignment" do
-      @thing.video_width.should == 640
-      @thing.video_height.should == 480
-      @thing.video_aspect_ratio.should be_close(4.0/3, 1e-5)
-      @thing.video_dimensions.should == '640x480'
-    end
-
-    describe "after roundtripping through the database" do
+    describe "when the stored values are hacked, and the record reinstantiated" do
       before do
-        @thing.save
+        @thing = Thing.create!(:attachment => uploaded_file('test-40x30x1.mov'))
+        Thing.update_all({:attachment_duration => 2}, {:id => @thing.id})
         @thing = Thing.find(@thing.id)
       end
 
-      it "should restore the stored attributes" do
-        @thing.video_width.should == 640
-        @thing.video_height.should == 480
-        @thing.video_aspect_ratio.should be_close(4.0/3, 1e-5)
-        @thing.video_dimensions.should == '640x480'
+      it "should use the stored duration for the original" do
+        @thing.attachment.duration(:original).should == 2
       end
 
-      it "should recalculate the dimensions correctly" do
-        @thing.video.dimensions(:filled).should == [60, 60]
-        @thing.video.dimensions(:unfilled).should == [120, 90]
+      it "should calculate the duration of other styles from that of the original" do
+        @thing.attachment.duration(:double).should == 2
       end
     end
   end
 
-  describe "#reload" do
+  describe "when the duration is not stored" do
+    use_model_class(:Thing, :attachment_file_name => :string)
+
     before do
-      thing = Thing.create(:video => test_video_file('test.mov'))
-      @thing = Thing.find(thing.id)
+      Thing.has_attachment :attachment do
+        type :video
+        style :double, :size => '80x60'
+      end
     end
 
-    it "should update the stored attributes from the file" do
-      # Prime the cached values.
-      @thing.video_width.should == 640
-      @thing.video_height.should == 480
-      @thing.video_aspect_ratio.should be_close(4.0/3, 1e-5)
-      @thing.video_dimensions.should == '640x480'
+    describe "when the file is missing" do
+      before do
+        @thing = Thing.create!(:attachment => uploaded_file('test-40x30x1.mov'))
+        File.unlink(@thing.attachment.path(:original))
+        @thing = Thing.find(@thing.id)
+      end
 
-      FileUtils.cp(test_path('test.ogg'), @thing.video.path(:original))
-      @thing.video.reload
-      @thing.video_width.should == 176
-      @thing.video_height.should == 144
-      @thing.video_aspect_ratio.should == 176.0/144
-      @thing.video_dimensions.should == '176x144'
-    end
+      describe "#duration" do
+        it "should return 0 for the original style" do
+          @thing.attachment.duration(:original).should == 0
+        end
 
-    it "should update the original dimensions from the file" do
-      @thing.video.dimensions(:original).should == [640, 480]
-      FileUtils.cp(test_path('test.ogg'), @thing.video.path(:original))
-      @thing.video.reload
-      @thing.video.dimensions(:original).should == [176, 144]
-    end
+        it "should calculate the duration of other styles from that of the original" do
+          @thing.attachment.duration(:double).should == 0
+        end
+      end
 
-    it "should update the dimensions for each style from the file" do
-      @thing.video.dimensions(:half).should == [320, 240]
-      FileUtils.cp(test_path('test.ogg'), @thing.video.path(:original))
-      @thing.video.reload
-      @thing.video.dimensions(:half).should == [292, 240]
+      describe "#video_tracks" do
+        it "should return no video tracks" do
+          @thing.attachment.video_tracks.should have(0).video_tracks
+        end
+      end
+
+      describe "#audio_tracks" do
+        it "should return no audio tracks" do
+          @thing.attachment.audio_tracks.should have(0).audio_tracks
+        end
+      end
     end
   end
 end

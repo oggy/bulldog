@@ -1,199 +1,76 @@
 require 'spec_helper'
 
 describe Attachment::Image do
-  def run(command)
-    `#{command}`
-    $?.success? or
-      raise "command failed: #{command}"
-  end
+  it_should_behave_like_an_attachment_with_dimensions(
+    :type => :image,
+    :missing_dimensions => [1, 1],
+    :file_40x30 => 'test-40x30.jpg',
+    :file_20x10 => 'test-20x10.jpg'
+  )
 
-  describe "when file attributes are not stored" do
-    use_model_class(:Thing, :photo_file_name => :string)
-
-    describe "#dimensions" do
-      it "should return 1x1 if the file is missing" do
-        Thing.has_attachment :photo do
-          type :image
-          style :double, :size => '80x60'
-          style :filled, :size => '60x60', :filled => true
-          style :unfilled, :size => '120x120'
-          default_style :double
-        end
-        @thing = Thing.new(:photo => test_image_file)
-        @thing.save.should be_true
-        File.unlink(@thing.photo.path(:original))
-        @thing = Thing.find(@thing.id)
-        @thing.photo.is_a?(Attachment::Image)  # sanity check
-        @thing.photo.stream.missing?           # sanity check
-        @thing.photo.dimensions(:original).should == [1, 1]
-      end
-    end
-  end
-
-  describe "when file attributes are stored" do
-    use_model_class(:Thing,
-                    :photo_file_name => :string,
-                    :photo_width => :integer,
-                    :photo_height => :integer,
-                    :photo_aspect_ratio => :float,
-                    :photo_dimensions => :string)
+  describe "#process" do
+    use_model_class(:Thing, :attachment_file_name => :string)
 
     before do
-      Thing.has_attachment :photo do
-        style :double, :size => '80x60'
-        style :filled, :size => '60x60', :filled => true
-        style :unfilled, :size => '120x120'
-        default_style :double
-      end
-      @thing = Thing.new(:photo => test_image_file)
+      Thing.has_attachment :attachment
+      @thing = Thing.new(:attachment => uploaded_file('test.jpg'))
     end
 
-    describe "#dimensions" do
-      it "should return the width and height of the default style if no style name is given" do
-        @thing.photo.dimensions.should == [80, 60]
-      end
-
-      it "should return the width and height of the given style" do
-        @thing.photo.dimensions(:original).should == [40, 30]
-        @thing.photo.dimensions(:double).should == [80, 60]
-      end
-
-      it "should return the calculated width according to style filledness" do
-        @thing.photo.dimensions(:filled).should == [60, 60]
-        @thing.photo.dimensions(:unfilled).should == [120, 90]
-      end
-
-      describe "when an exif:Orientation header is set" do
-        before do
-          @path = create_image("#{temporary_directory}/test.jpg", :size => '40x30')
-          @rotated_path = "#{temporary_directory}/rotated-test.jpg"
-        end
-
-        attr_reader :path, :rotated_path
-
-        def set_header(value)
-          run "exif --create-exif --ifd=EXIF --tag=Orientation --set-value=#{value} --output=#{rotated_path} #{path}"
-        end
-
-        it "should not swap the dimensions if the value is between 1 and 4" do
-          (1..4).each do |value|
-            set_header value
-            open(rotated_path) do |file|
-              @thing.photo = file
-              @thing.photo.dimensions(:original).should == [40, 30]
-            end
-          end
-        end
-
-        it "should swap the dimensions if the value is between 5 and 8" do
-          (5..8).each do |value|
-            set_header value
-            open(rotated_path) do |file|
-              @thing.photo = file
-              @thing.photo.dimensions(:original).should == [30, 40]
-            end
-          end
+    it "should process with ImageMagick by default" do
+      context = nil
+      Thing.has_attachment :attachment do
+        style :output
+        process :on => :event do
+          context = self
         end
       end
 
-      it "should only invoke identify once"
-      it "should log the result"
+      @thing.attachment.process(:event)
+      context.should be_a(Processor::ImageMagick)
+    end
+  end
+
+  describe "when an exif:Orientation header is set" do
+    use_model_class(:Thing, :attachment_file_name => :string)
+
+    before do
+      Thing.has_attachment :attachment
     end
 
-    describe "#width" do
-      it "should return the width of the default style if no style name is given" do
-        @thing.photo.width.should == 80
-      end
-
-      it "should return the width of the given style" do
-        @thing.photo.width(:original).should == 40
-        @thing.photo.width(:double).should == 80
-      end
+    before do
+      @path = temporary_path('test-40x30.jpg')
+      @thing = Thing.new
     end
 
-    describe "#height" do
-      it "should return the height of the default style if no style name is given" do
-        @thing.photo.height.should == 60
-      end
-
-      it "should return the height of the given style" do
-        @thing.photo.height(:original).should == 30
-        @thing.photo.height(:double).should == 60
-      end
+    def run(command)
+      output = `#{command} 2>&1`
+      $?.success? or
+        raise "command failed: #{command}\noutput: #{output}"
     end
 
-    describe "#aspect_ratio" do
-      it "should return the aspect ratio of the default style if no style name is given" do
-        @thing.photo.aspect_ratio.should be_close(4.0/3, 1e-5)
-      end
-
-      it "should return the aspect ratio of the given style" do
-        @thing.photo.aspect_ratio(:original).should be_close(4.0/3, 1e-5)
-        @thing.photo.aspect_ratio(:filled).should be_close(1, 1e-5)
-      end
+    def set_header(path, value)
+      tmp = "#{temporary_directory}/exif-tmp.jpg"
+      run "exif --create-exif --ifd=EXIF --tag=Orientation --set-value=#{value} --output=#{tmp} #{path}"
+      File.rename(tmp, path)
     end
 
-    describe "storable attributes" do
-      it "should set the stored attributes on assignment" do
-        @thing.photo_width.should == 40
-        @thing.photo_height.should == 30
-        @thing.photo_aspect_ratio.should be_close(4.0/3, 1e-5)
-        @thing.photo_dimensions.should == '40x30'
-      end
-
-      describe "after roundtripping through the database" do
-        before do
-          @thing.save
-          @thing = Thing.find(@thing.id)
-        end
-
-        it "should restore the stored attributes" do
-          @thing.photo_width.should == 40
-          @thing.photo_height.should == 30
-          @thing.photo_aspect_ratio.should be_close(4.0/3, 1e-5)
-          @thing.photo_dimensions.should == '40x30'
-        end
-
-        it "should recalculate the dimensions correctly" do
-          @thing.photo.dimensions(:filled).should == [60, 60]
-          @thing.photo.dimensions(:unfilled).should == [120, 90]
+    it "should not swap the dimensions if the value is between 1 and 4" do
+      (1..4).each do |value|
+        set_header @path, value
+        open(@path) do |file|
+          @thing.attachment = file
+          @thing.attachment.dimensions(:original).should == [40, 30]
         end
       end
     end
 
-    describe "#reload" do
-      before do
-        thing = Thing.create(:photo => test_image_file('test.jpg'))
-        @thing = Thing.find(thing.id)
-      end
-
-      it "should update the stored attributes from the file" do
-        # Prime the cached values.
-        @thing.photo_width.should == 40
-        @thing.photo_height.should == 30
-        @thing.photo_aspect_ratio.should be_close(4.0/3, 1e-5)
-        @thing.photo_dimensions.should == '40x30'
-
-        FileUtils.cp(test_path('test2.jpg'), @thing.photo.path(:original))
-        @thing.photo.reload
-        @thing.photo_width.should == 2
-        @thing.photo_height.should == 2
-        @thing.photo_aspect_ratio.should == 1
-        @thing.photo_dimensions.should == '2x2'
-      end
-
-      it "should update the original dimensions from the file" do
-        @thing.photo.dimensions(:original).should == [40, 30]
-        FileUtils.cp(test_path('test2.jpg'), @thing.photo.path(:original))
-        @thing.photo.reload
-        @thing.photo.dimensions(:original).should == [2, 2]
-      end
-
-      it "should update the dimensions for each style from the file" do
-        @thing.photo.dimensions(:double).should == [80, 60]
-        FileUtils.cp(test_path('test2.jpg'), @thing.photo.path(:original))
-        @thing.photo.reload
-        @thing.photo.dimensions(:double).should == [60, 60]
+    it "should swap the dimensions if the value is between 5 and 8" do
+      (5..8).each do |value|
+        set_header @path, value
+        open(@path) do |file|
+          @thing.attachment = file
+          @thing.attachment.dimensions(:original).should == [30, 40]
+        end
       end
     end
   end

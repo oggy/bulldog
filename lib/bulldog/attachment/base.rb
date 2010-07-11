@@ -143,13 +143,10 @@ module Bulldog
       end
 
       #
-      # Return the value of the given attribute from an instance
-      # variable set during file examination.
+      # Return the value of the given instance variable, running a
+      # file examination first if necessary.
       #
-      # If not set, runs a file examination first.
-      #
-      def from_examination(name)
-        ivar = :"@#{name}"
+      def from_examination(ivar)
         value = instance_variable_get(ivar) and
           return value
         examine
