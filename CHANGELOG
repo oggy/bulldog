@@ -1,4 +1,4 @@
-== LATEST
+== 0.2.0 2010-07-14
 
  * Remove dimensions and aspect ratio as a storable attributes. Store
    width and height instead.
