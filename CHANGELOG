@@ -1,4 +1,4 @@
-== LATEST
+== 0.2.1 2010-07-15
 
  * Path/URL templates may be symbols specifying methods to call to
    generate the path/URL. Method is passed attachment name and style.
