@@ -1,3 +1,8 @@
+== LATEST
+
+ * Path/URL templates may be symbols specifying methods to call to
+   generate the path/URL. Method is passed attachment name and style.
+
 == 0.2.0 2010-07-14
 
  * Remove dimensions and aspect ratio as a storable attributes. Store

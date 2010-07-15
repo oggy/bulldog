@@ -152,7 +152,11 @@ module Bulldog
       def interpolate_path(style_name, params={})
         template = reflection.path_template
         style = reflection.styles[style_name]
-        Interpolation.interpolate(template, record, name, style, params)
+        if template.is_a?(Symbol)
+          record.send(template, name, style)
+        else
+          Interpolation.interpolate(template, record, name, style, params)
+        end
       end
 
       #
@@ -166,7 +170,11 @@ module Bulldog
       def interpolate_url(style_name, params={})
         template = reflection.url_template
         style = reflection.styles[style_name]
-        Interpolation.interpolate(template, record, name, style, params)
+        if template.is_a?(Symbol)
+          record.send(template, name, style)
+        else
+          Interpolation.interpolate(template, record, name, style, params)
+        end
       end
 
       protected  # ---------------------------------------------------
