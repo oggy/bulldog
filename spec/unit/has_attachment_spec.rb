@@ -51,6 +51,26 @@ describe HasAttachment do
     end
   end
 
+  describe "assigning to an attachment" do
+    use_model_class(:Thing)
+
+    describe "when assigning an existing attachment" do
+      before do
+        Thing.has_attachment :photo
+        @existing_thing = Thing.new(:photo => uploaded_file('test.jpg'))
+        @thing = Thing.new(:photo => @existing_thing.photo)
+      end
+
+      it "should make a copy of the attachment" do
+        @thing.photo.value.should == @existing_thing.photo.value
+      end
+
+      it "should ensure the copy points to the new record" do
+        @thing.photo.record.should equal(@thing)
+      end
+    end
+  end
+
   describe ".attachment_reflections" do
     use_model_class(:Thing)
 

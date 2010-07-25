@@ -126,6 +126,7 @@ module Bulldog
 
       def make_attachment_for(name, value)
         return Attachment.none(self, name) if value.nil?
+        return value.copy_for(self) if value.is_a?(Attachment::Maybe)
         stream = Stream.new(value)
         reflection = attachment_reflection_for(name)
         type = reflection.detect_attachment_type(self, stream)

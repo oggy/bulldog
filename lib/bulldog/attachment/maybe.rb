@@ -12,6 +12,13 @@ module Bulldog
         @saved = @value.is_a?(SavedFile) || @value.is_a?(MissingFile)
       end
 
+      #
+      # Return a copy of this attachment for the given record.
+      #
+      def copy_for(record)
+        self.class.new(record, name, stream)
+      end
+
       attr_reader :record, :name, :stream, :value
 
       #
