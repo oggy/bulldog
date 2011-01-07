@@ -1,4 +1,4 @@
-== LATEST
+== 0.2.4 2011-01-07
 
  * Support alias_method_chain on base attachments when extended in
    subclasses.
