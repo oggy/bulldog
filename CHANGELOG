@@ -1,3 +1,8 @@
+== LATEST
+
+ * Support alias_method_chain on base attachments when extended in
+   subclasses.
+
 == 0.2.3 2011-01-06
 
  * #process accepts an :input_file option.

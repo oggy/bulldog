@@ -29,7 +29,7 @@ describe HasAttachment do
       Thing.attachment_reflections[:photo].styles[:two].should_not be_blank
     end
 
-    describe "when an attachment is inherited" do
+    describe "when an attachment is extended in a subclass" do
       use_model_class(:Parent)
 
       before do
@@ -41,12 +41,21 @@ describe HasAttachment do
 
       use_model_class(:Child => :Parent)
 
-      it "should not affect the superclasses' attachment" do
+      before do
         Child.has_attachment :photo do
           style :two
         end
+      end
+
+      it "should not affect the superclasses' attachment" do
         Child.attachment_reflections[:photo].styles[:two].should_not be_blank
         Parent.attachment_reflections[:photo].styles[:two].should be_blank
+      end
+
+      it "should not define accessors in the subclass, so alias_method_chain can be used in the abstract class" do
+        Child.public_instance_methods(false).map{|s| s.to_sym}.should_not include(:photo)
+        Child.public_instance_methods(false).map{|s| s.to_sym}.should_not include(:photo=)
+        Child.public_instance_methods(false).map{|s| s.to_sym}.should_not include(:photo?)
       end
     end
   end

@@ -13,9 +13,11 @@ module Bulldog
 
       reflection = attachment_reflections[name] || Reflection.new(self, name)
       reflection.configure(&block)
-      attachment_reflections[name] = reflection
-      define_attachment_accessors(reflection.name)
-      define_attachment_attribute_methods(reflection.name)
+      unless attachment_reflections.key?(name)
+        attachment_reflections[name] = reflection
+        define_attachment_accessors(reflection.name)
+        define_attachment_attribute_methods(reflection.name)
+      end
     end
 
     module InstanceMethods
