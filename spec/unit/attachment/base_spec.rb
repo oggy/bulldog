@@ -293,6 +293,19 @@ describe Attachment::Base do
         thing.attachment.process(:event).should be_false
       end
     end
+
+    it "should use the given input path, if any" do
+      input_file = nil
+      Thing.has_attachment :attachment do
+        style :normal
+        process :on => :test_event do
+          input_file = self.input_file
+        end
+      end
+      thing = Thing.new(:attachment => uploaded_file('test.jpg'))
+      thing.attachment.process(:test_event, :input => '/path/to/file')
+      input_file.should == '/path/to/file'
+    end
   end
 
   describe "#process!" do

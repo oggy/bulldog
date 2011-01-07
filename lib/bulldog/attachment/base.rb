@@ -27,7 +27,7 @@ module Bulldog
           end
           processor_type = event.processor_type || default_processor_type
           processor_class = Processor.const_get(processor_type.to_s.camelize)
-          processor = processor_class.new(self, stream.path)
+          processor = processor_class.new(self, options[:input] || stream.path)
           styles = reflection.styles
           names = options[:styles] || event.styles and
             styles = reflection.styles.slice(*names)
