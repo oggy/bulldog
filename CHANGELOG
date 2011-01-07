@@ -1,4 +1,4 @@
-== LATEST
+== 0.2.3 2011-01-06
 
  * #process accepts an :input_file option.
 
